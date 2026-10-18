@@ -1,0 +1,46 @@
+|--- razao_ger_consumo <= 1.24
+|   |--- tarifa_kwh <= 1.13
+|   |   |--- tarifa_kwh <= 0.94
+|   |   |   |--- ger_esp_anual <= 1524.10
+|   |   |   |   |--- class: Retorno lento
+|   |   |   |--- ger_esp_anual >  1524.10
+|   |   |   |   |--- class: Retorno médio
+|   |   |--- tarifa_kwh >  0.94
+|   |   |   |--- ger_esp_anual <= 1606.29
+|   |   |   |   |--- class: Retorno médio
+|   |   |   |--- ger_esp_anual >  1606.29
+|   |   |   |   |--- class: Retorno médio
+|   |--- tarifa_kwh >  1.13
+|   |   |--- custo_kwp_efetivo <= 2347.31
+|   |   |   |--- razao_ger_consumo <= 1.10
+|   |   |   |   |--- class: Retorno rápido
+|   |   |   |--- razao_ger_consumo >  1.10
+|   |   |   |   |--- class: Retorno médio
+|   |   |--- custo_kwp_efetivo >  2347.31
+|   |   |   |--- ger_esp_anual <= 1524.10
+|   |   |   |   |--- class: Retorno médio
+|   |   |   |--- ger_esp_anual >  1524.10
+|   |   |   |   |--- class: Retorno rápido
+|--- razao_ger_consumo >  1.24
+|   |--- tarifa_kwh <= 1.12
+|   |   |--- razao_ger_consumo <= 1.37
+|   |   |   |--- tarifa_kwh <= 1.01
+|   |   |   |   |--- class: Retorno lento
+|   |   |   |--- tarifa_kwh >  1.01
+|   |   |   |   |--- class: Retorno médio
+|   |   |--- razao_ger_consumo >  1.37
+|   |   |   |--- ger_esp_anual <= 1588.75
+|   |   |   |   |--- class: Retorno lento
+|   |   |   |--- ger_esp_anual >  1588.75
+|   |   |   |   |--- class: Retorno lento
+|   |--- tarifa_kwh >  1.12
+|   |   |--- razao_ger_consumo <= 1.44
+|   |   |   |--- custo_kwp_efetivo <= 2277.59
+|   |   |   |   |--- class: Retorno médio
+|   |   |   |--- custo_kwp_efetivo >  2277.59
+|   |   |   |   |--- class: Retorno médio
+|   |   |--- razao_ger_consumo >  1.44
+|   |   |   |--- ger_esp_anual <= 1560.15
+|   |   |   |   |--- class: Retorno lento
+|   |   |   |--- ger_esp_anual >  1560.15
+|   |   |   |   |--- class: Retorno médio

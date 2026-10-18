@@ -1,0 +1,13 @@
+{
+  "variaveis": [
+    "ghi",
+    "fracao_difusa",
+    "temp_media"
+  ],
+  "intercepto": 3.824811937415694,
+  "coeficientes": {
+    "ghi": 0.3833221507000626,
+    "fracao_difusa": -3.414855444893679,
+    "temp_media": -0.012222435419528646
+  }
+}

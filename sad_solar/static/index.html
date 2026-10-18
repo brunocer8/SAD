@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SAD Solar PME Bahia</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--sol:#F7B500;--dende:#E8590C;--mar:#0B3C5D;--mar2:#1D6A96;--areia:#FFF8EC;--txt:#1c2b36}
+body{font-family:Poppins,system-ui,sans-serif;margin:0;background:var(--areia);color:var(--txt)}
+header{background:linear-gradient(90deg,var(--mar),var(--mar2));color:#fff;padding:10px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-bottom:4px solid var(--sol)}
+header h2{margin:0;font-size:18px;flex:1;display:flex;align-items:center;gap:10px}header h2 small{display:block;font-weight:400;font-size:11px;color:#cfe6f5}
+nav button{background:none;border:0;color:#cfe6f5;font:600 14px Poppins;cursor:pointer;padding:8px 12px}nav button.on{color:#fff;border-bottom:3px solid var(--sol)}
+main{max-width:1040px;margin:auto;padding:18px}.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0b3c5d14}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px}
+input,select,button{padding:10px;font:15px Poppins;border:1px solid #d6dde3;border-radius:10px}
+.bt{background:var(--dende);color:#fff;border:0;border-radius:999px;cursor:pointer;font-weight:600;padding:10px 20px}.bt:hover{background:#c94a07}.bt.sec{background:#e8eef2;color:var(--mar)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.kpi{background:#FFF3D6;border-left:5px solid var(--sol);border-radius:10px;padding:10px;font-size:13px}.kpi b{display:block;font-size:20px;color:var(--mar)}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(--mar)}.hide{display:none!important}small{color:#5b6b78}
+.login{position:fixed;inset:0;z-index:50;overflow:auto;display:flex;color:#fff;background:var(--mar)}
+#bg{position:fixed;inset:0;width:100%;height:100%;display:block}
+.lw{position:relative;z-index:1;width:100%;max-width:1120px;margin:auto;padding:28px 24px}
+.marca{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;margin-bottom:34px}.marca small{display:block;font-weight:400;font-size:11px;color:#cfe6f5}
+.lg{display:grid;grid-template-columns:1.3fr 1fr;gap:56px;align-items:center}
+.lg h1{font-size:clamp(30px,4.2vw,52px);line-height:1.15;margin:0 0 14px;text-shadow:0 2px 18px #0b3c5d66}.lg p{color:#e3f1fb;font-size:17px;line-height:1.6;max-width:560px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chips span{background:#ffffff26;border-radius:999px;padding:6px 12px;font-size:12px;backdrop-filter:blur(4px)}
+.lg .card{color:var(--txt);margin:0;background:#fffffff2;padding:26px;box-shadow:0 18px 50px #04203455}
+.lfoot{margin-top:34px;text-align:center;font-size:11px;color:#cfe6f5}.lfoot small{color:#cfe6f5}
+@media(max-width:860px){.lg{grid-template-columns:1fr;gap:28px}.marca{margin-bottom:22px}}
+#texto,#dtxt{white-space:pre-wrap;line-height:1.6}
+@media print{header,#v-rel>.card:first-child,.noprint{display:none}body{background:#fff}}
+</style></head><body>
+<section id="v-login" class="login hide"><canvas id="bg"></canvas>
+<div class="lw"><div class="marca"><svg width="38" height="38" viewBox="0 0 40 40"><g stroke="#F7B500" stroke-width="3" stroke-linecap="round"><path d="M20 2v6M20 32v6M2 20h6M32 20h6M7 7l4 4M29 29l4 4M33 7l-4 4M11 29l-4 4"/></g><circle cx="20" cy="20" r="8" fill="#F7B500"/></svg><span>Sol da Bahia<small>Apoio à decisão em energia solar para PMEs baianas</small></span></div>
+<div class="lg"><div><h1>O sol da Bahia pode reduzir a conta de luz da sua empresa.</h1>
+<p>Simule a viabilidade de painéis solares fotovoltaicos em qualquer município baiano: investimento, retorno, risco e financiamento.</p>
+<div class="chips"><span>417 municípios</span><span>1.713 a 2.198 kWh/m² de sol por ano</span><span>Dados INPE, NASA e Coelba</span></div></div>
+<div class="card"><h3 style="margin-top:0">Acesse o sistema</h3><form id="fl" style="grid-template-columns:1fr"><label>Usuário<input id="u" required minlength="3"></label>
+<label>Senha (mín. 6)<input id="s" type="password" required minlength="6"></label>
+<button class="bt">Entrar</button><button type="button" class="bt sec" id="reg">Criar conta</button></form><small id="lmsg"></small></div></div>
+<div class="lfoot"><small>Simulação baseada em premissas editáveis (Atlas Solar INPE, NASA POWER, Neoenergia Coelba, Greener, Banco Central). Não substitui orçamento de integrador.</small></div></div></section>
+<header class="hide" id="top"><h2><svg width="34" height="34" viewBox="0 0 40 40"><g stroke="#F7B500" stroke-width="3" stroke-linecap="round"><path d="M20 2v6M20 32v6M2 20h6M32 20h6M7 7l4 4M29 29l4 4M33 7l-4 4M11 29l-4 4"/></g><circle cx="20" cy="20" r="8" fill="#F7B500"/></svg><span>Sol da Bahia<small>Apoio à decisão em energia solar para PMEs baianas</small></span></h2>
+<nav><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
+<span id="quem"></span><button class="bt sec" id="sair">Sair</button></header>
+<main class="hide" id="app">
+<div id="v-dash" class="hide"><div class="card"><div class="kpis" id="dk"></div></div>
+<div class="g2"><div class="card"><b>Simulações por faixa de retorno</b><canvas id="dc1"></canvas></div>
+<div class="card"><b>Simulações por município</b><canvas id="dc2"></canvas></div></div>
+<div class="card"><b>Últimas simulações</b><table id="dt"></table></div></div>
+
+<div id="v-sim" class="hide"><div class="card"><form id="f">
+<label>Município<input id="mun" list="lista" required></label><datalist id="lista"></datalist>
+<label>Consumo mensal (kWh)<input id="cons" type="number" min="100" value="4000" required></label>
+<label>Preço do kWh na fatura (R$, com tributos)<input id="tar" type="number" step="0.01" value="1.10" required></label>
+<label>Área de telhado (m², opcional)<input id="area" type="number" min="0"></label>
+<label>Consumo durante o dia (%)<input id="dia" type="number" min="10" max="100" value="60"></label>
+<label>Pagamento<select id="fin"><option value="0">À vista</option><option value="1">Financiado</option></select></label>
+<button class="bt">Simular</button></form><small id="msg"></small></div>
+<div id="res" class="hide"><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div>
+<div class="g2"><div class="card"><b>Geração mensal estimada (kWh)</b><canvas id="c1"></canvas></div>
+<div class="card"><b>Fluxo de caixa acumulado (R$)</b><canvas id="c2"></canvas></div></div>
+<div class="card"><b>Risco (simulação de cenários)</b><div id="risco"></div></div>
+<div class="card"><b>Análise</b><p id="texto"></p><small>Salva automaticamente em Relatórios.</small></div></div></div>
+
+<div id="v-rel" class="hide"><div class="card"><button class="bt" id="csv">Exportar CSV</button><table id="rt"></table></div>
+<div id="det" class="card hide"><button class="bt sec noprint" onclick="window.print()">Imprimir / salvar PDF</button><div id="dbody"></div></div></div>
+<br><small>Simulação baseada em premissas editáveis (Atlas Solar INPE, NASA POWER, Neoenergia Coelba, Greener, Banco Central). Não substitui orçamento de integrador.</small>
+</main>
+<script>
+const $=i=>document.getElementById(i),R=v=>v==null?"n/d":"R$ "+Math.round(v).toLocaleString("pt-BR"),P=v=>v==null?"n/d":(v*100).toFixed(0)+"%",Y=v=>v==null?"n/d":v.toFixed(1)+" anos";
+let tok=sessionStorage.tok||"",mapa={},ch={},lista=[];
+/* Fundo animado da tela de login (canvas): céu, sol com raios, ondas do mar e partículas de luz */
+const animLogin=(()=>{const cv=$("bg"),cx=cv.getContext("2d"),reduz=matchMedia("(prefers-reduced-motion: reduce)").matches;let w=0,h=0,raf=0,pts=[];
+ const ondas=[{y:.78,a:14,l:.011,v:.6,c:"rgba(11,60,93,.50)"},{y:.84,a:18,l:.008,v:-.45,c:"rgba(14,72,110,.62)"},{y:.91,a:22,l:.006,v:.35,c:"rgba(7,40,64,.85)"}];
+ function tam(){const D=Math.min(devicePixelRatio||1,2);w=innerWidth;h=innerHeight;cv.width=w*D;cv.height=h*D;cx.setTransform(D,0,0,D,0,0);
+  pts=Array.from({length:Math.round(w*h/16000)+20},()=>({x:Math.random()*w,y:Math.random()*h,r:Math.random()*2.2+.6,v:Math.random()*14+6,f:Math.random()*6.28,s:Math.random()*1.2+.4}))}
+ function rad(x,y,r0,r1,c0,c1){const g=cx.createRadialGradient(x,y,r0,x,y,r1);g.addColorStop(0,c0);g.addColorStop(1,c1);return g}
+ function quadro(ms){const t=ms/1000,m=w<760;
+  let g=cx.createLinearGradient(0,0,w,h);g.addColorStop(0,"#0B3C5D");g.addColorStop(.7,"#1D6A96");g.addColorStop(1,"#3b7fa6");cx.fillStyle=g;cx.fillRect(0,0,w,h);
+  const k=.5+.5*Math.sin(t*.3);cx.fillStyle=rad(w*.85,h,0,Math.max(w,h)*.7,`rgba(232,89,12,${.32+.16*k})`,"rgba(232,89,12,0)");cx.fillRect(0,0,w,h);
+  const sx=w*(m?.78:.8),sy=h*(m?.12:.24)+Math.sin(t*.5)*8,R=Math.min(w,h)*(m?.13:.12)*(1+.03*Math.sin(t*1.2));
+  cx.fillStyle=rad(sx,sy,R*.5,R*4.5,`rgba(255,213,74,${.5+.12*k})`,"rgba(255,213,74,0)");cx.fillRect(0,0,w,h);
+  cx.save();cx.translate(sx,sy);cx.rotate(t*.08);const n=18;
+  g=cx.createLinearGradient(R*1.2,0,R*3.2,0);g.addColorStop(0,"rgba(247,181,0,.55)");g.addColorStop(1,"rgba(247,181,0,0)");cx.fillStyle=g;
+  for(let i=0;i<n;i++){cx.rotate(Math.PI*2/n);const len=R*(1.4+.6*Math.sin(t*1.1+i*1.7));cx.beginPath();cx.moveTo(R*1.2,-R*.09);cx.lineTo(R*1.2+len,0);cx.lineTo(R*1.2,R*.09);cx.fill()}
+  cx.restore();
+  cx.fillStyle=rad(sx-R*.25,sy-R*.25,R*.1,R,"#ffe27a","#F7B500");cx.beginPath();cx.arc(sx,sy,R,0,6.2832);cx.fill();
+  pts.forEach(p=>{const y=((p.y-p.v*t)%h+h)%h,x=p.x+Math.sin(t*.4+p.f)*12;cx.fillStyle=`rgba(255,226,130,${Math.max(0,.25+.35*Math.sin(t*p.s+p.f))})`;cx.beginPath();cx.arc(x,y,p.r,0,6.2832);cx.fill()});
+  ondas.forEach(o=>{cx.fillStyle=o.c;cx.beginPath();cx.moveTo(0,h);for(let x=0;x<=w+8;x+=8)cx.lineTo(x,h*o.y+Math.sin(x*o.l+t*o.v)*o.a+Math.sin(x*o.l*2.3-t*o.v*1.4)*o.a*.4);cx.lineTo(w,h);cx.fill()})}
+ const laco=ms=>{quadro(ms);raf=requestAnimationFrame(laco)};
+ addEventListener("resize",()=>{if(!$("v-login").classList.contains("hide")){tam();if(reduz)quadro(0)}});
+ return{start(){tam();if(reduz){quadro(0);return}if(!raf)raf=requestAnimationFrame(laco)},stop(){cancelAnimationFrame(raf);raf=0}}})();
+async function api(p,o={}){const h={"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;
+ const r=await fetch(p,{...o,headers:h,body:o.body?JSON.stringify(o.body):undefined});
+ if(r.status==401&&p.indexOf("/api/login")<0&&p.indexOf("/api/registrar")<0){sair();throw new Error("Sessão expirada")}
+ if(!r.ok){let m;try{m=(await r.json()).detail}catch(e){m=r.statusText}throw new Error(typeof m=="string"?m:"Dados inválidos")}return r.json()}
+function graf(id,cfg){if(ch[id])ch[id].destroy();ch[id]=new Chart($(id),cfg)}
+function ver(v){["login","dash","sim","rel"].forEach(x=>$("v-"+x).classList.toggle("hide",x!=v));
+ $("app").classList.toggle("hide",v=="login");v=="login"?animLogin.start():animLogin.stop();
+ document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));
+ if(v=="dash")dash();if(v=="rel")rel()}
+function entrou(d){tok=d.token;sessionStorage.tok=tok;sessionStorage.nome=d.nome;$("top").classList.remove("hide");$("quem").textContent=d.nome;ver("dash");carregarMun()}
+function sair(){tok="";sessionStorage.clear();$("top").classList.add("hide");ver("login")}
+$("sair").onclick=sair;document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>ver(b.dataset.v));
+async function auth(rota){try{entrou(await api("/api/"+rota,{method:"POST",body:{nome:$("u").value,senha:$("s").value}}))}catch(e){$("lmsg").textContent=e.message}}
+$("fl").onsubmit=e=>{e.preventDefault();auth("login")};$("reg").onclick=()=>auth("registrar");
+async function carregarMun(){if(Object.keys(mapa).length)return;const l=await api("/api/municipios");
+ l.forEach(m=>{mapa[m.nome.toLowerCase()]=m.cod;$("lista").insertAdjacentHTML("beforeend",`<option value="${m.nome}">`)});$("mun").value="Salvador"}
+async function dash(){const d=await api("/api/dashboard");
+ $("dk").innerHTML=[["Simulações",d.total],["Payback médio",Y(d.payback_medio)],["VPL somado",R(d.vpl_total)],["kWp somados",d.kwp_total.toFixed(0)],["Investimento somado",R(d.investimento_total)]]
+  .map(x=>`<div class="kpi">${x[0]}<b>${x[1]}</b></div>`).join("");
+ graf("dc1",{type:"doughnut",data:{labels:Object.keys(d.por_classe),datasets:[{data:Object.values(d.por_classe),backgroundColor:["#F7B500","#facc15","#f97316","#ef4444"]}]}});
+ graf("dc2",{type:"bar",data:{labels:Object.keys(d.por_municipio),datasets:[{data:Object.values(d.por_municipio),backgroundColor:"#1D6A96"}]},options:{plugins:{legend:{display:false}}}});
+ $("dt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Payback</th><th>VPL</th><th>Faixa</th></tr>"+d.recentes.map(r=>
+  `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(0)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td></tr>`).join("")}
+function mostrar(a,k,id){$("res").classList.remove("hide");
+ $("kpis").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]]
+  .map(x=>`<div class="kpi">${x[0]}<b>${x[1]}</b></div>`).join("");
+ const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];
+ $("classe").textContent=`Faixa de retorno mais provável: ${top[0]} (${P(top[1])} dos cenários).`+(a.cobertura_consumo<0.9?" Atenção: o limite de 75 kWp ou a área do telhado não cobrem todo o consumo.":"");
+ graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:"#F7B500"}]},options:{plugins:{legend:{display:false}}}});
+ graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:"#E8590C",pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
+ $("risco").innerHTML=`<p>VPL positivo em <b>${P(k.prob_vpl_positivo)}</b> dos ${k.n_cenarios} cenários. VPL entre ${R(k.vpl_a_vista.p10)} e ${R(k.vpl_a_vista.p90)} (percentis 10 e 90).</p>
+ <p>Financiado rende mais que à vista em <b>${P(k.prob_financiado_melhor)}</b> dos cenários.</p><p>Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>`}
+$("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
+ $("msg").textContent="Calculando...";
+ try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:+$("fin").value,
+  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null}});
+  $("msg").textContent="";mostrar(d.resultado,d.risco,d.id);$("texto").textContent="Gerando análise...";
+  $("texto").textContent=(await api("/api/texto",{method:"POST",body:{resultado:d.resultado,risco:d.risco,id:d.id}})).texto}catch(x){$("msg").textContent=x.message}};
+async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
+ $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>
+  `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(0)}</td><td>${R(r.investimento)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td>
+  <td><button class="bt sec" onclick="abrir(${r.id})">Abrir</button> <button class="bt sec" onclick="apagar(${r.id})">Excluir</button></td></tr>`).join("")}
+async function abrir(id){const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco;$("det").classList.remove("hide");
+ $("dbody").innerHTML=`<h3>Relatório de simulação nº ${id} · ${d.criado}</h3><p><b>${a.municipio}</b> · consumo ${d.entrada.consumo_mes_kwh} kWh/mês · tarifa R$ ${d.entrada.tarifa_kwh}/kWh · consumo diurno ${P(d.entrada.consumo_diurno_fracao)}</p>
+ <div class="kpis">${[["kWp",a.kwp.toFixed(0)],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL",R(a.vpl)],["TIR",P(a.tir)],["Cobertura",P(a.cobertura_consumo)]].map(x=>`<div class="kpi">${x[0]}<b>${x[1]}</b></div>`).join("")}</div>
+ <p>VPL positivo em ${P(k.prob_vpl_positivo)} dos ${k.n_cenarios} cenários; financiado melhor em ${P(k.prob_financiado_melhor)}. Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>
+ <p id="dtxt"></p><small>Simulação baseada em premissas; não substitui orçamento de integrador.</small>`;$("dtxt").textContent=d.texto||"(sem análise de texto salva)";$("det").scrollIntoView()}
+async function apagar(id){if(confirm("Excluir esta simulação?")){await api("/api/simulacoes/"+id,{method:"DELETE"});rel()}}
+$("csv").onclick=()=>{const c=[["data","municipio","kwp","investimento","payback_anos","vpl","faixa"],...lista.map(r=>[r.criado,r.municipio,r.kwp,r.investimento,r.payback,r.vpl,r.classe])];
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c.map(l=>l.join(";")).join("\n")],{type:"text/csv"}));a.download="simulacoes.csv";a.click()};
+if(tok)entrou({token:tok,nome:sessionStorage.nome});else ver("login");
+</script></body></html>

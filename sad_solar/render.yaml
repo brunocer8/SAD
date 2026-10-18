@@ -1,0 +1,19 @@
+# Deploy do SAD Solar no Render (plano gratuito).
+# Uso: suba o projeto para o GitHub, no Render escolha New > Blueprint e aponte para o repositório.
+services:
+  - type: web
+    name: sad-solar
+    runtime: python
+    plan: free
+    region: virginia
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.3
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      # A chave NÃO fica no arquivo: o Render pede o valor na criação do Blueprint.
+      - key: GEMINI_API_KEY
+        sync: false
