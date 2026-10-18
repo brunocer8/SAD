@@ -14,7 +14,7 @@ services:
       - key: PYTHON_VERSION
         value: 3.12.3
       - key: GEMINI_MODEL
-        value: gemini-2.5-flash
+        value: gemini-3.5-flash
       # A chave NÃO fica no arquivo: o Render pede o valor na criação do Blueprint.
       - key: GEMINI_API_KEY
         sync: false
