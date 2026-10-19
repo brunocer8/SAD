@@ -1,5 +1,5 @@
 """API do SAD Solar PME Bahia (login, simulação, dashboard e relatórios). Rodar: uvicorn app:app --reload"""
-import hashlib, json, math, os, secrets, sqlite3, time
+import hashlib, json, math, os, secrets, sqlite3
 from datetime import datetime
 
 import requests
@@ -9,12 +9,10 @@ from pydantic import BaseModel, Field
 
 from financeiro import analisar, carregar_municipios
 from montecarlo import analisar_risco
+from saw import decisao
 
 app = FastAPI(title="SAD Solar PME Bahia")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
-# Modelos tentados em ordem; se um falhar (indisponível/sobrecarregado), o próximo é usado.
-GEMINI_MODELS = list(dict.fromkeys(m.strip() for m in os.getenv(
-    "GEMINI_MODELS", f"{GEMINI_MODEL},gemini-3.5-flash,gemini-2.5-flash-lite,gemini-2.5-flash").split(",") if m.strip()))
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DB = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "sad.db"))
 
 
@@ -49,41 +47,6 @@ def usuario(authorization: str = Header(default="")):
     if not r:
         raise HTTPException(401, "Sessão inválida")
     return dict(r)
-
-
-def gemini(prompt):
-    """Chama o Gemini tentando os modelos em ordem. Retorna (texto, None) ou (None, motivo).
-    A chave vai no cabeçalho (não na URL) para não aparecer em logs."""
-    chave = os.getenv("GEMINI_API_KEY")
-    if not chave:
-        return None, "chave não configurada"
-    motivo = "sem resposta"
-    for modelo in GEMINI_MODELS:
-        for tentativa in range(2):
-            try:
-                r = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{modelo}:generateContent",
-                                  headers={"x-goog-api-key": chave}, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=20)
-            except requests.RequestException as ex:
-                motivo = f"falha de rede ({type(ex).__name__})"
-                print("Gemini falhou:", modelo, motivo)
-                time.sleep(2)
-                continue
-            if r.status_code == 200:
-                try:
-                    return r.json()["candidates"][0]["content"]["parts"][0]["text"], None
-                except (KeyError, IndexError, ValueError):
-                    motivo = f"resposta vazia do modelo {modelo}"
-                    print("Gemini falhou:", motivo)
-                    break
-            motivo = f"erro {r.status_code} no modelo {modelo}"
-            print("Gemini falhou:", motivo)
-            if r.status_code in (400, 401, 403):  # chave inválida/sem permissão: trocar de modelo não resolve
-                return None, motivo
-            if r.status_code in (429, 500, 503) and tentativa == 0:  # instabilidade temporária: uma nova tentativa
-                time.sleep(2)
-                continue
-            break
-    return None, motivo
 
 
 class Cred(BaseModel):
@@ -143,6 +106,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     base = analisar(ent)
     risco = analisar_risco(ent, kwp=base["kwp"])
     classe = max(risco["prob_classe"], key=risco["prob_classe"].get)
+    base["decisao"] = decisao(ent)
     out = limpar({"entrada": ent, "resultado": base, "risco": risco})
     with db() as c:
         sid = c.execute("insert into simulacoes(usuario_id,criado,municipio,kwp,investimento,payback,vpl,classe,entrada,resultado,risco)"
@@ -166,11 +130,13 @@ def texto(d: dict, u=Depends(usuario)):
               "abaixo, não invente valores. Lembre que são simulações baseadas em premissas.\n\n" + resumo)
     txt, fonte = resumo + " (Texto automático: defina GEMINI_API_KEY para a análise por IA.)", "padrao"
     if os.getenv("GEMINI_API_KEY"):
-        ger, motivo = gemini(prompt)
-        if ger:
-            txt, fonte = ger, "gemini"
-        else:
-            txt = resumo + f" (Texto automático: a análise por IA não respondeu - {motivo}.)"
+        try:
+            resp = requests.post(f"https://generativelanguage.googleapis.com/v1beta/models/{GEMINI_MODEL}:generateContent",
+                                 params={"key": os.environ["GEMINI_API_KEY"]}, json={"contents": [{"parts": [{"text": prompt}]}]}, timeout=30)
+            resp.raise_for_status()
+            txt, fonte = resp.json()["candidates"][0]["content"]["parts"][0]["text"], "gemini"
+        except Exception as ex:
+            print("Gemini falhou:", ex)
     if d.get("id"):
         with db() as c:
             c.execute("update simulacoes set texto=? where id=? and usuario_id=?", (txt, d["id"], u["id"]))

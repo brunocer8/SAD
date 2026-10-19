@@ -69,7 +69,7 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <label>Quando a empresa mais consome energia?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite (refrigeração, turnos)</option></select></label>
 <label>Pagamento<select id="fin"><option value="0">À vista</option><option value="1">Financiado</option></select></label>
 <button class="bt">Simular</button></form><small id="msg"></small></div>
-<div id="res" class="hide"><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div>
+<div id="res" class="hide"><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div><div class="card" id="decisao"></div>
 <div class="g2"><div class="card"><b>Geração mensal estimada (kWh)</b><canvas id="c1"></canvas></div>
 <div class="card"><b>Fluxo de caixa acumulado (R$)</b><canvas id="c2"></canvas></div></div>
 <div class="card"><b>Risco (simulação de cenários)</b><div id="risco"></div></div>
@@ -112,7 +112,13 @@ async function dash(){const d=await api("/api/dashboard");
  graf("dc2",{type:"bar",data:{labels:Object.keys(d.por_municipio),datasets:[{data:Object.values(d.por_municipio),backgroundColor:"#1D6A96"}]},options:{plugins:{legend:{display:false}}}});
  $("dt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Payback</th><th>VPL</th><th>Faixa</th></tr>"+d.recentes.map(r=>
   `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(0)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td></tr>`).join("")}
-function mostrar(a,k,id){$("res").classList.remove("hide");
+function decisaoHTML(d){if(!d)return"";
+ const L=d.ranking.map(r=>`<tr${r.posicao==1?' style="background:#FFF3D6;font-weight:600"':''}><td>${r.posicao}º</td><td>${r.nome}</td><td>${r.indice.toFixed(3)}</td><td>${R(r.vpl)}</td><td>${Y(r.payback)}</td><td>${R(r.investimento)}</td><td>${P(r.cobertura)}</td></tr>`).join("");
+ const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(0)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
+ return `<b>Cenários de decisão, ordenados pelo método SAW</b><p><small>Índice SAW (0 a 1) = soma de (peso x valor normalizado de cada critério). Pesos por fator, em ordem de preferência: 1) Teórica 40%, 2) Normativa/Legal 30%, 3) Cultural 20%, 4) Modelos preditivos 10%.</small></p>
+ <table><tr><th>Pos.</th><th>Cenário</th><th>Índice SAW</th><th>VPL</th><th>Payback</th><th>Investimento</th><th>Cobertura</th></tr>${L}</table>
+ <p><b>Variáveis que determinam a decisão</b></p><table><tr><th>Fator</th><th>Critério</th><th>Peso</th><th>Sentido</th></tr>${C}</table>`}
+function mostrar(a,k,id){$("decisao").innerHTML=decisaoHTML(a.decisao);$("res").classList.remove("hide");
  $("kpis").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]]
   .map(x=>kpi(x[0],x[1])).join("");
  const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];
@@ -134,6 +140,7 @@ async function rel(){$("det").classList.add("hide");lista=await api("/api/simula
 async function abrir(id){const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco;$("det").classList.remove("hide");
  $("dbody").innerHTML=`<h3>Relatório de simulação nº ${id} · ${d.criado}</h3><p><b>${a.municipio}</b> · consumo ${d.entrada.consumo_mes_kwh} kWh/mês · tarifa R$ ${d.entrada.tarifa_kwh}/kWh · consumo diurno ${P(d.entrada.consumo_diurno_fracao)}</p>
  <div class="kpis">${[["kWp",a.kwp.toFixed(0)],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL",R(a.vpl)],["TIR",P(a.tir)],["Cobertura",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("")}</div>
+ <div>${decisaoHTML(a.decisao)}</div>
  <p>VPL positivo em ${P(k.prob_vpl_positivo)} dos ${k.n_cenarios} cenários; financiado melhor em ${P(k.prob_financiado_melhor)}. Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>
  <p id="dtxt"></p><small>Simulação baseada em premissas; não substitui orçamento de integrador.</small>`;$("dtxt").textContent=d.texto||"(sem análise de texto salva)";$("det").scrollIntoView()}
 async function apagar(id){if(confirm("Excluir esta simulação?")){await api("/api/simulacoes/"+id,{method:"DELETE"});rel()}}

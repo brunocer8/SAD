@@ -120,6 +120,7 @@ def analisar_risco(usuario: dict, kwp: float | None = None, n: int = 2000, seed:
     return dict(
         kwp=kwp, n_cenarios=n,
         prob_vpl_positivo=float((r["vpl"] > 0).mean()),
+        prob_vpl_positivo_financiado=float((rf["vpl"] > 0).mean()),
         prob_classe={c: float((cls == i).mean()) for i, c in enumerate(CLASSES)},
         vpl_a_vista=dict(p10=q(r["vpl"], 10), mediana=q(r["vpl"], 50), p90=q(r["vpl"], 90)),
         vpl_financiado=dict(p10=q(rf["vpl"], 10), mediana=q(rf["vpl"], 50), p90=q(rf["vpl"], 90)),
