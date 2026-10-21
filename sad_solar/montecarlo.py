@@ -33,11 +33,14 @@ LIMITE_RAPIDO = 1.5   # anos (payback simples, à vista)
 LIMITE_MEDIO = 2.0    # anos
 CLASSES = ["Inviável", "Retorno lento", "Retorno médio", "Retorno rápido"]
 
-FEATURES = [
+# colunas guardadas em cada cenário (para rastreio); só FEATURES entra no classificador
+COLUNAS_CENARIO = [
     "razao_ger_consumo", "consumo_mes_kwh", "tarifa_kwh", "ger_esp_anual", "kwp", "custo_kwp_efetivo",
     "reajuste_tarifa", "taxa_desconto", "consumo_diurno_fracao", "fator_desempenho_real",
     "om_pct_investimento", "fio_b_share_tarifa",
 ]
+# Variáveis independentes do classificador (4): determinantes do payback simples = investimento / economia anual
+FEATURES = ["tarifa_kwh", "razao_ger_consumo", "custo_kwp_efetivo", "ger_esp_anual"]
 
 
 def _amostrar(dist, n, rng):
@@ -88,7 +91,7 @@ def gerar_cenarios(n: int = 20000, seed: int = 42) -> pd.DataFrame:
     r = simular({**e, "financiado": 0.0})   # à vista
     rf = simular({**e, "financiado": 1.0})  # financiado
 
-    df = pd.DataFrame({k: np.broadcast_to(np.asarray(e[k], dtype=float), (n,)) for k in FEATURES
+    df = pd.DataFrame({k: np.broadcast_to(np.asarray(e[k], dtype=float), (n,)) for k in COLUNAS_CENARIO
                        if k not in ("razao_ger_consumo", "custo_kwp_efetivo")})
     df.insert(0, "cod_ibge", cods)
     df["taxa_financiamento"] = e["taxa_financiamento"]
