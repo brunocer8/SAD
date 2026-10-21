@@ -56,10 +56,13 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <label>Senha (mín. 6)<input id="s" type="password" required minlength="6"></label>
 <button class="bt">Entrar</button><button type="button" class="bt sec" id="reg">Criar conta</button></form><small id="lmsg"></small></div></div></div>
 
-<div id="v-dash" class="hide"><div class="card"><div class="kpis" id="dk"></div></div>
-<div class="g2"><div class="card"><b>Simulações por faixa de retorno</b><canvas id="dc1"></canvas></div>
-<div class="card"><b>Simulações por município</b><canvas id="dc2"></canvas></div></div>
-<div class="card"><b>Últimas simulações</b><table id="dt"></table></div></div>
+<div id="v-dash" class="hide"><div class="card" id="dsw"><label>Simulação exibida<select id="dsel"></select></label></div>
+<div id="dvazio" class="card hide">Você ainda não fez nenhuma simulação. Use a aba Simulação e volte aqui para ver os gráficos do resultado.</div>
+<div id="dcont" class="hide"><div class="card"><div class="kpis" id="dk"></div><p id="dclasse"></p></div>
+<div class="g2"><div class="card"><b>Em quanto tempo o investimento se paga? (R$ acumulados)</b><canvas id="dc1"></canvas><p><small id="dn1"></small></p></div>
+<div class="card"><b>Geração mensal do sistema x consumo da empresa (kWh)</b><canvas id="dc2"></canvas><p><small id="dn2"></small></p></div></div>
+<div class="g2"><div class="card"><b>Comparação dos cenários de decisão (índice SAW)</b><canvas id="dc3"></canvas><p><small id="dn3"></small></p></div>
+<div class="card"><b>Risco: VPL nos cenários simulados (R$)</b><canvas id="dc4"></canvas><p><small id="dn4"></small></p></div></div></div></div>
 
 <div id="v-sim" class="hide"><div class="card"><form id="f">
 <label>Município<input id="mun" list="lista" required></label><datalist id="lista"></datalist>
@@ -105,13 +108,26 @@ async function auth(rota){try{entrou(await api("/api/"+rota,{method:"POST",body:
 $("fl").onsubmit=e=>{e.preventDefault();auth("login")};$("reg").onclick=()=>auth("registrar");
 async function carregarMun(){if(Object.keys(mapa).length)return;const l=await api("/api/municipios");
  l.forEach(m=>{mapa[m.nome.toLowerCase()]=m.cod;$("lista").insertAdjacentHTML("beforeend",`<option value="${m.nome}">`)});$("mun").value="Salvador"}
-async function dash(){const d=await api("/api/dashboard");
- $("dk").innerHTML=[["Simulações",d.total],["Payback médio",Y(d.payback_medio)],["VPL somado",R(d.vpl_total)],["kWp somados",d.kwp_total.toFixed(0)],["Investimento somado",R(d.investimento_total)]]
-  .map(x=>kpi(x[0],x[1])).join("");
- graf("dc1",{type:"doughnut",data:{labels:Object.keys(d.por_classe),datasets:[{data:Object.values(d.por_classe),backgroundColor:Object.keys(d.por_classe).map(k=>({"Retorno rápido":"#2E9E5B","Retorno médio":"#F7B500","Retorno lento":"#E8590C","Inviável":"#B91C1C"}[k]))}]}});
- graf("dc2",{type:"bar",data:{labels:Object.keys(d.por_municipio),datasets:[{data:Object.values(d.por_municipio),backgroundColor:"#1D6A96"}]},options:{plugins:{legend:{display:false}}}});
- $("dt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Payback</th><th>VPL</th><th>Faixa</th></tr>"+d.recentes.map(r=>
-  `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(0)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td></tr>`).join("")}
+async function dash(id){const l=await api("/api/simulacoes");
+ $("dvazio").classList.toggle("hide",l.length>0);$("dcont").classList.toggle("hide",!l.length);$("dsw").classList.toggle("hide",!l.length);
+ if(!l.length)return;if(!id||!l.some(x=>x.id==id))id=l[0].id;
+ $("dsel").innerHTML=l.map(x=>`<option value="${x.id}"${x.id==id?" selected":""}>nº ${x.id} · ${x.municipio} · ${x.kwp.toFixed(0)} kWp · ${x.criado}</option>`).join("");
+ const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco,e=d.entrada;
+ $("dk").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("");
+ const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];$("dclasse").textContent=`${a.municipio}: faixa de retorno mais provável, ${top[0]} (${P(top[1])} dos cenários).`;
+ const fl=a.fluxo_acumulado,gm=a.geracao_mensal_kwh,ger=gm.reduce((x,y)=>x+y,0);
+ graf("dc1",{type:"line",data:{labels:fl.map((_,i)=>i),datasets:[{data:fl,borderColor:"#E8590C",pointRadius:0,fill:{target:"origin",above:"#2E9E5B33",below:"#B91C1C33"}}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
+ $("dn1").textContent=`Começa negativo (o valor investido) e cruza o zero em ${a.payback==null?"um prazo maior que a vida útil":Y(a.payback)}. Ao fim de 25 anos, o saldo acumulado é de ${R(fl[fl.length-1])}.`;
+ graf("dc2",{data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{type:"bar",label:"Geração do sistema",data:gm,backgroundColor:"#F7B500"},{type:"line",label:"Consumo da empresa",data:gm.map(()=>e.consumo_mes_kwh),borderColor:"#0B3C5D",pointRadius:0}]}});
+ $("dn2").textContent=`O sistema gera cerca de ${Math.round(ger).toLocaleString("pt-BR")} kWh por ano e cobre ${P(a.cobertura_consumo)} do consumo. Nos meses em que a barra passa da linha, a sobra vira crédito de energia.`;
+ const rk=(a.decisao||{}).ranking;
+ if(rk){graf("dc3",{type:"bar",data:{labels:rk.map(r=>r.posicao+"º "+r.nome),datasets:[{data:rk.map(r=>r.indice),backgroundColor:rk.map(r=>r.posicao==1?"#E8590C":"#1D6A96")}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{min:0,max:1}}}});
+  $("dn3").textContent=`Quanto maior o índice (0 a 1), melhor o cenário. O primeiro da lista, "${rk[0].nome}", combina melhor os critérios teóricos, legais, culturais e preditivos.`}
+ else{if(ch.dc3){ch.dc3.destroy();delete ch.dc3}$("dn3").textContent="Esta simulação foi salva antes do ranking SAW. Faça uma nova simulação para vê-lo."}
+ const va=k.vpl_a_vista,vf=k.vpl_financiado;
+ graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:"#F7B500"},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:"#1D6A96"}]}});
+ $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
+$("dsel").onchange=()=>dash(+$("dsel").value);
 function decisaoHTML(d){if(!d)return"";
  const L=d.ranking.map(r=>`<tr${r.posicao==1?' style="background:#FFF3D6;font-weight:600"':''}><td>${r.posicao}º</td><td>${r.nome}</td><td>${r.indice.toFixed(3)}</td><td>${R(r.vpl)}</td><td>${Y(r.payback)}</td><td>${R(r.investimento)}</td><td>${P(r.cobertura)}</td></tr>`).join("");
  const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(0)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
