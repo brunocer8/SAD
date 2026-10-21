@@ -38,6 +38,13 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 .kpi{position:relative;cursor:help}.kpi .i{color:#E8590C;font-size:12px}
 .kpi[data-tip]:hover::after,.kpi[data-tip]:focus::after{content:attr(data-tip);position:absolute;left:0;top:100%;margin-top:6px;z-index:30;width:250px;background:#0b3c5d;color:#fff;font-size:12.5px;font-weight:400;line-height:1.45;padding:10px 12px;border-radius:10px;box-shadow:0 6px 18px #0005}
 .kpi:last-child[data-tip]:hover::after,.kpi:last-child[data-tip]:focus::after{left:auto;right:0}
+.cartas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
+.carta{position:relative;border:2px solid #d6dde3;border-radius:16px;padding:14px 12px 12px;background:linear-gradient(160deg,#fff,#f3f7fa);display:flex;flex-direction:column;gap:8px}
+.carta.top{border-color:#F7B500;background:linear-gradient(160deg,#fffdf5,#ffefc0);box-shadow:0 0 0 3px #F7B50033,0 8px 22px #E8590C33}
+.fita{position:absolute;top:-11px;left:12px;background:#E8590C;color:#fff;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px}
+.poder{font-size:32px;font-weight:700;color:var(--mar);line-height:1;background:#fff;border-radius:12px;padding:6px 10px;border:2px solid var(--sol)}
+.stat{display:grid;grid-template-columns:1fr auto;gap:2px 6px;font-size:12px;align-items:center}.barra{height:8px;border-radius:99px;background:#e1e7ec;overflow:hidden;grid-column:1/3}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,#F7B500,#E8590C)}.specs{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}.specs span{background:#0b3c5d12;border-radius:8px;padding:3px 8px}
 #texto,#dtxt{white-space:pre-wrap;line-height:1.6}
 @media print{header,#v-rel>.card:first-child,.noprint{display:none}body{background:#fff}}
 </style></head><body>
@@ -121,18 +128,23 @@ async function dash(id){const l=await api("/api/simulacoes");
  graf("dc2",{data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{type:"bar",label:"Geração do sistema",data:gm,backgroundColor:"#F7B500"},{type:"line",label:"Consumo da empresa",data:gm.map(()=>e.consumo_mes_kwh),borderColor:"#0B3C5D",pointRadius:0}]}});
  $("dn2").textContent=`O sistema gera cerca de ${Math.round(ger).toLocaleString("pt-BR")} kWh por ano e cobre ${P(a.cobertura_consumo)} do consumo. Nos meses em que a barra passa da linha, a sobra vira crédito de energia.`;
  const rk=(a.decisao||{}).ranking;
- if(rk){graf("dc3",{type:"bar",data:{labels:rk.map(r=>r.posicao+"º "+r.nome),datasets:[{data:rk.map(r=>r.indice),backgroundColor:rk.map(r=>r.posicao==1?"#E8590C":"#1D6A96")}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{min:0,max:1}}}});
-  $("dn3").textContent=`Quanto maior o índice (0 a 1), melhor o cenário. O primeiro da lista, "${rk[0].nome}", combina melhor os critérios teóricos, legais, culturais e preditivos.`}
+ if(rk){graf("dc3",{type:"bar",data:{labels:rk.map(r=>r.nome),datasets:[{data:rk.map(r=>r.indice),backgroundColor:rk.map(r=>r.grupo==1?"#E8590C":r.grupo==0?"#94a3b8":"#1D6A96")}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{min:0,max:1}}}});
+  $("dn3").textContent="Laranja: cenários mais recomendados (índices muito próximos formam um grupo e empatam tecnicamente). Azul: alternativas. Cinza: não investir. Quanto maior o índice (0 a 1), melhor."}
  else{if(ch.dc3){ch.dc3.destroy();delete ch.dc3}$("dn3").textContent="Esta simulação foi salva antes do ranking SAW. Faça uma nova simulação para vê-lo."}
  const va=k.vpl_a_vista,vf=k.vpl_financiado;
  graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:"#F7B500"},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:"#1D6A96"}]}});
  $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
 $("dsel").onchange=()=>dash(+$("dsel").value);
-function decisaoHTML(d){if(!d)return"";
- const L=d.ranking.map(r=>`<tr${r.posicao==1?' style="background:#FFF3D6;font-weight:600"':''}><td>${r.posicao}º</td><td>${r.nome}</td><td>${r.indice.toFixed(3)}</td><td>${R(r.vpl)}</td><td>${Y(r.payback)}</td><td>${R(r.investimento)}</td><td>${P(r.cobertura)}</td></tr>`).join("");
+const NOMEF={"1) Teórica":"Retorno financeiro","2) Normativa/Legal":"Conformidade legal","3) Cultural":"Autossuficiência e sem dívida","4) Modelos preditivos":"Segurança frente ao risco"};
+function carta(r){return `<div class="carta${r.grupo==1?" top":""}">${r.grupo==1?'<span class="fita">🏆 Mais recomendado</span>':""}
+ <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>☀️ ${r.nome}</b><div class="poder" title="Poder = índice SAW x 100">${Math.round(r.indice*100)}</div></div>
+ ${Object.entries(r.atributos).map(([f,v])=>`<div class="stat" title="Fator: ${f}"><span>${NOMEF[f]||f}</span><b>${Math.round(v)}</b><div class="barra"><i style="width:${v}%"></i></div></div>`).join("")}
+ <div class="specs"><span>${R(r.investimento)}</span><span>VPL ${R(r.vpl)}</span><span>${Y(r.payback)}</span><span>cobre ${P(r.cobertura)}</span></div></div>`}
+function decisaoHTML(d){if(!d)return"";const gs={};d.ranking.forEach(r=>(gs[r.grupo]=gs[r.grupo]||[]).push(r));
+ const ordem=Object.keys(gs).map(Number).filter(g=>g>0).sort((a,b)=>a-b).concat(gs[0]?[0]:[]);
+ const G=ordem.map(g=>`<h4 style="margin:16px 0 10px">${gs[g][0].rotulo}</h4><div class="cartas">${gs[g].map(carta).join("")}</div>`).join("");
  const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(0)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
- return `<b>Cenários de decisão, ordenados pelo método SAW</b><p><small>Índice SAW (0 a 1) = soma de (peso x valor normalizado de cada critério). Pesos por fator, em ordem de preferência: 1) Teórica 40%, 2) Normativa/Legal 30%, 3) Cultural 20%, 4) Modelos preditivos 10%.</small></p>
- <table><tr><th>Pos.</th><th>Cenário</th><th>Índice SAW</th><th>VPL</th><th>Payback</th><th>Investimento</th><th>Cobertura</th></tr>${L}</table>
+ return `<b>Cenários de decisão (método SAW)</b><p><small>Cada carta é um cenário. O <b>poder</b> é o índice SAW x 100, e as barras mostram o desempenho do cenário em cada fator (0 a 100). Cenários com índice a menos de ${d.delta||0.05} do líder do grupo foram agrupados, pois essa diferença é menor que a variação do índice quando os pesos mudam. Pesos por fator, em ordem de preferência: 1) Teórica 40%, 2) Normativa/Legal 30%, 3) Cultural 20%, 4) Modelos preditivos 10%.</small></p>${G}
  <p><b>Variáveis que determinam a decisão</b></p><table><tr><th>Fator</th><th>Critério</th><th>Peso</th><th>Sentido</th></tr>${C}</table>`}
 function mostrar(a,k,id){$("decisao").innerHTML=decisaoHTML(a.decisao);$("res").classList.remove("hide");
  $("kpis").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]]

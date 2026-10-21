@@ -29,19 +29,51 @@ VIDA = PARAMETROS["vida_util_anos"]["padrao"]
 KWP_MAX = PARAMETROS["kwp_max"]["padrao"]
 
 
+FATORES = list(dict.fromkeys(c[2] for c in CRITERIOS))
+DELTA = 0.05  # índices a menos de 0,05 do líder do grupo são agrupados (ver agrupar)
+
+
 def ranquear(alts: list[dict]) -> list[dict]:
     for a in alts:
-        a["indice"] = 0.0
+        a["indice"], a["_n"] = 0.0, {}
     for cid, _, _, peso, sentido in CRITERIOS:
         v = [a[cid] for a in alts]
         lo, hi = min(v), max(v)
         for a in alts:
             n = 1.0 if hi == lo else ((a[cid] - lo) / (hi - lo) if sentido == "max" else (hi - a[cid]) / (hi - lo))
+            a["_n"][cid] = n
             a["indice"] += peso * n
+    for a in alts:  # desempenho (0 a 100) em cada fator: os "atributos" da carta
+        a["atributos"] = {f: 100 * sum(c[3] * a["_n"][c[0]] for c in CRITERIOS if c[2] == f) / sum(c[3] for c in CRITERIOS if c[2] == f)
+                          for f in FATORES}
+        del a["_n"]
     alts.sort(key=lambda a: -a["indice"])
     for i, a in enumerate(alts, 1):
         a["posicao"] = i
     return alts
+
+
+def agrupar(ranking: list[dict]) -> list[dict]:
+    """Agrupa cenários de índice próximo: um grupo começa no líder e inclui quem está a até DELTA dele.
+    DELTA = 0,05 vem da sensibilidade: variando os pesos em +-30%, o índice de cada cenário oscila ~0,02 a 0,03
+    (desvio padrão), então diferenças menores que isso não distinguem os cenários."""
+    comp = [a for a in ranking if not a["nome"].startswith("Não instalar")]
+    grupos = []
+    for a in comp:
+        if grupos and grupos[-1][0]["indice"] - a["indice"] <= DELTA:
+            grupos[-1].append(a)
+        else:
+            grupos.append([a])
+    g = len(grupos)
+    for i, gr in enumerate(grupos, 1):
+        rot = ("Mais recomendado" if len(gr) == 1 else "Mais recomendados (índices muito próximos)") if i == 1 else \
+              ("Menos indicados" if (i == g and g >= 3) else "Alternativas competitivas")
+        for a in gr:
+            a["grupo"], a["rotulo"] = i, rot
+    for a in ranking:
+        if a["nome"].startswith("Não instalar"):
+            a["grupo"], a["rotulo"] = 0, "Referência: não investir"
+    return ranking
 
 
 def decisao(usuario: dict) -> dict:
@@ -67,4 +99,4 @@ def decisao(usuario: dict) -> dict:
                 vpl_p10=vp["p10"], investimento=r["investimento"]))
     alts.append(dict(nome="Não instalar (manter a conta atual)", kwp=0.0, financiado=0, vpl=0.0, payback=float(VIDA), fio_b=0.0,
                      folga_limite=1.0, cobertura=0.0, sem_divida=1, prob_vpl=0.0, vpl_p10=0.0, investimento=0.0))
-    return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=c[3], sentido=c[4]) for c in CRITERIOS], ranking=ranquear(alts))
+    return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=c[3], sentido=c[4]) for c in CRITERIOS], ranking=agrupar(ranquear(alts)), delta=DELTA)
