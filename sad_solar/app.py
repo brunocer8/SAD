@@ -107,7 +107,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     best = next(a for a in dec["ranking"] if a.get("res"))  # cenário de maior índice SAW
     risco = analisar_risco({**ent, "financiado": best["financiado"]}, kwp=best["kwp"])
     classe = max(risco["prob_classe"], key=risco["prob_classe"].get)
-    base = {**best["res"], "decisao": dec}
+    base = {**best["res"], "decisao": dec, "veredito": best["veredito"]}
     out = limpar({"entrada": ent, "resultado": base, "risco": risco})
     with db() as c:
         sid = c.execute("insert into simulacoes(usuario_id,criado,municipio,kwp,investimento,payback,vpl,classe,entrada,resultado,risco)"

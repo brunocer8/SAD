@@ -58,8 +58,8 @@ PARAMETROS = {
     ),
     "degradacao_anual": dict(
         padrao=0.005, mc=("tri", 0.004, 0.005, 0.008), tipo="fonte", unidade="% a.a.",
-        fonte="Viana et al. (2012), citado em trabalho do CBENS: 0,5% ao ano, típico no Brasil. "
-              "Faixa superior é premissa.",
+        fonte="Viana et al. (2012), citado em trabalho do CBENS: 0,5% ao ano, típico no Brasil. Teto de 0,8%: a cartilha do BNB cita garantia de "
+              "mais de 80% da produção inicial em 25 anos (20%/25 anos = 0,8% a.a.).",
     ),
     "vida_util_anos": dict(
         padrao=25, mc=None, tipo="fonte", unidade="anos",
@@ -90,20 +90,20 @@ PARAMETROS = {
     # ---------------- Financiamento ----------------
     "taxa_financiamento": dict(
         padrao=0.079, mc=("uni", 0.079, 0.1325), tipo="estimado", unidade="% a.a.",
-        fonte="BNB, FNE Sol: juros pré-fixados a partir de 7,9% a.a. (piso). Limite superior = Selic atual; "
-              "taxas de bancos privados não foram levantadas.",
+        fonte="BNB, FNE Sol: juros pré-fixados a partir de 7,9% a.a. (piso, notícia de jul/2026). A cartilha do BNB diz apenas 'abaixo da média do mercado', sem número; "
+              "há bônus de adimplência (não modelado). Limite superior = Selic atual.",
     ),
     "prazo_financiamento_anos": dict(
-        padrao=8, mc=None, tipo="premissa", unidade="anos",
-        fonte="BNB FNE Sol pessoa física: até 8 anos. Condições para empresas estão na cartilha do BNB (não consultada).",
+        padrao=12, mc=None, tipo="fonte", unidade="anos",
+        fonte="Cartilha BNB, FNE Sol Pessoa Jurídica (jun/2022): prazo de até 12 anos. É o teto; o prazo efetivo é negociado. Confirmar condições vigentes no site do BNB.",
     ),
     "carencia_meses": dict(
-        padrao=6, mc=None, tipo="premissa", unidade="meses",
-        fonte="BNB FNE Sol pessoa física: carência de até 6 meses. Juros capitalizados na carência (premissa).",
+        padrao=6, mc=None, tipo="fonte", unidade="meses",
+        fonte="Cartilha BNB, FNE Sol Pessoa Jurídica: carência de até 6 meses. Juros capitalizados na carência (premissa).",
     ),
     "entrada_pct": dict(
-        padrao=0.20, mc=None, tipo="premissa", unidade="fração do investimento",
-        fonte="Entrada escolhida pelo usuário (o BNB financia até 100% para pessoa física).",
+        padrao=0.10, mc=None, tipo="fonte", unidade="fração do investimento",
+        fonte="Cartilha BNB: financia até 100% do investimento; com alienação fiduciária como única garantia, até 90% do valor de placas e inversores (limite de R$ 300 mil). Entrada de 10% por conservadorismo.",
     ),
     # ---------------- Sistema ----------------
     "m2_por_kwp": dict(

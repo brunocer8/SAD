@@ -38,6 +38,7 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 .kpi{position:relative;cursor:help}.kpi .i{color:#E8590C;font-size:12px}
 .kpi[data-tip]:hover::after,.kpi[data-tip]:focus::after{content:attr(data-tip);position:absolute;left:0;top:100%;margin-top:6px;z-index:30;width:250px;background:#0b3c5d;color:#fff;font-size:12.5px;font-weight:400;line-height:1.45;padding:10px 12px;border-radius:10px;box-shadow:0 6px 18px #0005}
 .kpi:last-child[data-tip]:hover::after,.kpi:last-child[data-tip]:focus::after{left:auto;right:0}
+.carta.sel{outline:3px solid #0B3C5D;outline-offset:2px}.carta[onclick]:hover{transform:translateY(-3px);transition:.15s}
 .cartas{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}
 .carta{position:relative;border:2px solid #d6dde3;border-radius:16px;padding:14px 12px 12px;background:linear-gradient(160deg,#fff,#f3f7fa);display:flex;flex-direction:column;gap:8px}
 .carta.top{border-color:#F7B500;background:linear-gradient(160deg,#fffdf5,#ffefc0);box-shadow:0 0 0 3px #F7B50033,0 8px 22px #E8590C33}
@@ -77,9 +78,9 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <label>Preço do kWh na fatura (R$, com tributos)<input id="tar" type="number" step="0.01" value="1.10" required></label>
 <label>Área de telhado (m², opcional)<input id="area" type="number" min="0"></label>
 <label>Quando a empresa mais consome energia?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite (refrigeração, turnos)</option></select></label>
-<label>Pagamento<select id="fin"><option value="0">À vista</option><option value="1">Financiado</option></select></label>
+
 <button class="bt">Simular</button></form><small id="msg"></small></div>
-<div id="res" class="hide"><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div><div class="card" id="decisao"></div>
+<div id="res" class="hide"><div class="card" id="veredito"></div><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div><div class="card" id="decisao"></div>
 <div class="g2"><div class="card"><b>Geração mensal estimada (kWh)</b><canvas id="c1"></canvas></div>
 <div class="card"><b>Fluxo de caixa acumulado (R$)</b><canvas id="c2"></canvas></div></div>
 <div class="card"><b>Risco (simulação de cenários)</b><div id="risco"></div></div>
@@ -93,7 +94,7 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 const $=i=>document.getElementById(i),R=v=>v==null?"n/d":"R$ "+Math.round(v).toLocaleString("pt-BR"),P=v=>v==null?"n/d":(v*100).toFixed(0)+"%",Y=v=>v==null?"n/d":v.toFixed(1)+" anos";
 const AJUDA={"Sistema recomendado":"Potência do sistema solar que maximiza o ganho financeiro, limitada pela área do telhado e por 75 kWp. kWp é a potência de pico dos painéis.",
 "Investimento somado":"Soma do investimento de todas as simulações salvas.","Investimento":"Quanto custa instalar o sistema (painéis, inversor e instalação), com base em preços médios de mercado de 2026.",
-"Payback médio":"Média do tempo de retorno das suas simulações.","Payback":"Tempo para a economia na conta de luz pagar o investimento. Quanto menor, melhor.",
+"Economia no 1º ano":"Quanto a empresa deixa de pagar na conta de luz no primeiro ano, já descontando o custo do Fio B.","Payback médio":"Média do tempo de retorno das suas simulações.","Payback":"Tempo para a economia na conta de luz pagar o investimento. Quanto menor, melhor.",
 "VPL somado":"Soma do VPL de todas as simulações salvas.","VPL":"Valor Presente Líquido: quanto o projeto rende em 25 anos, em valores de hoje, já descontando o que o dinheiro renderia se fosse aplicado. Positivo significa que vale a pena.",
 "TIR":"Taxa Interna de Retorno: o rendimento anual do investimento. Compare com a Selic ou com o que a empresa ganharia aplicando o dinheiro.",
 "Cobertura":"Parcela do consumo de energia da empresa que o sistema consegue suprir. Abaixo de 90%, o limite de 75 kWp ou a área do telhado não cobrem todo o consumo.",
@@ -120,8 +121,8 @@ async function dash(id){const l=await api("/api/simulacoes");
  if(!l.length)return;if(!id||!l.some(x=>x.id==id))id=l[0].id;
  $("dsel").innerHTML=l.map(x=>`<option value="${x.id}"${x.id==id?" selected":""}>nº ${x.id} · ${x.municipio} · ${x.kwp.toFixed(0)} kWp · ${x.criado}</option>`).join("");
  const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco,e=d.entrada;
- $("dk").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("");
- const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];$("dclasse").textContent=`${a.municipio}: faixa de retorno mais provável, ${top[0]} (${P(top[1])} dos cenários).`;
+ $("dk").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Economia no 1º ano",R(a.economia_ano1)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("");
+ const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];$("dclasse").textContent=`${a.veredito?a.veredito.classe+". ":""}${a.municipio}: faixa de retorno mais provável, ${top[0]} (${P(top[1])} dos cenários).`;
  const fl=a.fluxo_acumulado,gm=a.geracao_mensal_kwh,ger=gm.reduce((x,y)=>x+y,0);
  graf("dc1",{type:"line",data:{labels:fl.map((_,i)=>i),datasets:[{data:fl,borderColor:"#E8590C",pointRadius:0,fill:{target:"origin",above:"#2E9E5B33",below:"#B91C1C33"}}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
  $("dn1").textContent=`Começa negativo (o valor investido) e cruza o zero em ${a.payback==null?"um prazo maior que a vida útil":Y(a.payback)}. Ao fim de 25 anos, o saldo acumulado é de ${R(fl[fl.length-1])}.`;
@@ -136,31 +137,38 @@ async function dash(id){const l=await api("/api/simulacoes");
  $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
 $("dsel").onchange=()=>dash(+$("dsel").value);
 const NOMEF={"1) Teórica":"Retorno financeiro","2) Normativa/Legal":"Conformidade legal","3) Cultural":"Autossuficiência e sem dívida","4) Modelos preditivos":"Segurança frente ao risco"};
-function carta(r){return `<div class="carta${r.grupo==1?" top":""}">${r.grupo==1?'<span class="fita">🏆 Mais recomendado</span>':""}
+function carta(r,inter,sel){return `<div class="carta${r.grupo==1?" top":""}${inter&&r._i==sel?" sel":""}"${inter&&r.res?` onclick="selecionar(${r._i})" style="cursor:pointer"`:""}>${inter&&r._i==sel?'<span class="fita" style="left:auto;right:12px;background:#0B3C5D">Exibido</span>':""}${r.grupo==1?'<span class="fita">🏆 Mais recomendado</span>':""}
  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>☀️ ${r.nome}</b><div class="poder" title="Poder = índice SAW x 100">${Math.round(r.indice*100)}</div></div>
  ${Object.entries(r.atributos).map(([f,v])=>`<div class="stat" title="Fator: ${f}"><span>${NOMEF[f]||f}</span><b>${Math.round(v)}</b><div class="barra"><i style="width:${v}%"></i></div></div>`).join("")}
- <div class="specs"><span>${R(r.investimento)}</span><span>VPL ${R(r.vpl)}</span><span>${Y(r.payback)}</span><span>cobre ${P(r.cobertura)}</span></div></div>`}
-function decisaoHTML(d){if(!d)return"";const gs={};d.ranking.forEach(r=>(gs[r.grupo]=gs[r.grupo]||[]).push(r));
+ <div class="specs"><span>${R(r.investimento)}</span><span>VPL ${R(r.vpl)}</span><span>${Y(r.payback)}</span><span>cobre ${P(r.cobertura)}</span>${r.veredito?`<span><b>${r.veredito.classe}</b></span>`:""}</div></div>`}
+function decisaoHTML(d,inter,sel){if(!d)return"";d.ranking.forEach((r,i)=>r._i=i);const pf={};d.criterios.forEach(c=>pf[c.fator]=(pf[c.fator]||0)+c.peso);const PF=Object.entries(pf).map(([f,v])=>`${f} ${Math.round(v*100)}%`).join(", ");const gs={};d.ranking.forEach(r=>(gs[r.grupo]=gs[r.grupo]||[]).push(r));
  const ordem=Object.keys(gs).map(Number).filter(g=>g>0).sort((a,b)=>a-b).concat(gs[0]?[0]:[]);
- const G=ordem.map(g=>`<h4 style="margin:16px 0 10px">${gs[g][0].rotulo}</h4><div class="cartas">${gs[g].map(carta).join("")}</div>`).join("");
- const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(0)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
- return `<b>Cenários de decisão (método SAW)</b><p><small>Cada carta é um cenário. O <b>poder</b> é o índice SAW x 100, e as barras mostram o desempenho do cenário em cada fator (0 a 100). Cenários com índice a menos de ${d.delta||0.05} do líder do grupo foram agrupados, pois essa diferença é menor que a variação do índice quando os pesos mudam. Pesos por fator, em ordem de preferência: 1) Teórica 40%, 2) Normativa/Legal 30%, 3) Cultural 20%, 4) Modelos preditivos 10%.</small></p>${G}
+ const G=ordem.map(g=>`<h4 style="margin:16px 0 10px">${gs[g][0].rotulo}</h4><div class="cartas">${gs[g].map(r=>carta(r,inter,sel)).join("")}</div>`).join("");
+ const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(1)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
+ return `<b>Cenários de decisão (método SAW)</b><p><small>Cada carta é um cenário.${inter?" <b>Clique em uma carta para ver os indicadores, os gráficos e a análise desse cenário.</b>":""} O <b>poder</b> é o índice SAW x 100, e as barras mostram o desempenho do cenário em cada fator (0 a 100). Cenários com índice a menos de ${d.delta||0.05} do líder do grupo foram agrupados, pois essa diferença é menor que a variação do índice quando os pesos mudam. Pesos por fator, em ordem de preferência (método dos centroides de ranking): ${PF}.</small></p>${G}
  <p><b>Variáveis que determinam a decisão</b></p><table><tr><th>Fator</th><th>Critério</th><th>Peso</th><th>Sentido</th></tr>${C}</table>`}
-function mostrar(a,k,id){$("decisao").innerHTML=decisaoHTML(a.decisao);$("res").classList.remove("hide");
- $("kpis").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]]
+let CUR=null,TXT={},SEL=-1;
+async function selecionar(i,ini){const D=CUR.resultado.decisao,s=D.ranking[i];if(!s||!s.res)return;SEL=i;
+ $("decisao").innerHTML=decisaoHTML(D,true,i);mostrar(s.res,s.risco,null,s.financiado);
+ const v=s.veredito;$("veredito").innerHTML=v?`<div style="border-left:8px solid ${v.nivel=="sim"?"#2E9E5B":v.nivel=="ressalvas"?"#F7B500":"#B91C1C"};padding-left:12px"><b style="font-size:20px">${v.nivel=="sim"?"✅":v.nivel=="ressalvas"?"⚠️":"⛔"} ${v.classe}</b><br><small>${s.nome}</small>${v.ressalvas.length?`<ul style="margin:8px 0 0">${v.ressalvas.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}</div>`:"";
+ $("classe").textContent=`Cenário exibido: ${s.nome} (${s.rotulo}). `+$("classe").textContent;
+ if(TXT[i]){$("texto").textContent=TXT[i];return}$("texto").textContent="Gerando análise...";
+ const ctx=`Cenário analisado: ${s.nome}, grupo "${s.rotulo}", índice SAW ${s.indice.toFixed(2)}. Cenários mais recomendados: ${D.ranking.filter(r=>r.grupo==1).map(r=>r.nome).join("; ")}.`;
+ try{const t=(await api("/api/texto",{method:"POST",body:{resultado:s.res,risco:s.risco,contexto:ctx,id:ini?CUR.id:null}})).texto;TXT[i]=t;if(SEL==i)$("texto").textContent=t}catch(x){if(SEL==i)$("texto").textContent=x.message}}
+function mostrar(a,k,id,fin){$("res").classList.remove("hide");
+ $("kpis").innerHTML=[["Sistema recomendado",a.kwp.toFixed(0)+" kWp"],["Investimento",R(a.investimento)],["Economia no 1º ano",R(a.economia_ano1)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Cobertura do consumo",P(a.cobertura_consumo)]]
   .map(x=>kpi(x[0],x[1])).join("");
  const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];
- $("classe").textContent=`Faixa de retorno mais provável: ${top[0]} (${P(top[1])} dos cenários).`+(a.cobertura_consumo<0.9?" Atenção: o limite de 75 kWp ou a área do telhado não cobrem todo o consumo.":"");
+ $("classe").textContent=`Faixa de retorno mais provável: ${top[0]} (${P(top[1])} dos cenários).`+(a.cobertura_consumo<0.9?` Atenção: este cenário cobre só ${P(a.cobertura_consumo)} do consumo; o restante continua sendo comprado da distribuidora.`:"");
  graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:"#F7B500"}]},options:{plugins:{legend:{display:false}}}});
  graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:"#E8590C",pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
- $("risco").innerHTML=`<p>VPL positivo em <b>${P(k.prob_vpl_positivo)}</b> dos ${k.n_cenarios} cenários. VPL entre ${R(k.vpl_a_vista.p10)} e ${R(k.vpl_a_vista.p90)} (percentis 10 e 90).</p>
+ $("risco").innerHTML=`<p>VPL positivo em <b>${P(fin?k.prob_vpl_positivo_financiado:k.prob_vpl_positivo)}</b> dos ${k.n_cenarios} cenários${fin?" (cenário financiado)":""}. VPL entre ${R((fin?k.vpl_financiado:k.vpl_a_vista).p10)} e ${R((fin?k.vpl_financiado:k.vpl_a_vista).p90)} (percentis 10 e 90).</p>
  <p>Financiado rende mais que à vista em <b>${P(k.prob_financiado_melhor)}</b> dos cenários.</p><p>Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>`}
 $("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
  $("msg").textContent="Calculando...";
- try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:+$("fin").value,
+ try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
   consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null}});
-  $("msg").textContent="";mostrar(d.resultado,d.risco,d.id);$("texto").textContent="Gerando análise...";
-  $("texto").textContent=(await api("/api/texto",{method:"POST",body:{resultado:d.resultado,risco:d.risco,id:d.id}})).texto}catch(x){$("msg").textContent=x.message}};
+  $("msg").textContent="";CUR=d;TXT={};selecionar(d.resultado.decisao.ranking.findIndex(r=>r.res),1)}catch(x){$("msg").textContent=x.message}};
 async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
  $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>
   `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(0)}</td><td>${R(r.investimento)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td>
@@ -168,7 +176,7 @@ async function rel(){$("det").classList.add("hide");lista=await api("/api/simula
 async function abrir(id){const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco;$("det").classList.remove("hide");
  $("dbody").innerHTML=`<h3>Relatório de simulação nº ${id} · ${d.criado}</h3><p><b>${a.municipio}</b> · consumo ${d.entrada.consumo_mes_kwh} kWh/mês · tarifa R$ ${d.entrada.tarifa_kwh}/kWh · consumo diurno ${P(d.entrada.consumo_diurno_fracao)}</p>
  <div class="kpis">${[["kWp",a.kwp.toFixed(0)],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL",R(a.vpl)],["TIR",P(a.tir)],["Cobertura",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("")}</div>
- <div>${decisaoHTML(a.decisao)}</div>
+ ${a.veredito?`<p><b>${a.veredito.classe}</b>${a.veredito.ressalvas.length?": "+a.veredito.ressalvas.join("; "):""}</p>`:""}<div>${decisaoHTML(a.decisao)}</div>
  <p>VPL positivo em ${P(k.prob_vpl_positivo)} dos ${k.n_cenarios} cenários; financiado melhor em ${P(k.prob_financiado_melhor)}. Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>
  <p id="dtxt"></p><small>Simulação baseada em premissas; não substitui orçamento de integrador.</small>`;$("dtxt").textContent=d.texto||"(sem análise de texto salva)";$("det").scrollIntoView()}
 async function apagar(id){if(confirm("Excluir esta simulação?")){await api("/api/simulacoes/"+id,{method:"DELETE"});rel()}}
