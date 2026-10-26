@@ -96,7 +96,7 @@ def decisao(usuario: dict) -> dict:
                 vpl=r["vpl"], payback=r["payback"] if r["payback"] is not None and r["payback"] == r["payback"] else VIDA,
                 fio_b=r["custo_fio_b_ano1"], folga_limite=(KWP_MAX - k) / KWP_MAX, cobertura=r["cobertura_consumo"],
                 sem_divida=0 if fin else 1, prob_vpl=rk["prob_vpl_positivo_financiado" if fin else "prob_vpl_positivo"],
-                vpl_p10=vp["p10"], investimento=r["investimento"]))
+                vpl_p10=vp["p10"], investimento=r["investimento"], res=r, risco=rk))
     alts.append(dict(nome="Não instalar (manter a conta atual)", kwp=0.0, financiado=0, vpl=0.0, payback=float(VIDA), fio_b=0.0,
                      folga_limite=1.0, cobertura=0.0, sem_divida=1, prob_vpl=0.0, vpl_p10=0.0, investimento=0.0))
     return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=c[3], sentido=c[4]) for c in CRITERIOS], ranking=agrupar(ranquear(alts)), delta=DELTA)

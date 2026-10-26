@@ -103,10 +103,11 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     if e.cod_ibge not in mun.index:
         raise HTTPException(404, "Município fora da Bahia ou desconhecido")
     ent = e.model_dump()
-    base = analisar(ent)
-    risco = analisar_risco(ent, kwp=base["kwp"])
+    dec = decisao(ent)
+    best = next(a for a in dec["ranking"] if a.get("res"))  # cenário de maior índice SAW
+    risco = analisar_risco({**ent, "financiado": best["financiado"]}, kwp=best["kwp"])
     classe = max(risco["prob_classe"], key=risco["prob_classe"].get)
-    base["decisao"] = decisao(ent)
+    base = {**best["res"], "decisao": dec}
     out = limpar({"entrada": ent, "resultado": base, "risco": risco})
     with db() as c:
         sid = c.execute("insert into simulacoes(usuario_id,criado,municipio,kwp,investimento,payback,vpl,classe,entrada,resultado,risco)"
@@ -124,7 +125,7 @@ def texto(d: dict, u=Depends(usuario)):
     resumo = (f"Município: {r['municipio']}. kWp recomendado: {r['kwp']:.0f}. Investimento: R$ {r['investimento']:,.0f}. "
               f"Payback à vista: {pb}. VPL: R$ {r['vpl']:,.0f}. Cobertura do consumo: {r['cobertura_consumo']:.0%}. "
               f"Em {k['n_cenarios']} cenários com incerteza: VPL positivo em {k['prob_vpl_positivo']:.0%}; faixas de retorno {k['prob_classe']}; "
-              f"financiado melhor que à vista em {k['prob_financiado_melhor']:.0%}.")
+              f"financiado melhor que à vista em {k['prob_financiado_melhor']:.0%}." + (" Contexto da decisão multicritério (SAW): " + d["contexto"] if d.get("contexto") else ""))
     prompt = ("Você apoia a decisão de uma pequena empresa sobre instalar energia solar. Escreva 3 parágrafos curtos, em português, para um "
               "gestor leigo: (1) o que o resultado indica, (2) riscos e incertezas, (3) recomendação prática. Use SOMENTE os números "
               "abaixo, não invente valores. Lembre que são simulações baseadas em premissas.\n\n" + resumo)
