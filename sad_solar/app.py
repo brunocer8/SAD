@@ -7,8 +7,7 @@ from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from financeiro import analisar, carregar_municipios
-from montecarlo import analisar_risco
+from financeiro import AreaInsuficiente, carregar_municipios
 from saw import decisao
 
 app = FastAPI(title="SAD Solar PME Bahia")
@@ -103,11 +102,15 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     if e.cod_ibge not in mun.index:
         raise HTTPException(404, "Município fora da Bahia ou desconhecido")
     ent = e.model_dump()
-    dec = decisao(ent)
-    best = next(a for a in dec["ranking"] if a.get("res"))  # cenário de maior índice SAW
-    risco = analisar_risco({**ent, "financiado": best["financiado"]}, kwp=best["kwp"])
-    classe = max(risco["prob_classe"], key=risco["prob_classe"].get)
-    base = {**best["res"], "decisao": dec, "veredito": best["veredito"]}
+    try:
+        dec = decisao(ent)
+    except AreaInsuficiente as ex:
+        raise HTTPException(422, str(ex))
+    rec = dec["recomendacao"]
+    exib = dec["ranking"][rec["indice_exibido"]]   # cenário detalhado nos gráficos (a recomendada, ou a de maior VPL se não instalar)
+    risco = exib["risco"]
+    classe = "Não instalar" if rec["tipo"] == "nao_instalar" else max(risco["prob_classe"], key=risco["prob_classe"].get)
+    base = {**exib["res"], "decisao": dec, "veredito": exib["veredito"]}
     out = limpar({"entrada": ent, "resultado": base, "risco": risco})
     with db() as c:
         sid = c.execute("insert into simulacoes(usuario_id,criado,municipio,kwp,investimento,payback,vpl,classe,entrada,resultado,risco)"
@@ -122,7 +125,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
 def texto(d: dict, u=Depends(usuario)):
     r, k = d["resultado"], d["risco"]
     pb = f"{r['payback']:.1f} anos" if r.get("payback") is not None else "não se paga na vida útil"
-    resumo = (f"Município: {r['municipio']}. kWp recomendado: {r['kwp']:.0f}. Investimento: R$ {r['investimento']:,.0f}. "
+    resumo = (f"Município: {r['municipio']}. kWp do cenário analisado: {r['kwp']:.0f}. Investimento: R$ {r['investimento']:,.0f}. "
               f"Payback à vista: {pb}. VPL: R$ {r['vpl']:,.0f}. Cobertura do consumo: {r['cobertura_consumo']:.0%}. "
               f"Em {k['n_cenarios']} cenários com incerteza: VPL positivo em {k['prob_vpl_positivo']:.0%}; faixas de retorno {k['prob_classe']}; "
               f"financiado melhor que à vista em {k['prob_financiado_melhor']:.0%}." + (" Contexto da decisão multicritério (SAW): " + d["contexto"] if d.get("contexto") else ""))

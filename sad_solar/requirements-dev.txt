@@ -1,0 +1,5 @@
+-r requirements.txt
+httpx
+pytest
+scikit-learn   # só para o experimento offline do classificador (python montecarlo.py treinar)
+joblib

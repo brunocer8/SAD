@@ -7,6 +7,12 @@ Duas formas de usar a incerteza:
   2. gerar_cenarios() + treinar(): sorteia milhares de clientes e cenários, rotula cada um pela
      faixa de retorno e treina árvore de decisão / Random Forest.
 
+PAPEL NO SISTEMA: o classificador (árvore de decisão / Random Forest) é um EXPERIMENTO OFFLINE de mineração
+de dados (python montecarlo.py treinar). Ele NÃO participa da recomendação do SAD, e as classes foram criadas
+a partir de cortes de payback escolhidos pelo autor sobre cenários sintéticos: a acurácia mede a capacidade de
+reproduzir esses rótulos, não de prever PMEs reais. As funções analíticas que alimentam a decisão são a regressão
+(geração), a sumarização (indicadores e Monte Carlo) e o agrupamento (ver saw.py).
+
 ACHADO IMPORTANTE (declarar no trabalho): com as premissas atuais, praticamente 100% dos
 cenários de PME têm VPL > 0 e payback descontado inferior a 5 anos. Um rótulo absoluto
 "viável / inviável" não tem variação para ser aprendido. Por isso a classificação descreve a
@@ -26,7 +32,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from financeiro import buscar_municipio, carregar_municipios, custo_kwp_tabela, dimensionar, montar_entrada, simular
+from financeiro import (buscar_municipio, carregar_municipios, custo_kwp_tabela, dimensionar, montar_entrada,
+                        perfil_sazonal, simular)
 from parametros import PARAMETROS, UNIVERSO_PME, padroes
 
 LIMITE_RAPIDO = 1.5   # anos (payback simples, à vista)
@@ -76,8 +83,9 @@ def rotular(vpl, payback) -> np.ndarray:
 # ------------------------------------------------------------------ base de cenários
 def gerar_cenarios(n: int = 20000, seed: int = 42) -> pd.DataFrame:
     rng = np.random.default_rng(seed)
-    mun, _ = carregar_municipios()
+    mun, perfis = carregar_municipios()
     cods = rng.choice(mun.index.to_numpy(), n)
+    sazonal = {c: perfil_sazonal(p) for c, p in perfis.items()}
     ger = mun.loc[cods, "ger_esp_anual"].to_numpy()
     lo, hi = UNIVERSO_PME["consumo_mes_kwh"]
     consumo = np.exp(rng.uniform(np.log(lo), np.log(hi), n))
@@ -87,7 +95,8 @@ def gerar_cenarios(n: int = 20000, seed: int = 42) -> pd.DataFrame:
     e = incertezas(n, rng)
     kwp = np.clip(consumo * 12 * cobertura / (ger * PARAMETROS["fator_desempenho_real"]["padrao"]),
                   UNIVERSO_PME["kwp_min"], PARAMETROS["kwp_max"]["padrao"])
-    e.update(kwp=kwp, ger_esp_anual=ger, consumo_mes_kwh=consumo, tarifa_kwh=tarifa)
+    e.update(kwp=kwp, ger_esp_anual=ger, consumo_mes_kwh=consumo, tarifa_kwh=tarifa,
+             perfil=np.array([sazonal[c] for c in cods]))
     r = simular({**e, "financiado": 0.0})   # à vista
     rf = simular({**e, "financiado": 1.0})  # financiado
 
@@ -114,7 +123,7 @@ def analisar_risco(usuario: dict, kwp: float | None = None, n: int = 2000, seed:
     e = incertezas(n, rng)
     e.update({k: v for k, v in usuario.items() if k in PARAMETROS})  # o que o usuário fixou vale
     base = montar_entrada(usuario, kwp)
-    for k in ("kwp", "ger_esp_anual", "consumo_mes_kwh"):
+    for k in ("kwp", "ger_esp_anual", "consumo_mes_kwh", "perfil"):
         e[k] = base[k]
     r = simular({**e, "financiado": 0.0})
     rf = simular({**e, "financiado": 1.0})
@@ -129,6 +138,7 @@ def analisar_risco(usuario: dict, kwp: float | None = None, n: int = 2000, seed:
         vpl_financiado=dict(p10=q(rf["vpl"], 10), mediana=q(rf["vpl"], 50), p90=q(rf["vpl"], 90)),
         prob_financiado_melhor=float((rf["vpl"] > r["vpl"]).mean()),
         payback_a_vista=dict(p10=q(r["payback"], 10), mediana=q(r["payback"], 50), p90=q(r["payback"], 90)),
+        payback_financiado=dict(p10=q(rf["payback"], 10), mediana=q(rf["payback"], 50), p90=q(rf["payback"], 90)),
         payback_descontado=dict(p10=q(r["payback_descontado"], 10), mediana=q(r["payback_descontado"], 50),
                                 p90=q(r["payback_descontado"], 90)),
         tir_mediana=q(r["tir"], 50),

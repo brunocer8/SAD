@@ -12,10 +12,16 @@ Fluxo:
 Tudo é vetorizado (cada cenário é uma posição de um array), então o mesmo código
 roda um caso determinístico (N = 1) ou milhares de cenários de Monte Carlo.
 
+Balanço energético MENSAL (Lei 14.300/2022): em cada mês, a geração é abatida primeiro do consumo
+simultâneo (autoconsumo, limitado pela fração diurna do consumo); o excedente vira crédito de energia,
+que é usado nos meses seguintes para abater o consumo que vem da rede (acima do custo de disponibilidade).
+Só a energia compensada paga Fio B. O perfil sazonal de geração vem do município (regressão linear).
+
 Simplificações declaradas:
-  - Balanço energético ANUAL (sem sazonalidade mensal de créditos). Crédito excedente não consumido
-    no ano é considerado sem valor (conservador; desincentiva superdimensionar).
-  - Consumo constante ao longo da vida do sistema.
+  - Consumo mensal constante (sem sazonalidade de consumo) e constante ao longo da vida do sistema.
+  - Créditos acumulam sem prazo de validade (a norma prevê 60 meses); créditos que sobram ao final
+    da vida útil não têm valor.
+  - A fração diurna do consumo é a mesma em todos os meses.
   - Tarifa convencional (sem Tarifa Branca). O preço do kWh deve ser informado com tributos.
   - Fluxos de caixa no fim de cada ano; taxa de desconto nominal.
 """
@@ -26,12 +32,19 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from parametros import CUSTO_KWP_PONTOS, FIO_B_PCT, PARAMETROS, padroes
+from parametros import CUSTO_KWP_PONTOS, FIO_B_PCT, PARAMETROS, UNIVERSO_PME, padroes
 
 DADOS = Path(__file__).parent / "dados"
 DIAS_MES = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
 _KWP_PTS = np.array(sorted(CUSTO_KWP_PONTOS))
 _CUSTO_PTS = np.array([CUSTO_KWP_PONTOS[k] for k in _KWP_PTS], dtype=float)
+
+
+class AreaInsuficiente(ValueError):
+    """A área de telhado informada não comporta o sistema mínimo (restrição técnica real)."""
+
+
+KWP_MIN = UNIVERSO_PME["kwp_min"]
 
 
 # ------------------------------------------------------------------ dados por município
@@ -100,8 +113,17 @@ def _payback(full: np.ndarray) -> np.ndarray:
     return np.where(nunca, np.nan, res)
 
 
+def perfil_sazonal(perfil_kwh_kwp) -> np.ndarray:
+    """Converte o perfil mensal (kWh/kWp.mês) na fração da geração anual que ocorre em cada mês (soma 1)."""
+    p = np.asarray(perfil_kwh_kwp, dtype=float)
+    return p / p.sum(axis=-1, keepdims=True)
+
+
 def simular(e: dict, devolver_fluxo: bool = False) -> dict:
-    """Simula N cenários. Valores de `e` podem ser escalares ou arrays de tamanho N."""
+    """Simula N cenários. Valores de `e` podem ser escalares ou arrays de tamanho N.
+    `e["perfil"]` (opcional): fração da geração anual em cada mês, shape (12,) ou (N, 12)."""
+    e = dict(e)
+    perfil = e.pop("perfil", None)
     brut = np.broadcast_arrays(*[np.asarray(v, dtype=float) for v in e.values()])
     n = int(np.atleast_1d(brut[0]).size)
 
@@ -110,18 +132,32 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
 
     T = int(np.max(A("vida_util_anos")))
     t = np.arange(1, T + 1)[None, :]  # anos 1..T
+    P = perfil_sazonal(DIAS_MES if perfil is None else perfil)
+    P = np.broadcast_to(np.atleast_2d(P), (n, 12))
 
     kwp, ger_esp = A("kwp"), A("ger_esp_anual")
-    cons = (A("consumo_mes_kwh") * 12)[:, None]
+    cons_m = A("consumo_mes_kwh")
+    cons = (cons_m * 12)[:, None]
 
-    # --- energia
+    # --- energia: balanço MENSAL com banco de créditos (vetorizado sobre os N cenários)
     g0 = kwp * ger_esp * A("fator_desempenho_real")
-    G = g0[:, None] * (1 - A("degradacao_anual"))[:, None] ** (t - 1)
-    S = np.minimum(G, A("consumo_diurno_fracao")[:, None] * cons)           # consumida na hora (limitada pela carga diurna)
-    injetada = G - S
-    disponivel = np.maximum(cons - S - (12 * A("custo_disponibilidade_kwh_mes"))[:, None], 0.0)
-    comp = np.minimum(injetada, disponivel)                                 # créditos usados
-    perdida = injetada - comp
+    degr = 1 - A("degradacao_anual")
+    carga_dia = A("consumo_diurno_fracao") * cons_m      # kWh/mês consumíveis na hora do sol
+    minimo = A("custo_disponibilidade_kwh_mes")          # kWh/mês cobrados mesmo com créditos
+    S = np.zeros((n, T)); comp = np.zeros((n, T)); injetada = np.zeros((n, T)); saldo_fim = np.zeros((n, T))
+    saldo = np.zeros(n)
+    for ti in range(T):
+        fa = degr ** ti
+        for m in range(12):
+            g = g0 * P[:, m] * fa
+            s_m = np.minimum(g, carga_dia)               # autoconsumo instantâneo: não passa pela rede
+            inj = g - s_m                                # excedente injetado na rede vira crédito
+            need = np.maximum(cons_m - s_m - minimo, 0.0)  # consumo da rede que pode ser abatido por créditos
+            uso = np.minimum(saldo + inj, need)
+            saldo = saldo + inj - uso
+            S[:, ti] += s_m; comp[:, ti] += uso; injetada[:, ti] += inj
+        saldo_fim[:, ti] = saldo
+    G = S + injetada                                     # geração anual por ano (kWh)
 
     # --- economia
     tarifa_t = A("tarifa_kwh")[:, None] * (1 + A("reajuste_tarifa"))[:, None] ** (t - 1)
@@ -131,6 +167,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
                   np.where(ano == 2028, FIO_B_PCT[2028], A("fio_b_2029_em_diante")[:, None])))
     custo_fio_b = tarifa_t * A("fio_b_share_tarifa")[:, None] * pct_fio_b * comp
     economia = tarifa_t * (S + comp) - custo_fio_b
+    economia_injetada = tarifa_t * comp - custo_fio_b                       # parte da economia que depende da compensação
 
     # --- custos
     invest = kwp * custo_kwp_tabela(kwp) * A("fator_custo")
@@ -165,8 +202,10 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     out = dict(
         investimento=invest, vpl=vpl, tir=_tir(full), payback=pb, payback_descontado=pbd, lcoe=lcoe,
         geracao_ano1=G[:, 0], economia_ano1=economia[:, 0],
-        cobertura_consumo=(S + comp)[:, 0] / cons[:, 0], energia_perdida_ano1=perdida[:, 0],
+        cobertura_consumo=(S + comp)[:, 0] / cons[:, 0], credito_acumulado_ano1=saldo_fim[:, 0],
         custo_fio_b_ano1=custo_fio_b[:, 0],
+        exposicao_regulatoria=economia_injetada[:, 0] / np.maximum(economia[:, 0], 1e-9),
+        autoconsumo_ano1=S[:, 0], compensada_ano1=comp[:, 0], injetada_ano1=injetada[:, 0],
     )
     if devolver_fluxo:
         out["fluxo"] = full
@@ -176,7 +215,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
 # ------------------------------------------------------------------ interface de alto nível
 def montar_entrada(usuario: dict, kwp) -> dict:
     """Combina padrões + o que o usuário informou + dados do município. `kwp` pode ser array."""
-    mun, _ = carregar_municipios()
+    mun, perfil = carregar_municipios()
     cod = int(usuario["cod_ibge"])
     e = padroes()
     e.update({k: v for k, v in usuario.items() if k in PARAMETROS})
@@ -184,17 +223,22 @@ def montar_entrada(usuario: dict, kwp) -> dict:
     e["consumo_mes_kwh"] = float(usuario["consumo_mes_kwh"])
     e["financiado"] = float(usuario.get("financiado", 0))
     e["kwp"] = kwp
+    e["perfil"] = perfil_sazonal(perfil[cod])
     return e
 
 
 def dimensionar(usuario: dict) -> dict:
-    """Varre o kWp (3 a limite) e escolhe o que maximiza o VPL no cenário-base."""
+    """Varre o kWp (mínimo a limite de área/potência) e escolhe o que maximiza o VPL no cenário-base."""
     p = padroes()
     teto = p["kwp_max"]
     if usuario.get("area_m2"):
         teto = min(teto, usuario["area_m2"] / p.get("m2_por_kwp", 7.0))
-    teto = max(int(np.floor(teto)), 3)
-    grade = np.arange(3, teto + 1, dtype=float)
+    teto = int(np.floor(teto))
+    if teto < KWP_MIN:
+        raise AreaInsuficiente(
+            f"A área informada ({usuario['area_m2']:.0f} m²) comporta no máximo {teto} kWp, abaixo do sistema mínimo de "
+            f"{KWP_MIN:.0f} kWp (~{KWP_MIN * p.get('m2_por_kwp', 7.0):.0f} m²). Não há alternativa tecnicamente admissível.")
+    grade = np.arange(KWP_MIN, teto + 1, dtype=float)
     r = simular(montar_entrada(usuario, grade))
     i = int(np.argmax(r["vpl"]))
     tabela = pd.DataFrame({"kwp": grade, "investimento": r["investimento"], "vpl": r["vpl"],
