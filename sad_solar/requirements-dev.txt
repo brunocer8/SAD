@@ -1,5 +1,5 @@
 -r requirements.txt
-httpx
-pytest
-scikit-learn   # só para o experimento offline do classificador (python montecarlo.py treinar)
-joblib
+httpx==0.28.1
+pytest==9.1.1
+scikit-learn==1.8.0   # só para o experimento offline do classificador (python montecarlo.py treinar)
+joblib==1.5.3

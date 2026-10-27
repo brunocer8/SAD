@@ -77,8 +77,8 @@ class Entrada(BaseModel):
     cod_ibge: int
     consumo_mes_kwh: float = Field(gt=0)
     tarifa_kwh: float = Field(gt=0)
-    area_m2: float | None = None
-    financiado: int = 0
+    area_m2: float | None = Field(None, gt=0)
+    financiado: int = Field(0, ge=0, le=1)
     consumo_diurno_fracao: float = Field(0.60, ge=0.1, le=1.0)
 
 
@@ -104,7 +104,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     ent = e.model_dump()
     try:
         dec = decisao(ent)
-    except AreaInsuficiente as ex:
+    except (AreaInsuficiente, ValueError) as ex:
         raise HTTPException(422, str(ex))
     rec = dec["recomendacao"]
     exib = dec["ranking"][rec["indice_exibido"]]   # cenário detalhado nos gráficos (a recomendada, ou a de maior VPL se não instalar)

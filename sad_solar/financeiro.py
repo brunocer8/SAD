@@ -19,8 +19,9 @@ Só a energia compensada paga Fio B. O perfil sazonal de geração vem do munic�
 
 Simplificações declaradas:
   - Consumo mensal constante (sem sazonalidade de consumo) e constante ao longo da vida do sistema.
-  - Créditos acumulam sem prazo de validade (a norma prevê 60 meses); créditos que sobram ao final
-    da vida útil não têm valor.
+  - Créditos com validade de 60 meses (consumo FIFO: os mais antigos primeiro); créditos expirados ou
+    que sobram ao final da vida útil não têm valor.
+  - Autoconsumo = min(simultaneidade x geração, fração diurna x consumo); sem curva de carga horária.
   - A fração diurna do consumo é a mesma em todos os meses.
   - Tarifa convencional (sem Tarifa Branca). O preço do kWh deve ser informado com tributos.
   - Fluxos de caixa no fim de cada ano; taxa de desconto nominal.
@@ -45,6 +46,7 @@ class AreaInsuficiente(ValueError):
 
 
 KWP_MIN = UNIVERSO_PME["kwp_min"]
+VALIDADE_MESES = 60   # validade dos créditos de energia (Lei 14.300/2022, art. 13)
 
 
 # ------------------------------------------------------------------ dados por município
@@ -98,19 +100,19 @@ def _tir(full: np.ndarray) -> np.ndarray:
 
 
 def _payback(full: np.ndarray) -> np.ndarray:
-    """Anos até o fluxo acumulado ficar positivo (com interpolação). NaN se não paga na vida útil."""
+    """Anos até o PRIMEIRO instante em que o fluxo acumulado fica >= 0 (interpolação linear no ano do cruzamento).
+    0 se já começa não negativo; NaN se nunca recupera na vida útil."""
     cum = np.cumsum(full, axis=1)
-    n, tp = cum.shape
-    neg = cum < 0
-    anyneg = neg.any(axis=1)
-    ultimo = tp - 1 - np.argmax(neg[:, ::-1], axis=1)
-    nunca = anyneg & (ultimo >= tp - 1)
-    k = np.clip(ultimo, 0, tp - 2)
+    n = cum.shape[0]
+    nonneg = cum >= 0
+    achou = nonneg.any(axis=1)
+    p = np.argmax(nonneg, axis=1)                       # primeiro índice com acumulado >= 0
+    k = np.clip(p - 1, 0, None)
     lin = np.arange(n)
-    prox = full[lin, k + 1]
-    frac = np.where(prox > 0, -cum[lin, k] / np.where(prox > 0, prox, 1.0), 0.0)
-    res = np.where(anyneg, k + frac, 0.0)
-    return np.where(nunca, np.nan, res)
+    passo = full[lin, p]
+    frac = np.where(passo > 0, -cum[lin, k] / np.where(passo > 0, passo, 1.0), 0.0)
+    res = np.where(p == 0, 0.0, k + frac)
+    return np.where(achou, res, np.nan)
 
 
 def perfil_sazonal(perfil_kwh_kwp) -> np.ndarray:
@@ -144,19 +146,24 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     degr = 1 - A("degradacao_anual")
     carga_dia = A("consumo_diurno_fracao") * cons_m      # kWh/mês consumíveis na hora do sol
     minimo = A("custo_disponibilidade_kwh_mes")          # kWh/mês cobrados mesmo com créditos
+    sim = A("simultaneidade")
     S = np.zeros((n, T)); comp = np.zeros((n, T)); injetada = np.zeros((n, T)); saldo_fim = np.zeros((n, T))
-    saldo = np.zeros(n)
+    expirado = np.zeros((n, T))
+    lotes = np.zeros((n, VALIDADE_MESES))               # créditos por mês de origem (índice 0 = mais antigo)
     for ti in range(T):
         fa = degr ** ti
         for m in range(12):
             g = g0 * P[:, m] * fa
-            s_m = np.minimum(g, carga_dia)               # autoconsumo instantâneo: não passa pela rede
+            s_m = np.minimum(sim * g, carga_dia)         # autoconsumo instantâneo: só a parte simultânea da geração
             inj = g - s_m                                # excedente injetado na rede vira crédito
             need = np.maximum(cons_m - s_m - minimo, 0.0)  # consumo da rede que pode ser abatido por créditos
-            uso = np.minimum(saldo + inj, need)
-            saldo = saldo + inj - uso
-            S[:, ti] += s_m; comp[:, ti] += uso; injetada[:, ti] += inj
-        saldo_fim[:, ti] = saldo
+            expirado[:, ti] += lotes[:, 0]               # o lote com 60 meses expira
+            lotes = np.concatenate([lotes[:, 1:], inj[:, None]], axis=1)
+            antes = np.cumsum(lotes, axis=1) - lotes     # créditos mais antigos que cada lote (consumo FIFO)
+            uso = np.clip(need[:, None] - antes, 0.0, lotes)
+            lotes = lotes - uso
+            S[:, ti] += s_m; comp[:, ti] += uso.sum(axis=1); injetada[:, ti] += inj
+        saldo_fim[:, ti] = lotes.sum(axis=1)
     G = S + injetada                                     # geração anual por ano (kWh)
 
     # --- economia
@@ -180,7 +187,8 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     fin = A("financiado")
     F = invest * (1 - A("entrada_pct")) * fin
     im = (1 + A("taxa_financiamento")) ** (1 / 12) - 1
-    car, nparc = A("carencia_meses"), A("prazo_financiamento_anos") * 12
+    car = A("carencia_meses")
+    nparc = np.maximum(A("prazo_financiamento_anos") * 12 - car, 1.0)   # prazo TOTAL inclui a carência
     Fc = F * (1 + im) ** car
     pmt = np.where(im > 0, Fc * im / (1 - (1 + im) ** (-nparc)), Fc / nparc)
     meses = np.clip(np.minimum((car + nparc)[:, None], 12 * t) - np.maximum(car[:, None], 12 * (t - 1)), 0, 12)
@@ -191,16 +199,20 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     cf = economia - om - troca - parcelas
     full = np.concatenate([cf0[:, None], cf], axis=1)
 
+    # fluxo do PROJETO (sem financiamento): comparável entre tamanhos e formas de pagamento
+    full_proj = np.concatenate([-invest[:, None], economia - om - troca], axis=1)
     d = A("taxa_desconto")
     disc = (1 + d)[:, None] ** (-np.arange(0, T + 1))[None, :]
     vpl = (full * disc).sum(axis=1)
     pb = _payback(full)
     pbd = _payback(full * disc)
+    vpl_proj = (full_proj * disc).sum(axis=1)
     custo_pv = invest + ((om + troca) * disc[:, 1:]).sum(axis=1)
     lcoe = custo_pv / np.maximum((G * disc[:, 1:]).sum(axis=1), 1e-9)
 
     out = dict(
-        investimento=invest, vpl=vpl, tir=_tir(full), payback=pb, payback_descontado=pbd, lcoe=lcoe,
+        investimento=invest, vpl=vpl, vpl_projeto=vpl_proj, payback_projeto=_payback(full_proj),
+        parcelas_ano1=parcelas[:, 0], credito_expirado_ano1=expirado[:, 0], credito_expirado_total=expirado.sum(axis=1), tir=_tir(full), payback=pb, payback_descontado=pbd, lcoe=lcoe,
         geracao_ano1=G[:, 0], economia_ano1=economia[:, 0],
         cobertura_consumo=(S + comp)[:, 0] / cons[:, 0], credito_acumulado_ano1=saldo_fim[:, 0],
         custo_fio_b_ano1=custo_fio_b[:, 0],
@@ -230,8 +242,11 @@ def montar_entrada(usuario: dict, kwp) -> dict:
 def dimensionar(usuario: dict) -> dict:
     """Varre o kWp (mínimo a limite de área/potência) e escolhe o que maximiza o VPL no cenário-base."""
     p = padroes()
-    teto = p["kwp_max"]
-    if usuario.get("area_m2"):
+    usuario = {**usuario, "financiado": 0}          # dimensiona pelo VPL do PROJETO (sem financiamento)
+    teto = p["kwp_max"] * p.get("relacao_dc_ac", 1.0)
+    if usuario.get("area_m2") is not None:
+        if usuario["area_m2"] <= 0:
+            raise ValueError("A área de telhado deve ser positiva (ou deixada em branco).")
         teto = min(teto, usuario["area_m2"] / p.get("m2_por_kwp", 7.0))
     teto = int(np.floor(teto))
     if teto < KWP_MIN:

@@ -32,9 +32,15 @@ PARAMETROS = {
               "gráfico da Coelba: 'Distribuição' = 29,1% do preço final. NÃO é o valor oficial da Coelba.",
     ),
     "fio_b_2029_em_diante": dict(
-        padrao=1.00, mc=("uni", 0.90, 1.00), tipo="premissa", unidade="fração do Fio B cobrada",
-        fonte="Lei 14.300/2022: 60% (2026), 75% (2027), 90% (2028); a partir de 2029 a regra depende de "
-              "regulamentação futura. Cenário conservador: 100%.",
+        padrao=1.00, mc=("uni", 0.60, 1.00), tipo="premissa", unidade="fração do Fio B cobrada",
+        fonte="Lei 14.300/2022, art. 27: 60% (2026), 75% (2027), 90% (2028); de 2029 em diante vale o art. 17 e a regulamentação "
+              "da ANEEL, que não fixa 100% do Fio B. Cenário-base conservador: 100%; o Monte Carlo varre de 60% (nível de 2026) a 100%.",
+    ),
+    "simultaneidade": dict(
+        padrao=0.85, mc=("uni", 0.70, 1.00), tipo="premissa", unidade="fração da geração mensal coincidente com a carga",
+        fonte="A geração se concentra no meio do dia e a carga varia ao longo do expediente: só parte da geração é consumida no mesmo "
+              "instante. Sem curva de carga horária, usa-se um fator de simultaneidade (premissa do autor, com sensibilidade 0,70 a 1,00). "
+              "Autoconsumo mensal = min(simultaneidade x geração, fração diurna x consumo).",
     ),
     "custo_disponibilidade_kwh_mes": dict(
         padrao=100, mc=None, tipo="premissa", unidade="kWh/mês",
@@ -95,7 +101,7 @@ PARAMETROS = {
     ),
     "prazo_financiamento_anos": dict(
         padrao=12, mc=None, tipo="fonte", unidade="anos",
-        fonte="Cartilha BNB, FNE Sol Pessoa Jurídica (jun/2022): prazo de até 12 anos. É o teto; o prazo efetivo é negociado. Confirmar condições vigentes no site do BNB.",
+        fonte="Prazo TOTAL do contrato (carência incluída): de até 12 anos no FNE Sol (BNB). É o teto; o prazo efetivo é negociado. Confirmar condições vigentes no site do BNB.",
     ),
     "carencia_meses": dict(
         padrao=6, mc=None, tipo="fonte", unidade="meses",
@@ -111,8 +117,14 @@ PARAMETROS = {
         fonte="Módulo de ~550 W ocupa ~2,6 m²; com folgas e espaçamento de telhado, ~7 m² por kWp.",
     ),
     "kwp_max": dict(
-        padrao=75, mc=None, tipo="fonte", unidade="kWp",
-        fonte="Limite da microgeração distribuída (Lei 14.300/2022).",
+        padrao=75, mc=None, tipo="fonte", unidade="kW CA (aproximado em kWp)",
+        fonte="Lei 14.300/2022: microgeração = potência instalada em CORRENTE ALTERNADA <= 75 kW. O protótipo aplica o limite à potência "
+              "dos módulos (kWp) x relacao_dc_ac, sem modelar o inversor.",
+    ),
+    "relacao_dc_ac": dict(
+        padrao=1.0, mc=None, tipo="premissa", unidade="kWp / kW CA",
+        fonte="Relação entre potência dos módulos (CC) e do inversor (CA). 1,0 = conservador (limite de 75 kWp). Valores como 1,2 "
+              "elevariam o teto de módulos para 90 kWp com inversor de 75 kW.",
     ),
     "ano_inicio": dict(
         padrao=2027, mc=None, tipo="premissa", unidade="ano",

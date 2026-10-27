@@ -1,5 +1,6 @@
-fastapi
-uvicorn
-requests
-numpy
-pandas
+# Versões testadas (Python 3.12). Faixas compatíveis são prováveis, mas só estas foram executadas.
+fastapi==0.162.0
+uvicorn==0.54.0
+requests==2.33.1
+numpy==2.4.4
+pandas==3.0.2

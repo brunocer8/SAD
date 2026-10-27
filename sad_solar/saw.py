@@ -22,6 +22,14 @@ Etapas (nesta ordem):
      entre todos os pares do grupo) é menor que o ruído causado por incerteza nos pesos.
   6. RECOMENDAÇÃO = alternativa de maior índice (posição 1), que pode ser "Não instalar".
 
+O índice SAW é RELATIVO ao conjunto de alternativas (normalização min-max): incluir ou excluir alternativas pode mudar o ranking;
+não é nota absoluta de viabilidade. O corte do agrupamento é uma heurística do projeto; por isso também se informa, para cada
+alternativa, a frequência com que o líder a supera nos sorteios de pesos. A ordem de preferência dos fatores é uma escolha assumida
+(a validar com o decisor), não algo "descoberto" pelo ROC.
+
+VPL e payback do critério são os do PROJETO (sem financiamento), comparáveis entre tamanhos e formas de pagamento; o efeito do
+financiamento entra em "valor da alavancagem por R$ financiado" (VPL do capital próprio - VPL do projeto, dividido pelo valor financiado, para não premiar sistemas maiores só por terem mais dívida) e em "sem endividamento".
+
 Observação metodológica: o custo do Fio B em R$ NÃO é critério, pois já está descontado no fluxo de caixa (e portanto no VPL):
 usá-lo também como critério contaria o mesmo efeito duas vezes. O fator Normativa/Legal usa a exposição regulatória
 (parcela da economia que depende da compensação e, portanto, de regras que mudam a partir de 2029).
@@ -39,17 +47,18 @@ from parametros import PARAMETROS
 
 # id, nome, fator, peso (preenchido abaixo), sentido
 CRITERIOS = [
-    ("vpl", "VPL em 25 anos (R$)", "1) Teórica", 0, "max"),
-    ("payback", "Payback simples (anos; sem retorno = pior valor)", "1) Teórica", 0, "min"),
-    ("exposicao_reg", "Exposição regulatória: parcela da economia vinda de energia injetada/compensada", "2) Normativa/Legal", 0, "min"),
-    ("cobertura", "Cobertura do consumo (autossuficiência)", "3) Cultural", 0, "max"),
-    ("sem_divida", "Sem endividamento (0 ou 1)", "3) Cultural", 0, "max"),
-    ("risco_prejuizo", "Probabilidade de prejuízo, VPL <= 0 (Monte Carlo)", "4) Modelos preditivos", 0, "min"),
-    ("vpl_p10", "VPL no cenário pessimista, percentil 10 (R$)", "4) Modelos preditivos", 0, "max"),
+    ("vpl_projeto", "VPL do projeto em 25 anos (R$), sem financiamento", "1) Retorno econômico", 0, "max"),
+    ("payback", "Payback do projeto (anos; sem retorno = pior valor)", "1) Retorno econômico", 0, "min"),
+    ("ganho_fin", "Valor da alavancagem por R$ financiado: (VPL do capital próprio - VPL do projeto) / valor financiado", "1) Retorno econômico", 0, "max"),
+    ("exposicao_reg", "Exposição regulatória: parcela da economia vinda de energia injetada/compensada", "2) Exposição regulatória", 0, "min"),
+    ("cobertura", "Cobertura do consumo (autossuficiência)", "3) Preferências do decisor", 0, "max"),
+    ("sem_divida", "Sem endividamento (0 ou 1)", "3) Preferências do decisor", 0, "max"),
+    ("risco_prejuizo", "Probabilidade de prejuízo, VPL <= 0 (Monte Carlo, fluxo da própria alternativa)", "4) Risco econômico", 0, "min"),
+    ("vpl_p10", "VPL no cenário pessimista, percentil 10 (R$, fluxo da própria alternativa)", "4) Risco econômico", 0, "max"),
 ]
 # Pesos ROC: w_i = (1/n) * soma_{j=i..n} 1/j  -> 52,08%, 27,08%, 14,58%, 6,25% (soma exatamente 1).
 # Dentro de cada fator, os critérios dividem o peso igualmente.
-_FAT = ["1) Teórica", "2) Normativa/Legal", "3) Cultural", "4) Modelos preditivos"]
+_FAT = ["1) Retorno econômico", "2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico"]
 PESO_FATOR = {f: sum(1 / j for j in range(i, len(_FAT) + 1)) / len(_FAT) for i, f in enumerate(_FAT, 1)}
 _N = {f: sum(1 for c in CRITERIOS if c[2] == f) for f in _FAT}
 CRITERIOS = [(c[0], c[1], c[2], PESO_FATOR[c[2]] / _N[c[2]], c[4]) for c in CRITERIOS]
@@ -82,13 +91,13 @@ def veredito(res: dict, risco: dict, fin: int) -> dict:
     if prob < LIM_PROB:
         r.append(f"em {1 - prob:.0%} dos cenários simulados o VPL é negativo")
     # payback da PRÓPRIA alternativa: à vista = retorno do investimento total; financiado = retorno do capital próprio
-    pb = risco["payback_financiado" if fin else "payback_a_vista"]["mediana"]
-    rotulo = "do capital próprio (entrada + parcelas)" if fin else "do investimento"
+    pb = risco["payback_projeto"]["mediana"]       # payback do PROJETO (investimento integral), igual para as duas formas de pagamento
+    rotulo = "do projeto (investimento integral)"
     if pb != pb or pb > LIM_PAYBACK:
         r.append(f"o retorno {rotulo} passa de {LIM_PAYBACK:.0f} anos (mediana dos cenários)")
     fl = res["fluxo_acumulado"]
     if fin and len(fl) > 1 and fl[1] - fl[0] < 0:
-        r.append("a parcela do financiamento supera a economia no primeiro ano")
+        r.append("o fluxo de caixa do capital próprio no 1º ano é negativo (parcelas e O&M superam a economia)")
     return dict(classe="Recomendado com ressalvas" if r else "Recomendado", nivel="ressalvas" if r else "sim", ressalvas=r)
 
 
@@ -117,7 +126,7 @@ def sensibilidade_pesos(M: np.ndarray, n: int = N_SENS, amp: float = AMPLITUDE_P
     W /= W.sum(axis=1, keepdims=True)
     I = W @ M.T                                   # n x alternativas
     lider = I.argmax(axis=1)
-    return dict(desvio=I.std(axis=0), freq_lider=np.bincount(lider, minlength=M.shape[0]) / n)
+    return dict(desvio=I.std(axis=0), freq_lider=np.bincount(lider, minlength=M.shape[0]) / n, I=I)
 
 
 def agrupar_indices(indices: np.ndarray, delta: float) -> list[list[int]]:
@@ -147,6 +156,9 @@ def ranquear(alts: list[dict]) -> tuple[list[dict], float]:
         a["desvio_indice"] = float(sens["desvio"][i])
         a["atributos"] = {f: 100 * sum(c[3] * M[i, j] for j, c in enumerate(CRITERIOS) if c[2] == f)
                           / sum(c[3] for c in CRITERIOS if c[2] == f) for f in FATORES}
+    lid = int(np.argmax(idx))
+    for i, a in enumerate(alts):                     # frequência com que o líder supera cada alternativa nos sorteios de pesos
+        a["prob_lider_supera"] = float((sens["I"][:, lid] > sens["I"][:, i]).mean()) if i != lid else None
     grupos = agrupar_indices(idx, delta)
     g = len(grupos)
     for gi, gr in enumerate(grupos, 1):
@@ -166,11 +178,11 @@ def _alternativa(nome, k, fin, usuario, n_mc):
     r = analisar(u, kwp=k)
     rk = analisar_risco(u, kwp=k, n=n_mc)
     vp = rk["vpl_financiado" if fin else "vpl_a_vista"]
-    pb = r["payback"]
     prob = rk["prob_vpl_positivo_financiado" if fin else "prob_vpl_positivo"]
     return dict(
         nome=f"Sistema {nome.lower()} de {k:.0f} kWp, {'financiado' if fin else 'à vista'}", kwp=k, financiado=fin,
-        vpl=r["vpl"], payback=pb if pb == pb else float(VIDA), fio_b=r["custo_fio_b_ano1"],
+        vpl=r["vpl"], vpl_projeto=r["vpl_projeto"], ganho_fin=(r["vpl"] - r["vpl_projeto"]) / (r["investimento"] * (1 - PARAMETROS["entrada_pct"]["padrao"])) if fin else 0.0,
+        payback=r["payback_projeto"] if r["payback_projeto"] == r["payback_projeto"] else float(VIDA), fio_b=r["custo_fio_b_ano1"],
         exposicao_reg=r["exposicao_regulatoria"], cobertura=r["cobertura_consumo"], sem_divida=0 if fin else 1,
         risco_prejuizo=1 - prob, vpl_p10=vp["p10"], investimento=r["investimento"], res=r, risco=rk,
         veredito=veredito(r, rk, fin))
@@ -188,7 +200,7 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
     aprovadas = [a for a in todas if a["veredito"]["nivel"] != "nao"]
     reprovadas = [a for a in todas if a["veredito"]["nivel"] == "nao"]
 
-    nao = dict(nome=NAO_INSTALAR, kwp=0.0, financiado=0, vpl=0.0, payback=float(VIDA), fio_b=0.0, exposicao_reg=0.0,
+    nao = dict(nome=NAO_INSTALAR, kwp=0.0, financiado=0, vpl=0.0, vpl_projeto=0.0, ganho_fin=0.0, payback=float(VIDA), fio_b=0.0, exposicao_reg=0.0,
                cobertura=0.0, sem_divida=1, risco_prejuizo=0.0, vpl_p10=0.0, investimento=0.0)
     ranking, delta = ranquear(aprovadas + [nao])
     for a in reprovadas:                             # descartadas: sem índice, com motivo
@@ -196,6 +208,8 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
                  posicao=None, prob_lider=0.0, desvio_indice=None)
     ranking = ranking + reprovadas
 
+    if not aprovadas:                                 # único elemento: índice 1,0 seria artefato da normalização (sem comparação)
+        ranking[0]["indice"] = None
     melhor = ranking[0]
     com_res = [a for a in ranking if a.get("res")]
     exibida = com_res[0] if aprovadas else max(com_res, key=lambda a: a["vpl"])   # cenário mostrado nos gráficos

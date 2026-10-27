@@ -19,7 +19,7 @@ pip install -r requirements.txt
 uvicorn app:app --reload                                # abre em http://127.0.0.1:8000
 ```
 Opcional: `export GEMINI_API_KEY=...` habilita o texto explicativo por IA (sem a chave, o sistema usa um texto automático).
-Testes: `pip install -r requirements-dev.txt && pytest -q`.
+Testes: `pip install -r requirements-dev.txt && pytest -q` (26 testes).
 
 ## Arquitetura e fluxo de decisão
 
@@ -27,7 +27,7 @@ Testes: `pip install -r requirements-dev.txt && pytest -q`.
 flowchart TD
     U[Decisor: município, consumo, tarifa, área, perfil diurno] --> API[app.py - FastAPI]
     D1[(dataset_ba_modelo.csv<br/>417 municípios x 12 meses)] --> R[REGRESSÃO<br/>geração específica kWh/kWp.dia<br/>f = ghi, fração difusa, temperatura]
-    R --> F[financeiro.py<br/>balanço MENSAL com créditos<br/>fluxo de caixa 25 anos, VPL, TIR, payback]
+    R --> F[financeiro.py<br/>balanço MENSAL, créditos FIFO 60 meses<br/>simultaneidade do autoconsumo<br/>fluxo de caixa 25 anos, VPL do projeto e do capital próprio]
     P[(parametros.py<br/>fonte / estimado / premissa)] --> F
     P --> MC[montecarlo.py<br/>SUMARIZAÇÃO: Monte Carlo<br/>percentis, prob. VPL>0]
     API --> DIM[dimensionar: kWp admissível<br/>potência <= 75 kWp e área do telhado]
@@ -54,7 +54,7 @@ Funções analíticas (item 2 do enunciado), todas efetivamente executadas no fl
 O classificador (`python montecarlo.py treinar`) é um **experimento offline** e **não participa da recomendação**.
 
 Documentação acadêmica: [`docs/FUNDAMENTACAO.md`](docs/FUNDAMENTACAO.md) (classificação da decisão, variáveis, fórmulas, referências, limitações) e
-[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse).
+[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse), [`docs/DICIONARIO_DADOS.md`](docs/DICIONARIO_DADOS.md) e [`docs/RELATORIO_COMPLETO_SAD_SOLAR.md`](docs/RELATORIO_COMPLETO_SAD_SOLAR.md) (descrição técnica completa).
 
 ## Estrutura
 

@@ -2,24 +2,26 @@
 tarifa_kwh,0.87773,R$/kWh,fixo,fonte,"Neoenergia Coelba, tarifa B3 consumo ativo SEM tributos, REH ANEEL nº 3.578/2026 (vigência 22/04/2026 a 21/04/2027). O usuário deve informar o preço da fatura (com tributos)."
 reajuste_tarifa,0.06,% a.a.,"('tri', 0.035, 0.06, 0.09)",estimado,"Histórico de reajustes da Coelba 2017-2026 (média 7,9%, mediana 6,0%, últimos 3 anos 3,1%) e Focus 9/10/2026 (IPCA administrados 3,5% a 3,8% em 2027-2029) como cenário baixo."
 fio_b_share_tarifa,0.28,fração da tarifa,"('tri', 0.22, 0.28, 0.32)",estimado,"ANEEL (proposta de revisão da REN 482, citada pelo Canal Solar): Fio B ~28% da tarifa; gráfico da Coelba: 'Distribuição' = 29,1% do preço final. NÃO é o valor oficial da Coelba."
-fio_b_2029_em_diante,1.0,fração do Fio B cobrada,"('uni', 0.9, 1.0)",premissa,"Lei 14.300/2022: 60% (2026), 75% (2027), 90% (2028); a partir de 2029 a regra depende de regulamentação futura. Cenário conservador: 100%."
+fio_b_2029_em_diante,1.0,fração do Fio B cobrada,"('uni', 0.6, 1.0)",premissa,"Lei 14.300/2022, art. 27: 60% (2026), 75% (2027), 90% (2028); de 2029 em diante vale o art. 17 e a regulamentação da ANEEL, que não fixa 100% do Fio B. Cenário-base conservador: 100%; o Monte Carlo varre de 60% (nível de 2026) a 100%."
+simultaneidade,0.85,fração da geração mensal coincidente com a carga,"('uni', 0.7, 1.0)",premissa,"A geração se concentra no meio do dia e a carga varia ao longo do expediente: só parte da geração é consumida no mesmo instante. Sem curva de carga horária, usa-se um fator de simultaneidade (premissa do autor, com sensibilidade 0,70 a 1,00). Autoconsumo mensal = min(simultaneidade x geração, fração diurna x consumo)."
 custo_disponibilidade_kwh_mes,100,kWh/mês,fixo,premissa,Mínimo faturável de ligação trifásica (30/50/100 kWh). Confirmar na REN 1.000/2021.
 consumo_diurno_fracao,0.6,fração do consumo,"('uni', 0.4, 0.8)",premissa,Parcela do consumo que ocorre durante as horas de sol. A energia gerada e consumida na hora (limitada por essa parcela) não passa pela rede e não sofre Fio B. Premissa para PME com expediente diurno; é entrada do usuário no sistema.
 fator_custo,1.0,multiplicador,"('tri', 0.9, 1.0, 1.15)",estimado,"Greener SED 1S/2026: preços variaram -11% a +7% entre jan/25, jun/25, jan/26 e jun/26."
 om_pct_investimento,0.01,% do investimento/ano,"('tri', 0.005, 0.01, 0.015)",premissa,"CBENS (análise de investimento em GD-FV): O&M de 1% do investimento ao ano. Faixa de 0,5% a 1,5% é premissa do autor."
-degradacao_anual,0.005,% a.a.,"('tri', 0.004, 0.005, 0.008)",fonte,"Viana et al. (2012), citado em trabalho do CBENS: 0,5% ao ano, típico no Brasil. Faixa superior é premissa."
+degradacao_anual,0.005,% a.a.,"('tri', 0.004, 0.005, 0.008)",fonte,"Viana et al. (2012), citado em trabalho do CBENS: 0,5% ao ano, típico no Brasil. Teto de 0,8%: a cartilha do BNB cita garantia de mais de 80% da produção inicial em 25 anos (20%/25 anos = 0,8% a.a.)."
 vida_util_anos,25,anos,fixo,fonte,Garantia típica de módulos de 20 a 30 anos; 25 anos usado no CBENS.
 inversor_ano_troca,12,ano de operação,"('uni_int', 12, 20)",estimado,Fontes divergem: 12-15 anos (SunEarthTools) a ~20 anos de MTBF (Canal Solar/fabricante).
 inversor_custo_pct,0.06,% do investimento,"('uni', 0.05, 0.08)",estimado,SunEarthTools: reposição de ~5% a 8% do valor da planta (texto traduzido; confirmar no original).
 fator_desempenho_real,0.95,multiplicador,"('tri', 0.8, 0.95, 1.0)",premissa,"Simulação pvlib já usa perdas de 14%. Estudo de caso (CONTECC 2026, Paraná) mediu 81,6% da geração projetada comercialmente; faixa 0,80 a 1,00 cobre essa incerteza."
 ipca,0.043,% a.a.,"('tri', 0.035, 0.043, 0.052)",fonte,"Banco Central, Relatório Focus 9/10/2026: IPCA esperado 4,30% (2027), 3,79% (2028), 3,50% (2029)."
 taxa_desconto,0.12,% a.a. nominal,"('uni', 0.1, 0.14)",estimado,"Focus 9/10/2026: Selic esperada 13,25% (2026), 12,00% (2027), 10,50% (2028), 10,00% (2029)."
-taxa_financiamento,0.079,% a.a.,"('uni', 0.079, 0.1325)",estimado,"BNB, FNE Sol: juros pré-fixados a partir de 7,9% a.a. (piso). Limite superior = Selic atual; taxas de bancos privados não foram levantadas."
-prazo_financiamento_anos,8,anos,fixo,premissa,BNB FNE Sol pessoa física: até 8 anos. Condições para empresas estão na cartilha do BNB (não consultada).
-carencia_meses,6,meses,fixo,premissa,BNB FNE Sol pessoa física: carência de até 6 meses. Juros capitalizados na carência (premissa).
-entrada_pct,0.2,fração do investimento,fixo,premissa,Entrada escolhida pelo usuário (o BNB financia até 100% para pessoa física).
+taxa_financiamento,0.079,% a.a.,"('uni', 0.079, 0.1325)",estimado,"BNB, FNE Sol: juros pré-fixados a partir de 7,9% a.a. (piso, notícia de jul/2026). A cartilha do BNB diz apenas 'abaixo da média do mercado', sem número; há bônus de adimplência (não modelado). Limite superior = Selic atual."
+prazo_financiamento_anos,12,anos,fixo,fonte,Prazo TOTAL do contrato (carência incluída): de até 12 anos no FNE Sol (BNB). É o teto; o prazo efetivo é negociado. Confirmar condições vigentes no site do BNB.
+carencia_meses,6,meses,fixo,fonte,"Cartilha BNB, FNE Sol Pessoa Jurídica: carência de até 6 meses. Juros capitalizados na carência (premissa)."
+entrada_pct,0.1,fração do investimento,fixo,fonte,"Cartilha BNB: financia até 100% do investimento; com alienação fiduciária como única garantia, até 90% do valor de placas e inversores (limite de R$ 300 mil). Entrada de 10% por conservadorismo."
 m2_por_kwp,7.0,m²/kWp,fixo,premissa,"Módulo de ~550 W ocupa ~2,6 m²; com folgas e espaçamento de telhado, ~7 m² por kWp."
-kwp_max,75,kWp,fixo,fonte,Limite da microgeração distribuída (Lei 14.300/2022).
+kwp_max,75,kW CA (aproximado em kWp),fixo,fonte,"Lei 14.300/2022: microgeração = potência instalada em CORRENTE ALTERNADA <= 75 kW. O protótipo aplica o limite à potência dos módulos (kWp) x relacao_dc_ac, sem modelar o inversor."
+relacao_dc_ac,1.0,kWp / kW CA,fixo,premissa,"Relação entre potência dos módulos (CC) e do inversor (CA). 1,0 = conservador (limite de 75 kWp). Valores como 1,2 elevariam o teto de módulos para 90 kWp com inversor de 75 kW."
 ano_inicio,2027,ano,fixo,premissa,Primeiro ano de operação do sistema. Define o percentual do Fio B aplicável.
 custo_kwp_8kWp,2430,R$/kWp,x fator_custo,fonte,"Greener, Estudo Estratégico SED 1S/2026 (set/2026), preço médio de sistema instalado em jun/2026"
 custo_kwp_12kWp,2220,R$/kWp,x fator_custo,fonte,"Greener, Estudo Estratégico SED 1S/2026 (set/2026), preço médio de sistema instalado em jun/2026"

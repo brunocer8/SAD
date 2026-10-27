@@ -138,7 +138,10 @@ def analisar_risco(usuario: dict, kwp: float | None = None, n: int = 2000, seed:
         vpl_financiado=dict(p10=q(rf["vpl"], 10), mediana=q(rf["vpl"], 50), p90=q(rf["vpl"], 90)),
         prob_financiado_melhor=float((rf["vpl"] > r["vpl"]).mean()),
         payback_a_vista=dict(p10=q(r["payback"], 10), mediana=q(r["payback"], 50), p90=q(r["payback"], 90)),
-        payback_financiado=dict(p10=q(rf["payback"], 10), mediana=q(rf["payback"], 50), p90=q(rf["payback"], 90)),
+        # payback_a_vista = payback do PROJETO (investimento integral). Recuperação do capital próprio: só a entrada e as parcelas.
+        payback_projeto=dict(p10=q(r["payback_projeto"], 10), mediana=q(r["payback_projeto"], 50), p90=q(r["payback_projeto"], 90)),
+        payback_capital_proprio=dict(p10=q(rf["payback"], 10), mediana=q(rf["payback"], 50), p90=q(rf["payback"], 90)),
+        vpl_projeto=dict(p10=q(r["vpl_projeto"], 10), mediana=q(r["vpl_projeto"], 50), p90=q(r["vpl_projeto"], 90)),
         payback_descontado=dict(p10=q(r["payback_descontado"], 10), mediana=q(r["payback_descontado"], 50),
                                 p90=q(r["payback_descontado"], 90)),
         tir_mediana=q(r["tir"], 50),
