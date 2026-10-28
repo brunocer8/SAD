@@ -40,3 +40,9 @@ def test_area_insuficiente_retorna_422():
     h = _h()
     r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=10))
     assert r.status_code == 422 and "área" in r.json()["detail"].lower()
+
+
+def test_area_zero_retorna_422():
+    h = _h()
+    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=0))
+    assert r.status_code == 422

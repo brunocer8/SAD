@@ -3,8 +3,9 @@ Modelo de decisão do SAD Solar: filtro de admissibilidade -> ranking multicrit�
 
 Etapas (nesta ordem):
 
-  1. ALTERNATIVAS. Três tamanhos de sistema (recomendado, compacto, ampliado) x dois modos de pagamento
-     (à vista, financiado) + a alternativa "Não instalar". Os tamanhos já respeitam as restrições TÉCNICAS
+  1. ALTERNATIVAS. Três tamanhos de sistema (recomendado, compacto, ampliado) x pagamento à vista, e também financiado SOMENTE
+     se o decisor informar a taxa de financiamento (CET a.a.); sem taxa, não há alternativa financiada e os critérios
+     "alavancagem" e "sem endividamento" ficam com peso 0 + a alternativa "Não instalar". Os tamanhos já respeitam as restrições TÉCNICAS
      (potência <= 75 kWp da microgeração, Lei 14.300/2022; área de telhado). Se a área não comporta o sistema
      mínimo, não há alternativa de instalação (financeiro.AreaInsuficiente).
   2. FILTRO DE VIABILIDADE (regra, não preferência). Uma alternativa de instalação só entra no ranking se
@@ -43,6 +44,7 @@ import numpy as np
 
 from financeiro import AreaInsuficiente, analisar, dimensionar  # noqa: F401  (AreaInsuficiente reexportada)
 from montecarlo import analisar_risco
+from perfis import LIM_INVIAVEL, atribuir
 from parametros import PARAMETROS
 
 # id, nome, fator, peso (preenchido abaixo), sentido
@@ -63,6 +65,28 @@ PESO_FATOR = {f: sum(1 / j for j in range(i, len(_FAT) + 1)) / len(_FAT) for i, 
 _N = {f: sum(1 for c in CRITERIOS if c[2] == f) for f in _FAT}
 CRITERIOS = [(c[0], c[1], c[2], PESO_FATOR[c[2]] / _N[c[2]], c[4]) for c in CRITERIOS]
 FATORES = list(_FAT)
+
+# Ordens de preferência dos fatores (cenários de decisor). O padrão é a ordem assumida pelo autor.
+PRIORIDADES = {
+    "padrao": ["1) Retorno econômico", "2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico"],
+    "retorno": ["1) Retorno econômico", "4) Risco econômico", "3) Preferências do decisor", "2) Exposição regulatória"],
+    "cautela": ["2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico", "1) Retorno econômico"],
+}
+
+
+CRIT_FINANCIAMENTO = ("ganho_fin", "sem_divida")   # só existem se o decisor informar uma taxa de financiamento
+
+
+def pesos_criterios(prioridade: str = "padrao", com_fin: bool = True) -> list[float]:
+    """Pesos ROC dos critérios para uma ordem de fatores; dentro do fator, pesos iguais entre os critérios ATIVOS.
+    Sem financiamento, os critérios de financiamento ficam com peso 0 e o peso do fator vai para os demais do mesmo fator."""
+    ordem = PRIORIDADES.get(prioridade, PRIORIDADES["padrao"])
+    n = len(ordem)
+    wf = {f: sum(1 / j for j in range(i, n + 1)) / n for i, f in enumerate(ordem, 1)}
+    ativo = [com_fin or c[0] not in CRIT_FINANCIAMENTO for c in CRITERIOS]
+    cont = {f: sum(a for a, c in zip(ativo, CRITERIOS) if c[2] == f) for f in wf}
+    return [wf[c[2]] / cont[c[2]] if a else 0.0 for a, c in zip(ativo, CRITERIOS)]
+
 
 # --- filtro de viabilidade e vereditos (premissas do autor)
 LIM_PROB_MIN = 0.50   # abaixo disso a alternativa é descartada
@@ -115,14 +139,14 @@ def matriz_normalizada(alts: list[dict]) -> np.ndarray:
     return M
 
 
-def pesos() -> np.ndarray:
-    return np.array([c[3] for c in CRITERIOS])
+def pesos(prioridade: str = "padrao", com_fin: bool = True) -> np.ndarray:
+    return np.array(pesos_criterios(prioridade, com_fin))
 
 
-def sensibilidade_pesos(M: np.ndarray, n: int = N_SENS, amp: float = AMPLITUDE_PESOS, seed: int = 11) -> dict:
+def sensibilidade_pesos(M: np.ndarray, n: int = N_SENS, amp: float = AMPLITUDE_PESOS, seed: int = 11, prioridade: str = "padrao", com_fin: bool = True) -> dict:
     """Refaz o ranking com pesos perturbados (w_j x U(1-amp, 1+amp), renormalizados)."""
     rng = np.random.default_rng(seed)
-    W = pesos()[None, :] * rng.uniform(1 - amp, 1 + amp, (n, M.shape[1]))
+    W = pesos(prioridade, com_fin)[None, :] * rng.uniform(1 - amp, 1 + amp, (n, M.shape[1]))
     W /= W.sum(axis=1, keepdims=True)
     I = W @ M.T                                   # n x alternativas
     lider = I.argmax(axis=1)
@@ -144,18 +168,18 @@ def agrupar_indices(indices: np.ndarray, delta: float) -> list[list[int]]:
     return grupos
 
 
-def ranquear(alts: list[dict]) -> tuple[list[dict], float]:
+def ranquear(alts: list[dict], prioridade: str = "padrao", com_fin: bool = True) -> tuple[list[dict], float]:
     """Calcula índice SAW, atributos por fator, sensibilidade e grupos. Retorna (alts ordenadas, delta)."""
-    M, W = matriz_normalizada(alts), pesos()
+    M, W = matriz_normalizada(alts), pesos(prioridade, com_fin)
     idx = M @ W
-    sens = sensibilidade_pesos(M)
+    sens = sensibilidade_pesos(M, prioridade=prioridade, com_fin=com_fin)
     delta = float(np.sqrt(2) * sens["desvio"].mean())
     for i, a in enumerate(alts):
         a["indice"] = float(idx[i])
         a["prob_lider"] = float(sens["freq_lider"][i])
         a["desvio_indice"] = float(sens["desvio"][i])
-        a["atributos"] = {f: 100 * sum(c[3] * M[i, j] for j, c in enumerate(CRITERIOS) if c[2] == f)
-                          / sum(c[3] for c in CRITERIOS if c[2] == f) for f in FATORES}
+        a["atributos"] = {f: 100 * sum(W[j] * M[i, j] for j, c in enumerate(CRITERIOS) if c[2] == f)
+                          / sum(W[j] for j, c in enumerate(CRITERIOS) if c[2] == f) for f in FATORES}
     lid = int(np.argmax(idx))
     for i, a in enumerate(alts):                     # frequência com que o líder supera cada alternativa nos sorteios de pesos
         a["prob_lider_supera"] = float((sens["I"][:, lid] > sens["I"][:, i]).mean()) if i != lid else None
@@ -179,16 +203,22 @@ def _alternativa(nome, k, fin, usuario, n_mc):
     rk = analisar_risco(u, kwp=k, n=n_mc)
     vp = rk["vpl_financiado" if fin else "vpl_a_vista"]
     prob = rk["prob_vpl_positivo_financiado" if fin else "prob_vpl_positivo"]
-    return dict(
+    alt = dict(
         nome=f"Sistema {nome.lower()} de {k:.0f} kWp, {'financiado' if fin else 'à vista'}", kwp=k, financiado=fin,
         vpl=r["vpl"], vpl_projeto=r["vpl_projeto"], ganho_fin=(r["vpl"] - r["vpl_projeto"]) / (r["investimento"] * (1 - PARAMETROS["entrada_pct"]["padrao"])) if fin else 0.0,
         payback=r["payback_projeto"] if r["payback_projeto"] == r["payback_projeto"] else float(VIDA), fio_b=r["custo_fio_b_ano1"],
         exposicao_reg=r["exposicao_regulatoria"], cobertura=r["cobertura_consumo"], sem_divida=0 if fin else 1,
         risco_prejuizo=1 - prob, vpl_p10=vp["p10"], investimento=r["investimento"], res=r, risco=rk,
         veredito=veredito(r, rk, fin))
+    if fin and r["vpl"] <= r["vpl_projeto"]:      # dominada: a mesma instalação à vista rende mais que financiada
+        alt["veredito"] = dict(classe="Não recomendado no cenário atual", nivel="nao",
+                               ressalvas=["a taxa de financiamento informada é maior que o retorno do capital: financiar rende menos que pagar à vista"])
+    return alt
 
 
 def decisao(usuario: dict, n_mc: int = 1000) -> dict:
+    com_fin = bool(usuario.get("taxa_financiamento"))   # financiamento só entra se o decisor informar a taxa (CET)
+    prio = usuario.get("prioridade", "padrao")
     dim = dimensionar(usuario)                      # levanta AreaInsuficiente se não houver sistema admissível
     rec, teto = dim["kwp_recomendado"], dim["teto_kwp"]
     tamanhos, vistos = [], set()
@@ -196,13 +226,14 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
         if k not in vistos:
             vistos.add(k)
             tamanhos.append((nome, float(k)))
-    todas = [_alternativa(nome, k, fin, usuario, n_mc) for nome, k in tamanhos for fin in (0, 1)]
+    todas = [_alternativa(nome, k, fin, usuario, n_mc) for nome, k in tamanhos for fin in ((0, 1) if com_fin else (0,))]
     aprovadas = [a for a in todas if a["veredito"]["nivel"] != "nao"]
     reprovadas = [a for a in todas if a["veredito"]["nivel"] == "nao"]
 
     nao = dict(nome=NAO_INSTALAR, kwp=0.0, financiado=0, vpl=0.0, vpl_projeto=0.0, ganho_fin=0.0, payback=float(VIDA), fio_b=0.0, exposicao_reg=0.0,
                cobertura=0.0, sem_divida=1, risco_prejuizo=0.0, vpl_p10=0.0, investimento=0.0)
-    ranking, delta = ranquear(aprovadas + [nao])
+    com_fin = any(a["financiado"] for a in aprovadas)   # critérios de financiamento só pesam se houver alternativa financiada viável
+    ranking, delta = ranquear(aprovadas + [nao], prio, com_fin)
     for a in reprovadas:                             # descartadas: sem índice, com motivo
         a.update(indice=None, atributos={}, grupo=-1, rotulo="Descartada pelo filtro de viabilidade",
                  posicao=None, prob_lider=0.0, desvio_indice=None)
@@ -210,6 +241,17 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
 
     if not aprovadas:                                 # único elemento: índice 1,0 seria artefato da normalização (sem comparação)
         ranking[0]["indice"] = None
+    perfil = None
+    com_res0 = [a for a in ranking if a.get("res")]
+    if com_res0:
+        cons12 = usuario["consumo_mes_kwh"] * 12
+        perfil = atribuir(usuario["consumo_mes_kwh"], usuario["tarifa_kwh"], usuario.get("consumo_diurno_fracao", 0.6),
+                          com_res0[0]["res"]["geracao_ano1"] / cons12)
+        if perfil and perfil["prob_vpl_positivo"] < 1 - LIM_INVIAVEL:
+            for a in aprovadas:
+                a["veredito"]["ressalvas"].append(f"perfis semelhantes (grupo {perfil['indice']}) tiveram VPL positivo em apenas {perfil['prob_vpl_positivo']:.0%} dos cenários simulados")
+                if a["veredito"]["nivel"] == "sim":
+                    a["veredito"].update(nivel="ressalvas", classe="Recomendado com ressalvas")
     melhor = ranking[0]
     com_res = [a for a in ranking if a.get("res")]
     exibida = com_res[0] if aprovadas else max(com_res, key=lambda a: a["vpl"])   # cenário mostrado nos gráficos
@@ -223,6 +265,7 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
                             motivo=f"Maior índice SAW entre {len(aprovadas)} alternativa(s) aprovada(s) no filtro e a opção de não instalar.")
     recomendacao.update(empate_tecnico=empate, prob_lider=melhor["prob_lider"], indice_exibido=next(i for i, a in enumerate(ranking) if a is exibida),
                         n_aprovadas=len(aprovadas), n_reprovadas=len(reprovadas))
-    return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=c[3], sentido=c[4]) for c in CRITERIOS],
+    return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=w, sentido=c[4]) for c, w in zip(CRITERIOS, pesos_criterios(prio, com_fin)) if w > 0],
+                prioridade=prio, perfil=perfil, com_financiamento=com_fin,
                 ranking=ranking, delta=delta, recomendacao=recomendacao,
                 filtro=dict(prob_min=LIM_PROB_MIN, regra="VPL > 0 e probabilidade de VPL positivo >= mínimo"))

@@ -76,7 +76,9 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <label>Município<input id="mun" list="lista" required></label><datalist id="lista"></datalist>
 <label>Consumo mensal (kWh)<input id="cons" type="number" min="100" value="4000" required></label>
 <label>Preço do kWh na fatura (R$, com tributos)<input id="tar" type="number" step="0.01" value="1.10" required></label>
-<label>Área de telhado (m², opcional)<input id="area" type="number" min="0"></label>
+<label>Área de telhado (m², opcional)<input id="area" type="number" min="1"></label>
+<label>Taxa de financiamento, % a.a. (opcional; vazio = só à vista)<input id="tx" type="number" min="1" max="100" step="0.1"></label>
+<label>Prioridade do decisor<select id="prio"><option value="padrao">Padrão (retorno, regulatório, preferências, risco)</option><option value="retorno">Retorno financeiro em 1º</option><option value="cautela">Cautela: menor exposição regulatória e sem dívida</option></select></label>
 <label>Quando a empresa mais consome energia?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite (refrigeração, turnos)</option></select></label>
 
 <button class="bt">Simular</button></form><small id="msg"></small></div>
@@ -136,11 +138,11 @@ async function dash(id){const l=await api("/api/simulacoes");
  graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:"#F7B500"},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:"#1D6A96"}]}});
  $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
 $("dsel").onchange=()=>dash(+$("dsel").value);
-const NOMEF={"1) Teórica":"Retorno financeiro","2) Normativa/Legal":"Exposição regulatória","3) Cultural":"Preferências do decisor","4) Modelos preditivos":"Segurança frente ao risco"};
+const NOMEF={"1) Retorno econômico":"Retorno econômico","2) Exposição regulatória":"Exposição regulatória","3) Preferências do decisor":"Preferências do decisor","4) Risco econômico":"Risco econômico"};
 function carta(r,inter,sel){return `<div class="carta${r.grupo==1?" top":""}${inter&&r._i==sel?" sel":""}"${inter&&r.res?` onclick="selecionar(${r._i})" style="cursor:pointer"`:""}>${inter&&r._i==sel?'<span class="fita" style="left:auto;right:12px;background:#0B3C5D">Exibido</span>':""}${r.grupo==1?'<span class="fita">🏆 Mais recomendado</span>':""}${r.nome.startsWith("Não instalar")&&r.grupo!=1?'<span class="fita" style="background:#64748b">Referência: não investir</span>':""}
  <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>☀️ ${r.nome}</b><div class="poder" title="Poder = índice SAW x 100">${r.indice==null?"—":Math.round(r.indice*100)}</div></div>
  ${Object.entries(r.atributos).map(([f,v])=>`<div class="stat" title="Fator: ${f}"><span>${NOMEF[f]||f}</span><b>${Math.round(v)}</b><div class="barra"><i style="width:${v}%"></i></div></div>`).join("")}
- <div class="specs"><span>${R(r.investimento)}</span><span>VPL ${R(r.vpl)}</span><span>${Y(r.payback)}</span><span>cobre ${P(r.cobertura)}</span>${r.veredito?`<span><b>${r.veredito.classe}</b></span>`:""}${r.prob_lider>0?`<span>lidera em ${P(r.prob_lider)} dos sorteios de pesos</span>`:""}</div></div>`}
+ <div class="specs"><span>${R(r.investimento)}</span><span>VPL projeto ${R(r.vpl_projeto==null?r.vpl:r.vpl_projeto)}</span>${r.financiado?`<span>VPL capital próprio ${R(r.vpl)}</span>`:""}<span>${Y(r.payback)}</span><span>cobre ${P(r.cobertura)}</span>${r.veredito?`<span><b>${r.veredito.classe}</b></span>`:""}${r.prob_lider>0?`<span>lidera em ${P(r.prob_lider)} dos sorteios de pesos</span>`:""}${r.prob_lider_supera!=null?`<span>o líder supera esta em ${P(r.prob_lider_supera)} dos sorteios</span>`:""}</div></div>`}
 function decisaoHTML(d,inter,sel){if(!d)return"";d.ranking.forEach((r,i)=>r._i=i);const pf={};d.criterios.forEach(c=>pf[c.fator]=(pf[c.fator]||0)+c.peso);const PF=Object.entries(pf).map(([f,v])=>`${f} ${Math.round(v*100)}%`).join(", ");const gs={};d.ranking.forEach(r=>(gs[r.grupo]=gs[r.grupo]||[]).push(r));
  const ordem=Object.keys(gs).map(Number).filter(g=>g>0).sort((a,b)=>a-b).concat(gs[-1]?[-1]:[]);
  const G=ordem.map(g=>`<h4 style="margin:16px 0 10px">${gs[g][0].rotulo}</h4><div class="cartas">${gs[g].map(r=>carta(r,inter,sel)).join("")}</div>`).join("");
@@ -167,7 +169,7 @@ function mostrar(a,k,id,fin){$("res").classList.remove("hide");
 $("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
  $("msg").textContent="Calculando...";
  try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
-  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null}});
+  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null,prioridade:$("prio").value,taxa_financiamento:$("tx").value?+$("tx").value/100:null}});
   $("msg").textContent="";CUR=d;TXT={};selecionar(d.resultado.decisao.recomendacao.indice_exibido,1)}catch(x){$("msg").textContent=x.message}};
 async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
  $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>

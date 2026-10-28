@@ -80,6 +80,8 @@ class Entrada(BaseModel):
     area_m2: float | None = Field(None, gt=0)
     financiado: int = Field(0, ge=0, le=1)
     consumo_diurno_fracao: float = Field(0.60, ge=0.1, le=1.0)
+    taxa_financiamento: float | None = Field(None, gt=0, le=1)   # CET a.a. (ex.: 0.24); sem valor, só à vista
+    prioridade: str = Field("padrao", pattern="^(padrao|retorno|cautela)$")
 
 
 def limpar(x):
@@ -101,7 +103,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     mun, _ = carregar_municipios()
     if e.cod_ibge not in mun.index:
         raise HTTPException(404, "Município fora da Bahia ou desconhecido")
-    ent = e.model_dump()
+    ent = {k: v for k, v in e.model_dump().items() if v is not None}   # campos opcionais vazios não entram no modelo
     try:
         dec = decisao(ent)
     except (AreaInsuficiente, ValueError) as ex:

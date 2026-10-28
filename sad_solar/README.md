@@ -18,8 +18,9 @@ python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\
 pip install -r requirements.txt
 uvicorn app:app --reload                                # abre em http://127.0.0.1:8000
 ```
+O financiamento é **opcional**: o decisor informa a taxa (CET a.a.) na tela; sem ela, o sistema decide só com pagamento à vista (ver `docs/FUNDAMENTACAO.md`).
 Opcional: `export GEMINI_API_KEY=...` habilita o texto explicativo por IA (sem a chave, o sistema usa um texto automático).
-Testes: `pip install -r requirements-dev.txt && pytest -q` (26 testes).
+Testes: `pip install -r requirements-dev.txt && pytest -q` (32 testes).
 
 ## Arquitetura e fluxo de decisão
 
@@ -49,12 +50,13 @@ Funções analíticas (item 2 do enunciado), todas efetivamente executadas no fl
 |---|---|---|---|
 | Regressão | irradiação global, fração difusa, temperatura média (município x mês) | regressão linear múltipla (MQO) sobre a geração simulada com pvlib | geração mensal por kWp -> balanço de energia, economia, VPL |
 | Sumarização | fluxos de caixa, 1.000 cenários de Monte Carlo por alternativa | VPL, TIR, payback, LCOE; percentis 10/50/90; probabilidade de VPL > 0 | filtro de viabilidade e critérios de risco do SAW |
-| Agrupamento | índice SAW de cada alternativa | aglomerativo hierárquico (ligação completa), corte = raiz(2) x ruído do índice sob variação dos pesos | separa "mais recomendado" de "competitivas" e evita decidir por diferença insignificante |
+| Agrupamento (perfis) | consumo, tarifa, fração diurna e razão geração/consumo de 6.000 cenários simulados de PME | k-means (k=4, `perfis.py`); o caso do usuário é atribuído ao centróide mais próximo | perfil do caso e taxa histórica de inviabilidade do grupo; vira ressalva no veredito |
+| Agrupamento (alternativas) | índice SAW de cada alternativa | aglomerativo hierárquico (ligação completa), corte = raiz(2) x ruído do índice sob variação dos pesos | separa "mais recomendado" de "competitivas" e evita decidir por diferença insignificante |
 
 O classificador (`python montecarlo.py treinar`) é um **experimento offline** e **não participa da recomendação**.
 
 Documentação acadêmica: [`docs/FUNDAMENTACAO.md`](docs/FUNDAMENTACAO.md) (classificação da decisão, variáveis, fórmulas, referências, limitações) e
-[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse), [`docs/DICIONARIO_DADOS.md`](docs/DICIONARIO_DADOS.md) e [`docs/RELATORIO_COMPLETO_SAD_SOLAR.md`](docs/RELATORIO_COMPLETO_SAD_SOLAR.md) (descrição técnica completa).
+[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse), [`docs/validacao_orcamentos.md`](docs/validacao_orcamentos.md) (modelo x orçamentos reais), [`docs/DICIONARIO_DADOS.md`](docs/DICIONARIO_DADOS.md) e [`docs/RELATORIO_COMPLETO_SAD_SOLAR.md`](docs/RELATORIO_COMPLETO_SAD_SOLAR.md) (descrição técnica completa).
 
 ## Estrutura
 

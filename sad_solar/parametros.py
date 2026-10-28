@@ -54,8 +54,11 @@ PARAMETROS = {
     ),
     # ---------------- Custos e desempenho ----------------
     "fator_custo": dict(
-        padrao=1.00, mc=("tri", 0.90, 1.00, 1.15), tipo="estimado", unidade="multiplicador",
-        fonte="Greener SED 1S/2026: preços variaram -11% a +7% entre jan/25, jun/25, jan/26 e jun/26.",
+        padrao=1.20, mc=("tri", 0.95, 1.20, 2.40), tipo="estimado", unidade="multiplicador",
+        fonte="Calibrado com orçamentos/simulações para Salvador (faixa 40 a 55 kWp; tabela Greener = R$ 2,02 a 2,07/Wp): "
+              "Portal Solar R$ 1,99 a 2,41/Wp (fator 0,98 a 1,19); WEG Solar ~R$ 2,36/Wp (kWp assumido; ~1,17); "
+              "proposta NeoSolar R$ 5,01/Wp, 54 kWp (fator 2,42). Moda 1,20, mínimo 0,95 e máximo 2,40 refletem essas três fontes. "
+              "Ver docs/validacao_orcamentos.md.",
     ),
     "om_pct_investimento": dict(
         padrao=0.010, mc=("tri", 0.005, 0.010, 0.015), tipo="premissa", unidade="% do investimento/ano",
@@ -95,9 +98,11 @@ PARAMETROS = {
     ),
     # ---------------- Financiamento ----------------
     "taxa_financiamento": dict(
-        padrao=0.079, mc=("uni", 0.079, 0.1325), tipo="estimado", unidade="% a.a.",
-        fonte="BNB, FNE Sol: juros pré-fixados a partir de 7,9% a.a. (piso, notícia de jul/2026). A cartilha do BNB diz apenas 'abaixo da média do mercado', sem número; "
-              "há bônus de adimplência (não modelado). Limite superior = Selic atual.",
+        padrao=0.079, mc=None, tipo="premissa", unidade="% a.a.",
+        fonte="NÃO é sorteada: o financiamento só entra na decisão se o decisor informar a taxa (CET). Fontes discordam muito: BNB FNE Sol, piso de 7,9% a.a. "
+              "citado em notícia (jul/2026), não verificado; a cartilha BNB (jun/2022) diz só 'abaixo da média do mercado'. BB Crédito Energia Renovável: "
+              "a partir de 1,81% a.m. (~24,0% a.a.), CET de 30,36% a.a., conforme texto do site do BB informado pelo autor (página não verificada pelo desenvolvedor). "
+              "Intervalo de referência: 7,9% a 30,4% a.a.; o valor 0,079 é só o padrão técnico usado em testes.",
     ),
     "prazo_financiamento_anos": dict(
         padrao=12, mc=None, tipo="fonte", unidade="anos",
@@ -105,11 +110,11 @@ PARAMETROS = {
     ),
     "carencia_meses": dict(
         padrao=6, mc=None, tipo="fonte", unidade="meses",
-        fonte="Cartilha BNB, FNE Sol Pessoa Jurídica: carência de até 6 meses. Juros capitalizados na carência (premissa).",
+        fonte="Cartilha BNB, FNE Sol Pessoa Jurídica (jun/2022), item h: carência de até 6 meses (6 = teto da cartilha). Material posterior do BNB pode permitir carência maior; confirmar. Juros capitalizados na carência (premissa do autor).",
     ),
     "entrada_pct": dict(
         padrao=0.10, mc=None, tipo="fonte", unidade="fração do investimento",
-        fonte="Cartilha BNB: financia até 100% do investimento; com alienação fiduciária como única garantia, até 90% do valor de placas e inversores (limite de R$ 300 mil). Entrada de 10% por conservadorismo.",
+        fonte="Cartilha BNB: financia até 100% do investimento; com alienação fiduciária como única garantia, até 90% do valor de placas e inversores (limite de R$ 300 mil). Entrada de 10% é escolha conservadora do autor (a cartilha permite financiar até 100%).",
     ),
     # ---------------- Sistema ----------------
     "m2_por_kwp": dict(

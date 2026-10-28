@@ -1,3 +1,3 @@
 ﻿modelo,acuracia,f1_macro
-Árvore de decisão (profundidade 4),0.7342,0.7288896731192716
-Random Forest,0.8762,0.8765147325223156
+Árvore de decisão (profundidade 4),0.8872,0.7236734186128392
+Random Forest,0.9434,0.8463416797111659

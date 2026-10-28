@@ -148,7 +148,8 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     minimo = A("custo_disponibilidade_kwh_mes")          # kWh/mês cobrados mesmo com créditos
     sim = A("simultaneidade")
     S = np.zeros((n, T)); comp = np.zeros((n, T)); injetada = np.zeros((n, T)); saldo_fim = np.zeros((n, T))
-    expirado = np.zeros((n, T))
+    expirado = np.zeros((n, T)); kwh_eco = np.zeros((n, T))
+    faturavel = np.maximum(cons_m - minimo, 0.0)       # kWh/mês que a geração pode efetivamente abater da fatura
     lotes = np.zeros((n, VALIDADE_MESES))               # créditos por mês de origem (índice 0 = mais antigo)
     for ti in range(T):
         fa = degr ** ti
@@ -162,7 +163,9 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
             antes = np.cumsum(lotes, axis=1) - lotes     # créditos mais antigos que cada lote (consumo FIFO)
             uso = np.clip(need[:, None] - antes, 0.0, lotes)
             lotes = lotes - uso
-            S[:, ti] += s_m; comp[:, ti] += uso.sum(axis=1); injetada[:, ti] += inj
+            u_m = uso.sum(axis=1)
+            S[:, ti] += s_m; comp[:, ti] += u_m; injetada[:, ti] += inj
+            kwh_eco[:, ti] += np.minimum(s_m + u_m, faturavel)   # economia limitada ao consumo faturável acima do mínimo
         saldo_fim[:, ti] = lotes.sum(axis=1)
     G = S + injetada                                     # geração anual por ano (kWh)
 
@@ -173,7 +176,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
                  np.where(ano == 2027, FIO_B_PCT[2027],
                   np.where(ano == 2028, FIO_B_PCT[2028], A("fio_b_2029_em_diante")[:, None])))
     custo_fio_b = tarifa_t * A("fio_b_share_tarifa")[:, None] * pct_fio_b * comp
-    economia = tarifa_t * (S + comp) - custo_fio_b
+    economia = tarifa_t * kwh_eco - custo_fio_b
     economia_injetada = tarifa_t * comp - custo_fio_b                       # parte da economia que depende da compensação
 
     # --- custos
@@ -216,7 +219,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
         geracao_ano1=G[:, 0], economia_ano1=economia[:, 0],
         cobertura_consumo=(S + comp)[:, 0] / cons[:, 0], credito_acumulado_ano1=saldo_fim[:, 0],
         custo_fio_b_ano1=custo_fio_b[:, 0],
-        exposicao_regulatoria=economia_injetada[:, 0] / np.maximum(economia[:, 0], 1e-9),
+        exposicao_regulatoria=np.clip(economia_injetada[:, 0] / np.maximum(economia[:, 0], 1e-9), 0.0, 1.0),
         autoconsumo_ano1=S[:, 0], compensada_ano1=comp[:, 0], injetada_ano1=injetada[:, 0],
     )
     if devolver_fluxo:
