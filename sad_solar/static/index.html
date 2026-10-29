@@ -76,8 +76,9 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <label>Município<input id="mun" list="lista" required></label><datalist id="lista"></datalist>
 <label>Consumo mensal (kWh)<input id="cons" type="number" min="100" value="4000" required></label>
 <label>Preço do kWh na fatura (R$, com tributos)<input id="tar" type="number" step="0.01" value="1.10" required></label>
-<label>Área de telhado (m², opcional)<input id="area" type="number" min="1"></label>
+<label>Área UTILIZÁVEL do telhado (m²; recomendado)<input id="area" type="number" min="1"></label>
 <label>Taxa de financiamento, % a.a. (opcional; vazio = só à vista)<input id="tx" type="number" min="1" max="100" step="0.1"></label>
+<label>Custo instalado do orçamento, R$/kWp (opcional; vazio = tabela de referência)<input id="ck" type="number" min="500" step="10"></label>
 <label>Prioridade do decisor<select id="prio"><option value="padrao">Padrão (retorno, regulatório, preferências, risco)</option><option value="retorno">Retorno financeiro em 1º</option><option value="cautela">Cautela: menor exposição regulatória e sem dívida</option></select></label>
 <label>Quando a empresa mais consome energia?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite (refrigeração, turnos)</option></select></label>
 
@@ -169,7 +170,7 @@ function mostrar(a,k,id,fin){$("res").classList.remove("hide");
 $("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
  $("msg").textContent="Calculando...";
  try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
-  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null,prioridade:$("prio").value,taxa_financiamento:$("tx").value?+$("tx").value/100:null}});
+  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null,prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:$("tx").value?+$("tx").value/100:null}});
   $("msg").textContent="";CUR=d;TXT={};selecionar(d.resultado.decisao.recomendacao.indice_exibido,1)}catch(x){$("msg").textContent=x.message}};
 async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
  $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>

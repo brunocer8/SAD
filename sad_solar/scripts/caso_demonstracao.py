@@ -8,7 +8,7 @@ import saw
 U = dict(cod_ibge=f.buscar_municipio("Salvador"), consumo_mes_kwh=4889, tarifa_kwh=0.90, consumo_diurno_fracao=0.6, area_m2=300)
 d = saw.decisao(U)
 L = ["# Caso de demonstração: PME comercial em Salvador", "",
-     "Entradas: Salvador-BA; 4.889 kWh/mês (conta de R$ 4.400); R$ 0,90/kWh (com tributos); 60% do consumo durante o dia; telhado de 300 m². Dados da conta e da tarifa vêm da proposta comercial real (NeoSolar).", "",
+     "Entradas: Salvador-BA; 4.889 kWh/mês (conta de R$ 4.400); R$ 0,90/kWh (com tributos); 60% do consumo durante o dia; telhado de 300 m² (**premissa explícita do caso demonstrativo, não dado da proposta NeoSolar**; o campo é a área UTILIZÁVEL). Consumo e tarifa vêm da proposta NeoSolar de 54 kWp, usada só como referência externa.", "",
      f"Limite técnico: {f.dimensionar(U)['teto_kwp']} kWp (min. entre 75 kWp e área/7 m² por kWp). "
      f"Tamanho que maximiza o VPL no cenário-base: {f.dimensionar(U)['kwp_recomendado']:.0f} kWp.", "",
      "## Ranking (filtro de viabilidade -> SAW -> agrupamento)", "",
@@ -39,6 +39,19 @@ for tx in (0.079, 0.12, 0.2404, 0.3036):
     L.append(f"| {tx:.2%} | {rc['nome']} | {g:.3f} |")
 pf = dd = saw.decisao(U)["perfil"]
 L += ["", f"## Perfil (agrupamento k-means de cenários simulados)", "", f"O caso pertence ao grupo {pf['indice']}: {pf['nome']} (centróide de {pf['n']} cenários simulados; P(VPL>0) = {pf['prob_vpl_positivo']:.0%}; payback mediano = {pf['payback_mediano']:.1f} anos)." if pf else "", ""]
+# --- cenários de custo, geração e área
+def _linha(rot, **kw):
+    d = saw.decisao({**U, **kw}); rc = d["recomendacao"]; x = d["ranking"][rc["indice_exibido"]]
+    r = x["res"]; pr = x["risco"]["prob_vpl_positivo"]
+    return (f"| {rot} | {rc['nome']} | {r['investimento']:,.0f} | {x['vpl_projeto']:,.0f} | {x['payback']:.2f} | {pr:.0%} |")
+L += ["## Cenários de custo, geração e área (recalculados pelo código)", "",
+      "O custo informado é tratado como fixo no Monte Carlo. A geração reduzida (fator de desempenho x 0,63) é uma **sensibilidade**, não previsão: reproduz o nível de geração específica das propostas NeoSolar (ver `docs/validacao_orcamentos.md`).", "",
+      "| Cenário | Recomendação | Investimento da alternativa exibida (R$) | VPL projeto (R$) | Payback (anos) | P(VPL>0) |", "|---|---|---|---|---|---|",
+      _linha("Referência Greener de baixo custo (R$ 2.020/kWp)", custo_kwp=2020),
+      _linha("Padrão do SAD (tabela x 1,20, incerteza de custo no MC)"),
+      _linha("Custo conforme orçamentos NeoSolar (R$ 5.200/kWp)", custo_kwp=5200),
+      _linha("Custo NeoSolar + geração reduzida (x0,63)", custo_kwp=5200, fator_desempenho_real=0.95 * 0.63),
+      _linha("Área utilizável de 240 m² (teto geométrico ~34 kWp), custo padrão", area_m2=240), ""]
 # testes de estresse sobre o sistema "recomendado" à vista (maior VPL), um parâmetro por vez
 k = f.dimensionar(U)["kwp_recomendado"]
 e0 = f.montar_entrada({**U, "financiado": 0}, k)

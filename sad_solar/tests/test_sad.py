@@ -274,3 +274,56 @@ def test_kmeans_separa_grupos_obvios():
     X = np.vstack([rng.normal(0, .1, (50, 2)), rng.normal(5, .1, (50, 2))])
     C, lab, _ = perfis.kmeans(X, 2)
     assert len(set(lab[:50])) == 1 and len(set(lab[50:])) == 1 and lab[0] != lab[-1]
+
+
+# ---------------------------------------------------------------- orçamentos, custo informado, CC x CA, área utilizável
+def test_modulos_cc_e_inversores_ca_sao_grandezas_distintas():
+    assert f.kwp_de_modulos(24, 450) == pytest.approx(10.8)
+    assert f.kw_ca_de_inversores(6, 2) == 12
+    assert f.kwp_de_modulos(120, 450) == pytest.approx(54.0) and f.kw_ca_de_inversores(30, 2) == 60
+
+
+def test_dataset_orcamentos_neosolar_confere():
+    import pandas as pd
+    d = pd.read_csv(os.path.join(os.path.dirname(os.path.dirname(__file__)), "dados", "orcamentos_neosolar.csv"))
+    assert len(d) == 5
+    for _, r in d.iterrows():
+        assert r.kwp_cc == pytest.approx(r.n_modulos * r.wp_modulo / 1000, abs=0.01)
+        assert r.kw_ca_nominal_agregada == r.n_inversores * r.kw_inversor
+        assert r.custo_rs_kwp_cc == pytest.approx(r.investimento_rs / r.kwp_cc, abs=0.01)
+        assert r.geracao_kwh_kwp_mes == pytest.approx(r.geracao_mensal_kwh / r.kwp_cc, abs=0.01)
+    assert d.loc[d.rotulo.str.contains("10 kWp"), "custo_rs_kwp_cc"].iloc[0] == pytest.approx(5340.34, abs=0.01)
+    assert (d.conferido_no_pdf_anexado == "sim").all()
+    # a economia informada é a geração x tarifa (economia bruta), conferida no PDF
+    for _, r in d.iterrows():
+        assert r.economia_mensal_informada_rs == pytest.approx(r.geracao_mensal_kwh * r.tarifa_rs_kwh, abs=1.0)
+        assert (r.reajuste_energia, r.perda_anual) == (0.08, 0.007)
+
+
+def test_diferenca_percentual_de_geracao_usa_a_referencia_como_denominador():
+    ref, sad = 73.0, 124.0
+    assert (sad - ref) / ref == pytest.approx(0.6986, abs=1e-3)
+
+
+def test_custo_informado_substitui_a_tabela_no_investimento_e_no_vpl():
+    u = {**BASE, "consumo_mes_kwh": 4889, "tarifa_kwh": 0.90}
+    base = f.analisar({**u, "financiado": 0}, kwp=41)
+    caro = f.analisar({**u, "financiado": 0, "custo_kwp": 5200}, kwp=41)
+    assert caro["investimento"] == pytest.approx(41 * 5200)
+    assert caro["vpl"] < base["vpl"] and caro["payback"] > base["payback"]
+    d = saw.decisao({**u, "area_m2": 300, "custo_kwp": 5200})
+    x = d["ranking"][d["recomendacao"]["indice_exibido"]]
+    assert x["res"]["investimento"] == pytest.approx(x["kwp"] * 5200)
+    assert "5,200" in d["recomendacao"]["motivo"] or "5.200" in d["recomendacao"]["motivo"]
+
+
+def test_area_utilizavel_240_limita_o_teto_a_34_kwp():
+    assert f.dimensionar({**BASE, "area_m2": 240})["teto_kwp"] == 34
+    assert f.dimensionar({**BASE, "area_m2": 300})["teto_kwp"] == 42
+
+
+def test_resultado_muda_quando_custo_geracao_ou_area_mudam():
+    u = {**BASE, "consumo_mes_kwh": 4889, "tarifa_kwh": 0.90, "area_m2": 300}
+    vpl = lambda **kw: saw.decisao({**u, **kw})["ranking"][0]["vpl_projeto"]
+    base = vpl()
+    assert vpl(custo_kwp=5200) < base and vpl(fator_desempenho_real=0.6) < base

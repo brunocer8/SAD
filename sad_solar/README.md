@@ -20,7 +20,7 @@ uvicorn app:app --reload                                # abre em http://127.0.0
 ```
 O financiamento é **opcional**: o decisor informa a taxa (CET a.a.) na tela; sem ela, o sistema decide só com pagamento à vista (ver `docs/FUNDAMENTACAO.md`).
 Opcional: `export GEMINI_API_KEY=...` habilita o texto explicativo por IA (sem a chave, o sistema usa um texto automático).
-Testes: `pip install -r requirements-dev.txt && pytest -q` (32 testes).
+Testes: `pip install -r requirements-dev.txt && pytest -q` (39 testes).
 
 ## Arquitetura e fluxo de decisão
 
@@ -56,7 +56,7 @@ Funções analíticas (item 2 do enunciado), todas efetivamente executadas no fl
 O classificador (`python montecarlo.py treinar`) é um **experimento offline** e **não participa da recomendação**.
 
 Documentação acadêmica: [`docs/FUNDAMENTACAO.md`](docs/FUNDAMENTACAO.md) (classificação da decisão, variáveis, fórmulas, referências, limitações) e
-[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse), [`docs/validacao_orcamentos.md`](docs/validacao_orcamentos.md) (modelo x orçamentos reais), [`docs/DICIONARIO_DADOS.md`](docs/DICIONARIO_DADOS.md) e [`docs/RELATORIO_COMPLETO_SAD_SOLAR.md`](docs/RELATORIO_COMPLETO_SAD_SOLAR.md) (descrição técnica completa).
+[`docs/caso_demonstracao.md`](docs/caso_demonstracao.md) (caso concreto e testes de estresse), [`docs/validacao_orcamentos.md`](docs/validacao_orcamentos.md) (comparação exploratória com estimativas comerciais), [`docs/DICIONARIO_DADOS.md`](docs/DICIONARIO_DADOS.md) e [`docs/RELATORIO_COMPLETO_SAD_SOLAR.md`](docs/RELATORIO_COMPLETO_SAD_SOLAR.md) (descrição técnica completa).
 
 ## Estrutura
 
@@ -69,3 +69,9 @@ Documentação acadêmica: [`docs/FUNDAMENTACAO.md`](docs/FUNDAMENTACAO.md) (cla
 | `app.py`, `static/index.html` | API (login, simulação, relatórios) e interface |
 | `tests/` | testes unitários e ponta a ponta (`pytest -q`) |
 | `scripts/` | `validar_regressao.py` (validação por município), `caso_demonstracao.py` |
+
+## Pendências do autor (não resolvidas pelo código)
+- Preencher `COMPLETAR_USUARIO`, `COMPLETAR_SENHA` e `COMPLETAR_LINK` (usuário de demonstração e vídeo de 3 a 5 min); não foram inventados.
+- Exportar o diagrama Mermaid como imagem para o PDF final (o PDF não renderiza o código).
+- Confirmar em fontes oficiais: texto da Lei 14.300/2022 (potência em CA e Fio B), tarifa Coelba, taxas do BNB e do BB; completar edições e URLs com data de acesso nas referências.
+- Orçamento real: informar o custo em R$/kWp no campo da tela; o valor é usado como custo fixo.

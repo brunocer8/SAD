@@ -80,6 +80,7 @@ class Entrada(BaseModel):
     area_m2: float | None = Field(None, gt=0)
     financiado: int = Field(0, ge=0, le=1)
     consumo_diurno_fracao: float = Field(0.60, ge=0.1, le=1.0)
+    custo_kwp: float | None = Field(None, gt=0)   # R$/kWp de orçamento real; vazio = tabela Greener x fator de custo
     taxa_financiamento: float | None = Field(None, gt=0, le=1)   # CET a.a. (ex.: 0.24); sem valor, só à vista
     prioridade: str = Field("padrao", pattern="^(padrao|retorno|cautela)$")
 

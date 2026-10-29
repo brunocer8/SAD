@@ -263,6 +263,10 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
     else:
         recomendacao = dict(tipo="instalar", nome=melhor["nome"], indice=melhor["indice"],
                             motivo=f"Maior índice SAW entre {len(aprovadas)} alternativa(s) aprovada(s) no filtro e a opção de não instalar.")
+    if usuario.get("area_m2") is None:
+        recomendacao["motivo"] += " Atenção: a área do telhado não foi informada; o espaço físico não limitou o dimensionamento (teto técnico apenas por potência)."
+    if usuario.get("custo_kwp"):
+        recomendacao["motivo"] += f" Custo de instalação informado pelo decisor: R$ {usuario['custo_kwp']:,.0f}/kWp (tratado como fixo no Monte Carlo)."
     recomendacao.update(empate_tecnico=empate, prob_lider=melhor["prob_lider"], indice_exibido=next(i for i, a in enumerate(ranking) if a is exibida),
                         n_aprovadas=len(aprovadas), n_reprovadas=len(reprovadas))
     return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=w, sentido=c[4]) for c, w in zip(CRITERIOS, pesos_criterios(prio, com_fin)) if w > 0],

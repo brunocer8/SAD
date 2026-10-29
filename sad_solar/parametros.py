@@ -54,10 +54,10 @@ PARAMETROS = {
     ),
     # ---------------- Custos e desempenho ----------------
     "fator_custo": dict(
-        padrao=1.20, mc=("tri", 0.95, 1.20, 2.40), tipo="estimado", unidade="multiplicador",
+        padrao=1.20, mc=("tri", 0.95, 1.20, 2.65), tipo="estimado", unidade="multiplicador",
         fonte="Calibrado com orçamentos/simulações para Salvador (faixa 40 a 55 kWp; tabela Greener = R$ 2,02 a 2,07/Wp): "
               "Portal Solar R$ 1,99 a 2,41/Wp (fator 0,98 a 1,19); WEG Solar ~R$ 2,36/Wp (kWp assumido; ~1,17); "
-              "proposta NeoSolar R$ 5,01/Wp, 54 kWp (fator 2,42). Moda 1,20, mínimo 0,95 e máximo 2,40 refletem essas três fontes. "
+              "proposta NeoSolar R$ 5,02/Wp, 54 kWp (fator 2,42); as outras quatro propostas NeoSolar (10/20/30/40 kWp, conferidas no PDF) vão de R$ 5,06 a 5,34/Wp (fator até 2,64). Moda 1,20 e faixa 0,95 a 2,65 refletem essas fontes; NeoSolar é UM fornecedor, não preço de mercado. Orçamento real pode ser informado em R$/kWp (campo custo_kwp) e então vale como custo fixo. "
               "Ver docs/validacao_orcamentos.md.",
     ),
     "om_pct_investimento": dict(

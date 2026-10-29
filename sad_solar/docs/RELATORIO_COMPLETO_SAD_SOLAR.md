@@ -90,7 +90,7 @@ Cada parâmetro tem tipo: `fonte` (valor de fonte citada), `estimado` (derivado 
 | relacao_dc_ac | 1,0 | fixo | premissa | limite legal é 75 kW em CA; teto de módulos = 75 x relação |
 | custo_disponibilidade | 100 kWh/mês | fixo | premissa | mínimo trifásico |
 | consumo_diurno_fracao | 0,60 | uni(0,40; 0,80) | premissa | entrada do usuário (0,4/0,6/0,8) fixa o valor no MC |
-| fator_custo | 1,20 | tri(0,95; 1,20; 2,40) | estimado | calibrado com Portal Solar (R$ 1,99 a 2,41/Wp), WEG (~2,36) e proposta NeoSolar (R$ 5,01/Wp, 54 kWp); tabela Greener = 2,02 a 2,07 |
+| fator_custo | 1,20 | tri(0,95; 1,20; 2,65) | estimado | calibrado com Portal Solar (R$ 1,99 a 2,41/Wp), WEG (~2,36) e proposta NeoSolar (R$ 5,01/Wp, 54 kWp); tabela Greener = 2,02 a 2,07 |
 | om_pct_investimento | 1,0%/ano | tri(0,5%; 1,0%; 1,5%) | premissa | O&M anual, corrigido pelo IPCA |
 | degradacao_anual | 0,5% | tri(0,4%; 0,5%; 0,8%) | fonte | |
 | vida_util_anos | 25 | fixo | fonte | |
@@ -195,7 +195,9 @@ Pesos dos fatores: ROC (Barron e Barrett, 1996), n = 4: w_i = (1/n) * soma_{j=i.
 
 ## 11. Resultados (caso concreto, executado)
 
-**Calibração com orçamentos reais** (`docs/validacao_orcamentos.md`): conta de R$ 4.400/mês em Salvador (4.889 kWh/mês a R$ 0,90/kWh, dado da proposta NeoSolar). Com o investimento de cada referência: Portal Solar 44,4 kWp (R$ 88.350 a 106.950): payback ref. 2,75 anos, modelo 1,86 a 2,24; WEG (kWp assumido 40; R$ 94.232): ref. 3,8, modelo 1,98; **NeoSolar (proposta real, 54 kWp, R$ 270.812, inflação 8%): ref. 4,5 anos e TIR 33,1%; modelo 5,2 anos e 23,6%** (mais conservador). Diferença com as calculadoras não explicada (premissas não divulgadas).
+**Comparação exploratória com estimativas comerciais** (`docs/validacao_orcamentos.md`; dados em `dados/orcamentos_neosolar.csv`): não é validação empírica. (i) Geração específica: SAD = 124,0 kWh/kWp.mês; propostas NeoSolar = 73 a 90 (SAD 38% a 70% acima; denominador = referência); Portal Solar ~131 (-5%). **Discrepância não resolvida**; coeficientes da regressão não foram ajustados. (ii) Custo: NeoSolar R$ 5,02 a 5,34/Wp contra R$ 2,02 (Greener) e R$ 2,42 (padrão do SAD). (iii) Com o investimento exato, o SAD dá payback mais longo que as referências NeoSolar (por economia líquida e por limitar a economia ao consumo), e com o custo-padrão dá payback bem menor; as calculadoras Portal Solar e WEG dão paybacks maiores que o SAD com o mesmo investimento. As cinco propostas NeoSolar (54 kWp e 10/20/30/40 kWp) foram conferidas nos PDFs fornecidos; todas declaram tarifa R$ 0,90, inflação de 8% a.a. e perda de 0,7%/ano, replicadas na comparação. Com o investimento exato, o payback do SAD (6,3 a 6,4 anos nas quatro propostas menores) fica acima do informado (5,3 a 5,4) porque a economia do SAD é líquida e limitada ao consumo faturável: a geração maior do SAD não vira economia adicional. Os paybacks do caso-base não devem ser apresentados como confirmados por orçamentos externos.
+
+**Cenários de custo e geração** (caso-base, recalculados): custo Greener R$ 2.020/kWp: payback 1,74, VPL R$ 482 mil; padrão do SAD: 2,09, R$ 464 mil; custo NeoSolar R$ 5.200/kWp: 4,33, R$ 335 mil; NeoSolar + geração reduzida (x0,63): 5,99, R$ 156 mil (recomendação: 42 kWp). Com área utilizável de 240 m² (teto 34 kWp): recomendação de 34 kWp, payback 1,93. A recomendação (tamanho máximo à vista) é estável, mas payback e VPL dependem fortemente de custo e geração. A área de 300 m² do caso-base é premissa explícita.
 
 **Caso-base** (sem financiamento, pois nenhuma taxa foi informada): Salvador; 4.889 kWh/mês; R$ 0,90/kWh; 60% diurno; telhado 300 m² (teto 42 kWp; maior VPL em 41 kWp; investimento R$ 99.384, fator de custo 1,20).
 
@@ -216,7 +218,7 @@ Estresse (41 kWp à vista, um parâmetro por vez, VPL R$): base 463.660 (payback
 
 Tempo de uma decisão ponta a ponta: ~1,8 s (menos sem financiamento). Regressão (validação cruzada por município): R² 0,956; MAE 0,081; RMSE 0,096; viés sazonal ~±3%. Classificador offline: árvore 88,72% (F1 72,37%); Random Forest 94,34% (F1 84,63%); não participa da decisão.
 
-## 12. Testes automáticos (32, todos passando)
+## 12. Testes automáticos (39, todos passando)
 Balanço mensal e expiração de créditos de 60 meses conferidos por implementação independente em laços (FIFO); conservação de energia; créditos >= 0; simultaneidade menor reduz autoconsumo; VPL recalculado manualmente; cronograma do financiamento (138 parcelas, saldo zera, parcelas do ano 1, ausência de parcelas após o mês 144, conciliação com a diferença de fluxos); VPL do projeto igual à vista e financiado; payback pelo primeiro cruzamento (inclui fluxo que volta a ficar negativo e fluxo sem recuperação); área insuficiente, zero e negativa; dimensionamento independente do flag de financiamento; limite de 75 kWp; pesos ROC; normalização; agrupamento; "Não instalar" pode vencer; reprovada nunca recomendada; veredito usa payback do projeto; alavancagem não premia sistema maior; índice não exibido se única alternativa; economia limitada ao mínimo faturável; prioridades mudam a recomendação; k-means separa grupos e atribui perfil; financiamento caro prefere à vista; API ponta a ponta (instalar, não instalar, 422 por área, 422 por área zero).
 
 ## 13. Limitações e pontos fracos conhecidos (peço atenção do validador)
@@ -224,7 +226,7 @@ Balanço mensal e expiração de créditos de 60 meses conferidos por implementa
 2. Autoconsumo por fator de simultaneidade (premissa 0,85), sem curva de carga horária; a recomendação ainda favorece sistemas pequenos porque o critério de exposição regulatória pesa 27%.
 3. Limite legal de 75 kW em CA aproximado em kWp x relação CC/CA (1,0); inversor não modelado.
 4. Fio B: 28% da tarifa com tributos é estimativa; regra pós-2028 é cenário (60% a 100%); componente oficial da Coelba não usada.
-5. Custo por kWp calibrado com apenas 3 referências (2 calculadoras e 1 proposta real a R$ 5,01/Wp); o máximo 2,40 do sorteio é decisão do autor. Calculadoras externas dão payback maior que o modelo sem que as premissas delas sejam conhecidas. P(VPL>0)=100% no Monte Carlo segue pouco informativo.
+5. Custo e geração: custo-padrão calibrado com poucas referências (2 calculadoras e propostas de um só fornecedor, R$ 5,02 a 5,34/Wp); geração do SAD 38% a 70% acima das propostas NeoSolar, sem explicação verificada. P(VPL>0)=100% no Monte Carlo é pouco informativo.
 6. Financiamento (opcional): taxa informada pelo decisor, fontes discordantes (7,9% a 30,4% a.a.); prazo 12 anos, carência até 6 meses e até 100% financiável vêm da cartilha BNB (jun/2022); taxa 7,9% é piso citado em notícia, sem fonte oficial verificada; entrada de 10% é escolha do autor; a vantagem do financiado vem da diferença taxa de juros x taxa de desconto (12%) e do peso baixo da aversão a dívida.
 7. SAW: min-max amplia diferenças pequenas; ordem e mapeamento dos fatores são preferências assumidas; critérios financeiros correlacionados; índice relativo ao conjunto.
 8. Agrupamento de alternativas com corte heurístico (δ); agrupamento de perfis (k-means, k=4) sobre cenários sintéticos, não PMEs reais; fluxos anuais com parcelas mensais; financiamento: prazo (até 12 anos), carência (até 6 meses) e financiamento de até 100% vêm da cartilha BNB/FNE Sol de jun/2022; a taxa de 7,9% vem de notícia (jul/2026), não consta da cartilha e não foi verificada em fonte oficial; entrada de 10% é escolha conservadora do autor.

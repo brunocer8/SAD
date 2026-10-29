@@ -1,6 +1,6 @@
 # Caso de demonstração: PME comercial em Salvador
 
-Entradas: Salvador-BA; 4.889 kWh/mês (conta de R$ 4.400); R$ 0,90/kWh (com tributos); 60% do consumo durante o dia; telhado de 300 m². Dados da conta e da tarifa vêm da proposta comercial real (NeoSolar).
+Entradas: Salvador-BA; 4.889 kWh/mês (conta de R$ 4.400); R$ 0,90/kWh (com tributos); 60% do consumo durante o dia; telhado de 300 m² (**premissa explícita do caso demonstrativo, não dado da proposta NeoSolar**; o campo é a área UTILIZÁVEL). Consumo e tarifa vêm da proposta NeoSolar de 54 kWp, usada só como referência externa.
 
 Limite técnico: 42 kWp (min. entre 75 kWp e área/7 m² por kWp). Tamanho que maximiza o VPL no cenário-base: 41 kWp.
 
@@ -20,7 +20,7 @@ Limite técnico: 42 kWp (min. entre 75 kWp e área/7 m² por kWp). Tamanho que m
 | Prioridade (ordem dos fatores) | Recomendação | Índice | Lidera nos sorteios de pesos |
 |---|---|---|---|
 | Padrão: retorno > regulatório > preferências > risco | Sistema recomendado de 41 kWp, à vista | 0.727 | 78% |
-| Retorno financeiro em 1º: retorno > risco > preferências > regulatório | Sistema recomendado de 41 kWp, à vista | 0.935 | 98% |
+| Retorno financeiro em 1º: retorno > risco > preferências > regulatório | Sistema recomendado de 41 kWp, à vista | 0.935 | 91% |
 | Cautela: regulatório > preferências > risco > retorno | Sistema compacto de 20 kWp, à vista | 0.628 | 78% |
 
 ## Sensibilidade à taxa de financiamento (taxa de desconto = 12% a.a.)
@@ -38,6 +38,18 @@ Fontes de referência: BNB FNE Sol, piso de 7,9% a.a. (notícia, não verificado
 ## Perfil (agrupamento k-means de cenários simulados)
 
 O caso pertence ao grupo 4: consumo baixo, tarifa baixa, perfil diurno (centróide de 1634 cenários simulados; P(VPL>0) = 100%; payback mediano = 3.0 anos).
+
+## Cenários de custo, geração e área (recalculados pelo código)
+
+O custo informado é tratado como fixo no Monte Carlo. A geração reduzida (fator de desempenho x 0,63) é uma **sensibilidade**, não previsão: reproduz o nível de geração específica das propostas NeoSolar (ver `docs/validacao_orcamentos.md`).
+
+| Cenário | Recomendação | Investimento da alternativa exibida (R$) | VPL projeto (R$) | Payback (anos) | P(VPL>0) |
+|---|---|---|---|---|---|
+| Referência Greener de baixo custo (R$ 2.020/kWp) | Sistema recomendado de 41 kWp, à vista | 82,820 | 482,418 | 1.74 | 100% |
+| Padrão do SAD (tabela x 1,20, incerteza de custo no MC) | Sistema recomendado de 41 kWp, à vista | 99,384 | 463,660 | 2.09 | 100% |
+| Custo conforme orçamentos NeoSolar (R$ 5.200/kWp) | Sistema recomendado de 41 kWp, à vista | 213,200 | 334,768 | 4.33 | 100% |
+| Custo NeoSolar + geração reduzida (x0,63) | Sistema recomendado de 42 kWp, à vista | 218,400 | 156,483 | 5.99 | 100% |
+| Área utilizável de 240 m² (teto geométrico ~34 kWp), custo padrão | Sistema recomendado de 34 kWp, à vista | 82,416 | 408,261 | 1.93 | 100% |
 
 ## Testes de estresse (sistema de maior VPL, à vista, um parâmetro por vez)
 

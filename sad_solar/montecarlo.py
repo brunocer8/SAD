@@ -125,6 +125,8 @@ def analisar_risco(usuario: dict, kwp: float | None = None, n: int = 2000, seed:
     base = montar_entrada(usuario, kwp)
     for k in ("kwp", "ger_esp_anual", "consumo_mes_kwh", "perfil"):
         e[k] = base[k]
+    if "custo_kwp_informado" in base:                # orçamento real informado: custo fixo (sem sorteio de fator_custo)
+        e["custo_kwp_informado"] = base["custo_kwp_informado"]
     r = simular({**e, "financiado": 0.0})
     rf = simular({**e, "financiado": 1.0})
     cls = rotular(r["vpl"], r["payback"])

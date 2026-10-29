@@ -41,6 +41,16 @@ _KWP_PTS = np.array(sorted(CUSTO_KWP_PONTOS))
 _CUSTO_PTS = np.array([CUSTO_KWP_PONTOS[k] for k in _KWP_PTS], dtype=float)
 
 
+def kwp_de_modulos(n_modulos: int, wp_modulo: float) -> float:
+    """Potência CC (kWp) = quantidade de módulos x potência de pico de cada módulo."""
+    return n_modulos * wp_modulo / 1000.0
+
+
+def kw_ca_de_inversores(n_inversores: int, kw_nominal: float) -> float:
+    """Potência CA nominal agregada (kW) = soma das potências nominais dos inversores (NÃO é verificação de projeto elétrico)."""
+    return n_inversores * kw_nominal
+
+
 class AreaInsuficiente(ValueError):
     """A área de telhado informada não comporta o sistema mínimo (restrição técnica real)."""
 
@@ -126,6 +136,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     `e["perfil"]` (opcional): fração da geração anual em cada mês, shape (12,) ou (N, 12)."""
     e = dict(e)
     perfil = e.pop("perfil", None)
+    custo_inf = e.pop("custo_kwp_informado", None)   # R$/kWp de orçamento real informado pelo decisor (substitui a tabela)
     brut = np.broadcast_arrays(*[np.asarray(v, dtype=float) for v in e.values()])
     n = int(np.atleast_1d(brut[0]).size)
 
@@ -180,7 +191,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     economia_injetada = tarifa_t * comp - custo_fio_b                       # parte da economia que depende da compensação
 
     # --- custos
-    invest = kwp * custo_kwp_tabela(kwp) * A("fator_custo")
+    invest = kwp * (custo_kwp_tabela(kwp) * A("fator_custo") if custo_inf is None else float(custo_inf))
     infl = (1 + A("ipca"))[:, None] ** (t - 1)
     om = A("om_pct_investimento")[:, None] * invest[:, None] * infl
     ano_inv = A("inversor_ano_troca")[:, None]
@@ -238,6 +249,8 @@ def montar_entrada(usuario: dict, kwp) -> dict:
     e["consumo_mes_kwh"] = float(usuario["consumo_mes_kwh"])
     e["financiado"] = float(usuario.get("financiado", 0))
     e["kwp"] = kwp
+    if usuario.get("custo_kwp"):
+        e["custo_kwp_informado"] = float(usuario["custo_kwp"])
     e["perfil"] = perfil_sazonal(perfil[cod])
     return e
 

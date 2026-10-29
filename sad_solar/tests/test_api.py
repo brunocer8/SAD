@@ -46,3 +46,11 @@ def test_area_zero_retorna_422():
     h = _h()
     r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=0))
     assert r.status_code == 422
+
+
+def test_custo_informado_pela_api():
+    h = _h()
+    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=300, custo_kwp=5200))
+    assert r.status_code == 200
+    res = r.json()["resultado"]
+    assert res["investimento"] == res["kwp"] * 5200 or abs(res["investimento"] - res["kwp"] * 5200) < 1

@@ -41,7 +41,7 @@ Observações: o custo do Fio B em R$ **não** é critério, pois já reduz a ec
 ## 5. Validação
 - **Testes automáticos** (`pytest -q`, 32 testes): balanço mensal e expiração de créditos de 60 meses conferidos por implementação independente em laços (FIFO); conservação de energia; simultaneidade; VPL recalculado manualmente; cronograma do financiamento (138 parcelas, saldo zera, parcelas e juros conferidos por cálculo independente, sem parcelas após o mês 144); VPL do projeto igual nas duas formas de pagamento; payback pelo primeiro cruzamento; área zero/negativa rejeitada; dimensionamento independente do flag de financiamento; pesos ROC; normalização; agrupamento; "Não instalar" pode vencer; reprovada nunca é recomendada; veredito usa o payback do projeto; API ponta a ponta.
 - **Regressão** (`scripts/validar_regressao.py`, validação cruzada agrupada por município, 5 grupos): R² médio 0,956; MAE 0,081 kWh/kWp.dia; RMSE 0,096; erro percentual médio 1,9%. Coeficientes refeitos coincidem com os do arquivo. O erro tem **viés sazonal** (cerca de ±3%). Como o alvo é simulado, mede a aproximação do pvlib, **não** a precisão em usinas reais.
-- **Orçamentos reais** (`docs/validacao_orcamentos.md`): com o investimento, a tarifa e a inflação da proposta NeoSolar (única proposta completa), o modelo dá payback de 5,2 anos e TIR de 23,6% contra 4,5 anos e 33,1% da proposta, ou seja, é mais conservador. As calculadoras (Portal Solar, WEG) informam paybacks maiores que o modelo, por premissas não divulgadas. O custo por kWp (R$ 2,02 da tabela Greener) ficou no limite inferior; o fator de custo foi recalibrado (padrão 1,20; sorteio de 0,95 a 2,40).
+- **Comparação exploratória com estimativas comerciais** (`docs/validacao_orcamentos.md`, `dados/orcamentos_neosolar.csv`): NÃO é validação empírica (as referências são estimativas de um fornecedor e de calculadoras, não medições). Resultado: a geração específica do SAD (124,0 kWh/kWp.mês) é 38% a 70% maior que a das propostas NeoSolar (73 a 90), discrepância **não resolvida** (coeficientes não foram ajustados para coincidir); o custo-padrão do SAD (R$ 2,42/Wp) é menos da metade do preço NeoSolar (R$ 5,02 a 5,34/Wp). As cinco propostas NeoSolar foram conferidas nos PDFs fornecidos (todas declaram tarifa R$ 0,90, inflação de 8% a.a. e perda de 0,7%/ano). O SAD aceita orçamento real (`custo_kwp`) e inclui cenários separados de custo NeoSolar e de baixa geração.
 - **Preferências e financiamento:** a recomendação muda conforme a prioridade do decisor (padrão, retorno em 1º, cautela) e deixa de preferir o financiamento quando a taxa passa de ~12% (taxa de desconto): ver `docs/caso_demonstracao.md`.
 - **Caso concreto e estresse**: `docs/caso_demonstracao.md`. Os testes de estresse variam parâmetros do próprio modelo e portanto não substituem uma planilha independente nem orçamentos reais.
 
@@ -58,6 +58,16 @@ Observações: o custo do Fio B em R$ **não** é critério, pois já reduz a ec
 - Retornos altos (payback ~1,5 ano) e Monte Carlo quase sem VPL negativo (P(VPL>0)=100%): P(VPL>0) discrimina pouco. Custos por kWp recalibrados com 3 referências (uma proposta real a R$ 5,01/Wp); poucas observações, então a incerteza de custo é grande e deve ser ampliada com mais orçamentos.
 - TIR por bisseção devolve "n/d" sem raiz única no intervalo.
 - O classificador é experimental, treinado em cenários sintéticos, e não participa da recomendação.
+
+## 6b. Limitações adicionais (consistentes com código, interface e README)
+- O custo de disponibilidade de 100 kWh/mês corresponde ao mínimo faturável trifásico; monofásico e bifásico não são configuráveis.
+- O fluxo de caixa é anual (fim de ano); as parcelas mensais do financiamento são agregadas por ano.
+- A TIR por bisseção só é confiável quando há uma mudança de sinal; sem raiz no intervalo o valor é "n/d".
+- A regressão (R² 0,956) foi avaliada por validação cruzada por município contra geração **simulada** (pvlib), não contra medições.
+- Os grupos do k-means são perfis de cenários simulados, não segmentos observados de PMEs; o agrupamento de alternativas usa corte heurístico (exploratório); o classificador offline não participa da decisão.
+- Fio B após 2028: 100% é cenário-base conservador do projeto; o Monte Carlo varia de 60% a 100%. Textos legais devem ser conferidos em fonte oficial.
+- Potência: o limite legal de 75 kW refere-se à potência em corrente alternada; o SAD limita a potência CC dos módulos (kWp) dividida pela relação CC/CA (padrão 1,0) e não modela o inversor. Rótulos comerciais (10/20/30/40 kWp) não são potência física: 24 módulos de 450 Wp = 10,8 kWp CC e 6 inversores de 2 kW = 12 kW CA nominais agregados.
+- A área informada deve ser a área UTILIZÁVEL do telhado; sem ela, o espaço físico não limita o dimensionamento (a recomendação avisa).
 
 ## 7. Referências
 - ANEEL. Resolução Normativa nº 1.000/2021; Resolução Homologatória nº 3.578/2026 (tarifas Coelba).
