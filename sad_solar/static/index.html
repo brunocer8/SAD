@@ -10,7 +10,7 @@ header{background:linear-gradient(90deg,var(--mar),var(--mar2));color:#fff;paddi
 header h2{margin:0;font-size:18px;flex:1;display:flex;align-items:center;gap:10px}header h2 small{display:block;font-weight:400;font-size:11px;color:#cfe6f5}
 nav button{background:none;border:0;color:#cfe6f5;font:600 14px Poppins;cursor:pointer;padding:8px 12px}nav button.on{color:#fff;border-bottom:3px solid var(--sol)}
 main{max-width:1040px;margin:auto;padding:18px}.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0b3c5d14}
-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px}
+form{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 16px}label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px}
 input,select,button{padding:10px;font:15px Poppins;border:1px solid #d6dde3;border-radius:10px}
 .bt{background:var(--dende);color:#fff;border:0;border-radius:999px;cursor:pointer;font-weight:600;padding:10px 20px}.bt:hover{background:#c94a07}.bt.sec{background:#e8eef2;color:var(--mar)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.kpi{background:#FFF3D6;border-left:5px solid var(--sol);border-radius:10px;padding:10px;font-size:13px}.kpi b{display:block;font-size:20px;color:var(--mar)}
@@ -48,6 +48,15 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 .barra i{display:block;height:100%;background:linear-gradient(90deg,#F7B500,#E8590C)}.specs{display:flex;flex-wrap:wrap;gap:6px;font-size:12px}.specs span{background:#0b3c5d12;border-radius:8px;padding:3px 8px}
 #texto,#dtxt{white-space:pre-wrap;line-height:1.6}
 @media print{header,#v-rel>.card:first-child,.noprint{display:none}body{background:#fff}}
+
+form{align-items:start}label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px}
+input,select{width:100%;box-sizing:border-box;height:42px;background:#fff}
+.dica{font-weight:400;font-size:12px;color:#5b6b78;line-height:1.3}
+.campo{display:flex;flex-direction:column;gap:4px}.campo .rot{font-size:13px;font-weight:600}
+.seg{display:flex;gap:8px}.seg label{flex:1;flex-direction:row;align-items:center;gap:8px;border:1px solid #d6dde3;border-radius:10px;padding:0 12px;height:42px;cursor:pointer;box-sizing:border-box}
+.seg input{width:auto;height:auto;margin:0}.seg label:has(input:checked){border-color:var(--dende);background:#FFF3D6}
+.adv{grid-column:1/-1;border:1px dashed #d6dde3;border-radius:10px;padding:8px 12px}.adv summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--mar)}.adv label{max-width:340px;margin-top:10px}
+form .bt{grid-column:1/-1;justify-self:start;margin-top:4px}
 </style></head><body>
 <header class="hide" id="top"><h2><svg width="34" height="34" viewBox="0 0 40 40"><g stroke="#F7B500" stroke-width="3" stroke-linecap="round"><path d="M20 2v6M20 32v6M2 20h6M32 20h6M7 7l4 4M29 29l4 4M33 7l-4 4M11 29l-4 4"/></g><circle cx="20" cy="20" r="8" fill="#F7B500"/></svg><span>Sol da Bahia<small>Apoio à decisão em energia solar para PMEs baianas</small></span></h2>
 <nav><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
@@ -73,15 +82,18 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 <div class="card"><b>Risco: VPL nos cenários simulados (R$)</b><canvas id="dc4"></canvas><p><small id="dn4"></small></p></div></div></div></div>
 
 <div id="v-sim" class="hide"><div class="card"><form id="f">
-<label>Município<input id="mun" list="lista" required></label><datalist id="lista"></datalist>
-<label>Consumo mensal (kWh)<input id="cons" type="number" min="100" value="4000" required></label>
-<label>Preço do kWh na fatura (R$, com tributos)<input id="tar" type="number" step="0.01" value="1.10" required></label>
-<label>Área UTILIZÁVEL do telhado (m²; recomendado)<input id="area" type="number" min="1"></label>
-<label>Taxa de financiamento, % a.a. (opcional; vazio = só à vista)<input id="tx" type="number" min="1" max="100" step="0.1"></label>
-<label>Custo instalado do orçamento, R$/kWp (opcional; vazio = tabela de referência)<input id="ck" type="number" min="500" step="10"></label>
-<label>Prioridade do decisor<select id="prio"><option value="padrao">Padrão (retorno, regulatório, preferências, risco)</option><option value="retorno">Retorno financeiro em 1º</option><option value="cautela">Cautela: menor exposição regulatória e sem dívida</option></select></label>
-<label>Quando a empresa mais consome energia?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite (refrigeração, turnos)</option></select></label>
-
+<label>Município<input id="mun" list="lista" required placeholder="Digite o município"></label><datalist id="lista"></datalist>
+<label>Consumo mensal (kWh)<input id="cons" type="number" min="100" value="4000" required><span class="dica">Média mensal da fatura de energia.</span></label>
+<label>Preço do kWh (R$)<input id="tar" type="number" step="0.01" value="1.10" required><span class="dica">Valor na fatura, com tributos.</span></label>
+<label>Área utilizável do telhado (m²)<input id="area" type="number" min="1" placeholder="Ex.: 240"><span class="dica">Limita o tamanho do sistema. Se vazio, só a potência limita.</span></label>
+<label>Quando a empresa mais consome?<select id="dia"><option value="80">De dia (expediente comercial)</option><option value="60" selected>Dia e noite</option><option value="40">Principalmente à noite</option></select><span class="dica">Define quanto da geração é usada na hora.</span></label>
+<label>Prioridade do decisor<select id="prio"><option value="padrao">Padrão (retorno primeiro)</option><option value="retorno">Retorno financeiro em 1º</option><option value="cautela">Cautela (menos risco regulatório e sem dívida)</option></select><span class="dica">Ordem de importância dos fatores no ranking.</span></label>
+<div class="campo"><span class="rot">Forma de pagamento</span>
+<div class="seg"><label><input type="radio" name="pgto" value="vista" checked>À vista</label><label><input type="radio" name="pgto" value="fin">Financiado</label></div>
+<span class="dica" id="dpg">Só pagamento à vista.</span></div>
+<label id="boxtx" class="hide">Taxa de juros do financiamento (% a.a.)<input id="tx" type="number" min="1" max="100" step="0.1" placeholder="Ex.: 24"><span class="dica">Informe o CET da proposta do banco. O SAD compara à vista e financiado.</span></label>
+<details class="adv"><summary>Opções avançadas</summary>
+<label>Custo do orçamento (R$/kWp)<input id="ck" type="number" min="500" step="10" placeholder="Vazio = tabela de referência"><span class="dica">Use só se já tiver um orçamento real: custo total ÷ kWp.</span></label></details>
 <button class="bt">Simular</button></form><small id="msg"></small></div>
 <div id="res" class="hide"><div class="card" id="veredito"></div><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div><div class="card" id="decisao"></div>
 <div class="g2"><div class="card"><b>Geração mensal estimada (kWh)</b><canvas id="c1"></canvas></div>
@@ -95,6 +107,7 @@ td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(-
 </main>
 <script>
 const $=i=>document.getElementById(i),R=v=>v==null?"n/d":"R$ "+Math.round(v).toLocaleString("pt-BR"),P=v=>v==null?"n/d":(v*100).toFixed(0)+"%",Y=v=>v==null?"n/d":v.toFixed(1)+" anos";
+document.querySelectorAll("input[name=pgto]").forEach(r=>r.addEventListener("change",()=>{const fin=document.querySelector("input[name=pgto]:checked").value==="fin";$("boxtx").classList.toggle("hide",!fin);$("tx").required=fin;$("dpg").textContent=fin?"O SAD compara à vista e financiado e recomenda o melhor.":"Só pagamento à vista."}));
 const AJUDA={"Sistema exibido":"Potência do sistema solar que maximiza o ganho financeiro, limitada pela área do telhado e por 75 kWp. kWp é a potência de pico dos painéis.",
 "Investimento somado":"Soma do investimento de todas as simulações salvas.","Investimento":"Quanto custa instalar o sistema (painéis, inversor e instalação), com base em preços médios de mercado de 2026.",
 "Economia no 1º ano":"Quanto a empresa deixa de pagar na conta de luz no primeiro ano, já descontando o custo do Fio B.","Payback médio":"Média do tempo de retorno das suas simulações.","Payback":"Tempo para a economia na conta de luz pagar o investimento. Quanto menor, melhor.",
@@ -170,7 +183,7 @@ function mostrar(a,k,id,fin){$("res").classList.remove("hide");
 $("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
  $("msg").textContent="Calculando...";
  try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
-  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null,prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:$("tx").value?+$("tx").value/100:null}});
+  consumo_diurno_fracao:+$("dia").value/100,area_m2:$("area").value?+$("area").value:null,prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:(document.querySelector("input[name=pgto]:checked").value==="fin"&&$("tx").value)?+$("tx").value/100:null}});
   $("msg").textContent="";CUR=d;TXT={};selecionar(d.resultado.decisao.recomendacao.indice_exibido,1)}catch(x){$("msg").textContent=x.message}};
 async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
  $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>
