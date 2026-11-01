@@ -1,5 +1,5 @@
 """
-Módulo financeiro do SAD de viabilidade de energia solar para PMEs na Bahia.
+Módulo financeiro do SAD de viabilidade de energia solar para residências na Bahia.
 
 Fluxo:
   1. Geração específica do município (kWh/kWp.ano) pelo modelo de regressão linear
@@ -23,7 +23,7 @@ Simplificações declaradas:
     que sobram ao final da vida útil não têm valor.
   - Autoconsumo = min(simultaneidade x geração, fração diurna x consumo); sem curva de carga horária.
   - A fração diurna do consumo é a mesma em todos os meses.
-  - Tarifa convencional (sem Tarifa Branca). O preço do kWh deve ser informado com tributos.
+  - Tarifa convencional (sem Tarifa Branca): preço marginal pode vir da tarifa homologada SEM tributos; manter a mesma base em custos evitados.
   - Fluxos de caixa no fim de cada ano; taxa de desconto nominal.
 """
 import json
@@ -33,7 +33,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from parametros import CUSTO_KWP_PONTOS, FIO_B_PCT, PARAMETROS, UNIVERSO_PME, padroes
+from parametros import CUSTO_KWP_PONTOS, FIO_B_PCT, PARAMETROS, UNIVERSO_RESIDENCIAL, padroes
 
 DADOS = Path(__file__).parent / "dados"
 DIAS_MES = np.array([31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31])
@@ -55,7 +55,9 @@ class AreaInsuficiente(ValueError):
     """A área de telhado informada não comporta o sistema mínimo (restrição técnica real)."""
 
 
-KWP_MIN = UNIVERSO_PME["kwp_min"]
+MODULO_WP = 620.0  # painel ilustrativo: orçamento real exige ficha técnica
+MODULOS_MIN = 2
+KWP_MIN = UNIVERSO_RESIDENCIAL["kwp_min"]
 VALIDADE_MESES = 60   # validade dos créditos de energia (Lei 14.300/2022, art. 13)
 
 
@@ -87,7 +89,7 @@ def buscar_municipio(nome: str) -> int:
 
 
 def custo_kwp_tabela(kwp):
-    """R$/kWp do sistema instalado (Greener, jun/2026), interpolado e limitado nas pontas."""
+    """R$/kWp por interpolação de tabela histórica residencial (referências jan/2025 e premissas)."""
     return np.interp(kwp, _KWP_PTS, _CUSTO_PTS)
 
 
@@ -136,6 +138,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     `e["perfil"]` (opcional): fração da geração anual em cada mês, shape (12,) ou (N, 12)."""
     e = dict(e)
     perfil = e.pop("perfil", None)
+    e.setdefault("limite_tarifa_social_kwh_mes", 0.0)
     custo_inf = e.pop("custo_kwp_informado", None)   # R$/kWp de orçamento real informado pelo decisor (substitui a tabela)
     brut = np.broadcast_arrays(*[np.asarray(v, dtype=float) for v in e.values()])
     n = int(np.atleast_1d(brut[0]).size)
@@ -157,6 +160,9 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
     degr = 1 - A("degradacao_anual")
     carga_dia = A("consumo_diurno_fracao") * cons_m      # kWh/mês consumíveis na hora do sol
     minimo = A("custo_disponibilidade_kwh_mes")          # kWh/mês cobrados mesmo com créditos
+    # Tarifa Social: aproximação conservadora — primeiros 80 kWh/mês sem receita evitável.
+    # Não é cálculo fiscal/regulatório exato; exige validar composição tarifária e elegibilidade.
+    minimo = np.maximum(minimo, A("limite_tarifa_social_kwh_mes"))
     sim = A("simultaneidade")
     S = np.zeros((n, T)); comp = np.zeros((n, T)); injetada = np.zeros((n, T)); saldo_fim = np.zeros((n, T))
     expirado = np.zeros((n, T)); kwh_eco = np.zeros((n, T))
@@ -228,7 +234,7 @@ def simular(e: dict, devolver_fluxo: bool = False) -> dict:
         investimento=invest, vpl=vpl, vpl_projeto=vpl_proj, payback_projeto=_payback(full_proj),
         parcelas_ano1=parcelas[:, 0], credito_expirado_ano1=expirado[:, 0], credito_expirado_total=expirado.sum(axis=1), tir=_tir(full), payback=pb, payback_descontado=pbd, lcoe=lcoe,
         geracao_ano1=G[:, 0], economia_ano1=economia[:, 0],
-        cobertura_consumo=(S + comp)[:, 0] / cons[:, 0], credito_acumulado_ano1=saldo_fim[:, 0],
+        cobertura_consumo=kwh_eco[:, 0] / cons[:, 0], credito_acumulado_ano1=saldo_fim[:, 0],
         custo_fio_b_ano1=custo_fio_b[:, 0],
         exposicao_regulatoria=np.clip(economia_injetada[:, 0] / np.maximum(economia[:, 0], 1e-9), 0.0, 1.0),
         autoconsumo_ano1=S[:, 0], compensada_ano1=comp[:, 0], injetada_ano1=injetada[:, 0],
@@ -249,6 +255,7 @@ def montar_entrada(usuario: dict, kwp) -> dict:
     e["consumo_mes_kwh"] = float(usuario["consumo_mes_kwh"])
     e["financiado"] = float(usuario.get("financiado", 0))
     e["kwp"] = kwp
+    e["limite_tarifa_social_kwh_mes"] = 80.0 if usuario.get("tarifa_social") else 0.0
     if usuario.get("custo_kwp"):
         e["custo_kwp_informado"] = float(usuario["custo_kwp"])
     e["perfil"] = perfil_sazonal(perfil[cod])
@@ -256,25 +263,35 @@ def montar_entrada(usuario: dict, kwp) -> dict:
 
 
 def dimensionar(usuario: dict) -> dict:
-    """Varre o kWp (mínimo a limite de área/potência) e escolhe o que maximiza o VPL no cenário-base."""
+    """Avalia configurações inteiras de módulos de 620 Wp, respeitando limite de área e potência.
+
+    A potência ótima é a de maior VPL DO PROJETO entre as opções tecnicamente admissíveis.
+    Duas placas é um mínimo didático; a instalação efetiva requer validar inversor, sombreamento
+    e condições físicas do telhado com profissional habilitado.
+    """
     p = padroes()
-    usuario = {**usuario, "financiado": 0}          # dimensiona pelo VPL do PROJETO (sem financiamento)
+    usuario = {**usuario, "financiado": 0}
     teto = p["kwp_max"] * p.get("relacao_dc_ac", 1.0)
-    if usuario.get("area_m2") is not None:
-        if usuario["area_m2"] <= 0:
-            raise ValueError("A área de telhado deve ser positiva (ou deixada em branco).")
-        teto = min(teto, usuario["area_m2"] / p.get("m2_por_kwp", 7.0))
-    teto = int(np.floor(teto))
-    if teto < KWP_MIN:
+    area = usuario.get("area_m2")
+    if area is None or float(area) <= 0:
+        raise ValueError("Informe a área útil do telhado em m² (valor positivo).")
+    teto = min(teto, float(area) / p["m2_por_kwp"])
+    n_max = int(np.floor((teto + 1e-10) * 1000 / MODULO_WP))
+    if n_max < MODULOS_MIN:
+        necessario = MODULOS_MIN * MODULO_WP / 1000 * p["m2_por_kwp"]
         raise AreaInsuficiente(
-            f"A área informada ({usuario['area_m2']:.0f} m²) comporta no máximo {teto} kWp, abaixo do sistema mínimo de "
-            f"{KWP_MIN:.0f} kWp (~{KWP_MIN * p.get('m2_por_kwp', 7.0):.0f} m²). Não há alternativa tecnicamente admissível.")
-    grade = np.arange(KWP_MIN, teto + 1, dtype=float)
+            f"A área útil informada ({area:g} m²) não comporta o sistema ilustrativo mínimo de "
+            f"{MODULOS_MIN} módulos ({necessario:.1f} m² estimados). Informe área maior ou solicite avaliação técnica."
+        )
+    modulos = np.arange(MODULOS_MIN, n_max + 1)
+    grade = modulos * MODULO_WP / 1000
     r = simular(montar_entrada(usuario, grade))
-    i = int(np.argmax(r["vpl"]))
-    tabela = pd.DataFrame({"kwp": grade, "investimento": r["investimento"], "vpl": r["vpl"],
-                           "payback": r["payback"], "cobertura": r["cobertura_consumo"]})
-    return dict(kwp_recomendado=float(grade[i]), tabela=tabela, teto_kwp=teto)
+    i = int(np.argmax(r["vpl_projeto"]))
+    tabela = pd.DataFrame({"modulos": modulos, "kwp": grade, "investimento": r["investimento"],
+                           "vpl": r["vpl_projeto"], "payback": r["payback_projeto"],
+                           "cobertura": r["cobertura_consumo"]})
+    return dict(kwp_recomendado=float(grade[i]), tabela=tabela,
+                teto_kwp=float(grade[-1]), modulos_max=int(n_max))
 
 
 def analisar(usuario: dict, kwp: float | None = None) -> dict:
@@ -283,6 +300,8 @@ def analisar(usuario: dict, kwp: float | None = None) -> dict:
     cod = int(usuario["cod_ibge"])
     dim = dimensionar(usuario)
     kwp = float(kwp if kwp is not None else dim["kwp_recomendado"])
+    if kwp > dim["teto_kwp"] + 1e-8 or kwp < KWP_MIN - 1e-8:
+        raise AreaInsuficiente("A potência escolhida excede a área útil ou está abaixo do mínimo ilustrativo.")
     e = montar_entrada(usuario, kwp)
     r = simular(e, devolver_fluxo=True)
     fator = e["fator_desempenho_real"]
@@ -291,13 +310,15 @@ def analisar(usuario: dict, kwp: float | None = None) -> dict:
         municipio=str(mun.loc[cod, "municipio"]), kwp=kwp, kwp_recomendado=dim["kwp_recomendado"],
         ger_esp_anual=e["ger_esp_anual"],
         geracao_mensal_kwh=(perfil[cod] * kwp * fator).round(0).tolist(),
+        modulos=int(round(kwp * 1000 / MODULO_WP)), area_estimada_m2=round(kwp * padroes()["m2_por_kwp"], 2),
+        area_informada_m2=float(usuario["area_m2"]),
         fluxo_acumulado=np.cumsum(r["fluxo"][0]).round(0).tolist(),
     )
     return res
 
 
 if __name__ == "__main__":
-    u = dict(cod_ibge=buscar_municipio("Salvador"), consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=300)
+    u = dict(cod_ibge=buscar_municipio("Salvador"), consumo_mes_kwh=250, tarifa_kwh=0.87773, area_m2=30, custo_disponibilidade_kwh_mes=50)
     for fin in (0, 1):
         u["financiado"] = fin
         r = analisar(u)

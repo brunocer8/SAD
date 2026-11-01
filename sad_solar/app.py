@@ -1,5 +1,6 @@
-"""API do SAD Solar PME Bahia (login, simulação, dashboard e relatórios). Rodar: uvicorn app:app --reload"""
+"""API do SAD Sol da Bahia (residencial) (login, simulação, dashboard e relatórios). Rodar: uvicorn app:app --reload"""
 import hashlib, json, math, os, secrets, sqlite3
+from typing import Literal
 from datetime import datetime
 
 import requests
@@ -10,7 +11,7 @@ from pydantic import BaseModel, Field
 from financeiro import AreaInsuficiente, carregar_municipios
 from saw import decisao
 
-app = FastAPI(title="SAD Solar PME Bahia")
+app = FastAPI(title="Sol da Bahia — SAD residencial")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 DB = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "sad.db"))
 
@@ -77,9 +78,11 @@ class Entrada(BaseModel):
     cod_ibge: int
     consumo_mes_kwh: float = Field(gt=0)
     tarifa_kwh: float = Field(gt=0)
-    area_m2: float | None = Field(None, gt=0)
+    area_m2: float = Field(gt=0, le=20000, description="Área útil do telhado em m²")
+    tipo_ligacao: Literal["monofasica", "bifasica", "trifasica"] = "bifasica"
+    tarifa_social: bool = False
     financiado: int = Field(0, ge=0, le=1)
-    consumo_diurno_fracao: float = Field(0.60, ge=0.1, le=1.0)
+    consumo_diurno_fracao: float = Field(0.45, ge=0.1, le=1.0)
     custo_kwp: float | None = Field(None, gt=0)   # R$/kWp de orçamento real; vazio = tabela Greener x fator de custo
     taxa_financiamento: float | None = Field(None, gt=0, le=1)   # CET a.a. (ex.: 0.24); sem valor, só à vista
     prioridade: str = Field("padrao", pattern="^(padrao|retorno|cautela)$")
@@ -105,6 +108,7 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
     if e.cod_ibge not in mun.index:
         raise HTTPException(404, "Município fora da Bahia ou desconhecido")
     ent = {k: v for k, v in e.model_dump().items() if v is not None}   # campos opcionais vazios não entram no modelo
+    ent["custo_disponibilidade_kwh_mes"] = {"monofasica":30, "bifasica":50, "trifasica":100}[e.tipo_ligacao]
     try:
         dec = decisao(ent)
     except (AreaInsuficiente, ValueError) as ex:
@@ -128,12 +132,12 @@ def analisar_cliente(e: Entrada, u=Depends(usuario)):
 def texto(d: dict, u=Depends(usuario)):
     r, k = d["resultado"], d["risco"]
     pb = f"{r['payback']:.1f} anos" if r.get("payback") is not None else "não se paga na vida útil"
-    resumo = (f"Município: {r['municipio']}. kWp do cenário analisado: {r['kwp']:.0f}. Investimento: R$ {r['investimento']:,.0f}. "
+    resumo = (f"Município: {r['municipio']}. kWp do cenário analisado: {r['kwp']:.2f}. Investimento: R$ {r['investimento']:,.0f}. "
               f"Payback à vista: {pb}. VPL: R$ {r['vpl']:,.0f}. Cobertura do consumo: {r['cobertura_consumo']:.0%}. "
               f"Em {k['n_cenarios']} cenários com incerteza: VPL positivo em {k['prob_vpl_positivo']:.0%}; faixas de retorno {k['prob_classe']}; "
               f"financiado melhor que à vista em {k['prob_financiado_melhor']:.0%}." + (" Contexto da decisão multicritério (SAW): " + d["contexto"] if d.get("contexto") else ""))
-    prompt = ("Você apoia a decisão de uma pequena empresa sobre instalar energia solar. Escreva 3 parágrafos curtos, em português, para um "
-              "gestor leigo: (1) o que o resultado indica, (2) riscos e incertezas, (3) recomendação prática. Use SOMENTE os números "
+    prompt = ("Você apoia a decisão de uma residência baiana sobre instalar energia solar. Escreva 3 parágrafos curtos, em português, para um "
+              "morador sem conhecimento técnico: (1) o que o resultado indica, (2) riscos e incertezas, (3) recomendação prática. Use SOMENTE os números "
               "abaixo, não invente valores. Lembre que são simulações baseadas em premissas.\n\n" + resumo)
     txt, fonte = resumo + " (Texto automático: defina GEMINI_API_KEY para a análise por IA.)", "padrao"
     if os.getenv("GEMINI_API_KEY"):

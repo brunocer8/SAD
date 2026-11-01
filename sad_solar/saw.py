@@ -42,9 +42,9 @@ LIM_COBERTURA, amplitude de 30% na sensibilidade. Todas estão nas constantes ab
 """
 import numpy as np
 
-from financeiro import AreaInsuficiente, analisar, dimensionar  # noqa: F401  (AreaInsuficiente reexportada)
+from financeiro import MODULO_WP, MODULOS_MIN, AreaInsuficiente, analisar, dimensionar  # noqa: F401  (AreaInsuficiente reexportada)
 from montecarlo import analisar_risco
-from perfis import LIM_INVIAVEL, atribuir
+
 from parametros import PARAMETROS
 
 # id, nome, fator, peso (preenchido abaixo), sentido
@@ -90,7 +90,7 @@ def pesos_criterios(prioridade: str = "padrao", com_fin: bool = True) -> list[fl
 
 # --- filtro de viabilidade e vereditos (premissas do autor)
 LIM_PROB_MIN = 0.50   # abaixo disso a alternativa é descartada
-LIM_PROB, LIM_PAYBACK, LIM_COBERTURA = 0.90, 5.0, 0.90  # abaixo/acima disso: "recomendado com ressalvas"
+LIM_PROB, LIM_PAYBACK, LIM_COBERTURA = 0.90, 8.0, 0.75  # abaixo/acima disso: "recomendado com ressalvas"
 AMPLITUDE_PESOS, N_SENS = 0.30, 1000
 
 VIDA = PARAMETROS["vida_util_anos"]["padrao"]
@@ -204,7 +204,7 @@ def _alternativa(nome, k, fin, usuario, n_mc):
     vp = rk["vpl_financiado" if fin else "vpl_a_vista"]
     prob = rk["prob_vpl_positivo_financiado" if fin else "prob_vpl_positivo"]
     alt = dict(
-        nome=f"Sistema {nome.lower()} de {k:.0f} kWp, {'financiado' if fin else 'à vista'}", kwp=k, financiado=fin,
+        nome=f"Sistema {nome.lower()} de {k:.2f} kWp, {'financiado' if fin else 'à vista'}", kwp=k, financiado=fin,
         vpl=r["vpl"], vpl_projeto=r["vpl_projeto"], ganho_fin=(r["vpl"] - r["vpl_projeto"]) / (r["investimento"] * (1 - PARAMETROS["entrada_pct"]["padrao"])) if fin else 0.0,
         payback=r["payback_projeto"] if r["payback_projeto"] == r["payback_projeto"] else float(VIDA), fio_b=r["custo_fio_b_ano1"],
         exposicao_reg=r["exposicao_regulatoria"], cobertura=r["cobertura_consumo"], sem_divida=0 if fin else 1,
@@ -221,11 +221,16 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
     prio = usuario.get("prioridade", "padrao")
     dim = dimensionar(usuario)                      # levanta AreaInsuficiente se não houver sistema admissível
     rec, teto = dim["kwp_recomendado"], dim["teto_kwp"]
-    tamanhos, vistos = [], set()
-    for nome, k in (("Recomendado", rec), ("Compacto", max(3, round(rec * 0.5))), ("Ampliado", min(teto, round(rec * 1.3)))):
-        if k not in vistos:
-            vistos.add(k)
-            tamanhos.append((nome, float(k)))
+    # Alternativas em números inteiros de módulos, nunca superando a área.
+    n_rec = max(MODULOS_MIN, int(round(rec * 1000 / MODULO_WP)))
+    n_teto = int(round(teto * 1000 / MODULO_WP))
+    numeros, vistos = [], set()
+    for nome, n in (("Recomendado", n_rec), ("Compacto", max(MODULOS_MIN, n_rec - 1)),
+                    ("Ampliado", min(n_teto, n_rec + 1))):
+        if n not in vistos:
+            vistos.add(n)
+            numeros.append((nome, float(n * MODULO_WP / 1000)))
+    tamanhos = numeros
     todas = [_alternativa(nome, k, fin, usuario, n_mc) for nome, k in tamanhos for fin in ((0, 1) if com_fin else (0,))]
     aprovadas = [a for a in todas if a["veredito"]["nivel"] != "nao"]
     reprovadas = [a for a in todas if a["veredito"]["nivel"] == "nao"]
@@ -241,17 +246,9 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
 
     if not aprovadas:                                 # único elemento: índice 1,0 seria artefato da normalização (sem comparação)
         ranking[0]["indice"] = None
+    # O agrupamento de consumidores sintéticos de PME foi desativado nesta versão residencial.
+    # Permanecem ativos o agrupamento das ALTERNATIVAS SAW e a análise de sensibilidade dos pesos.
     perfil = None
-    com_res0 = [a for a in ranking if a.get("res")]
-    if com_res0:
-        cons12 = usuario["consumo_mes_kwh"] * 12
-        perfil = atribuir(usuario["consumo_mes_kwh"], usuario["tarifa_kwh"], usuario.get("consumo_diurno_fracao", 0.6),
-                          com_res0[0]["res"]["geracao_ano1"] / cons12)
-        if perfil and perfil["prob_vpl_positivo"] < 1 - LIM_INVIAVEL:
-            for a in aprovadas:
-                a["veredito"]["ressalvas"].append(f"perfis semelhantes (grupo {perfil['indice']}) tiveram VPL positivo em apenas {perfil['prob_vpl_positivo']:.0%} dos cenários simulados")
-                if a["veredito"]["nivel"] == "sim":
-                    a["veredito"].update(nivel="ressalvas", classe="Recomendado com ressalvas")
     melhor = ranking[0]
     com_res = [a for a in ranking if a.get("res")]
     exibida = com_res[0] if aprovadas else max(com_res, key=lambda a: a["vpl"])   # cenário mostrado nos gráficos

@@ -9,7 +9,7 @@ import saw
 from parametros import padroes
 
 COD = f.buscar_municipio("Salvador")
-BASE = dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, consumo_diurno_fracao=0.6)
+BASE = dict(cod_ibge=COD, consumo_mes_kwh=250, tarifa_kwh=0.87773, consumo_diurno_fracao=0.45, area_m2=30)
 
 
 # ---------------------------------------------------------------- referência independente (python puro, 1 cenário)
@@ -141,13 +141,13 @@ def test_vpl_a_vista_confere_com_calculo_manual():
 
 def test_area_insuficiente_nao_gera_alternativa():
     with pytest.raises(f.AreaInsuficiente):
-        f.dimensionar({**BASE, "area_m2": 15})
+        f.dimensionar({**BASE, "area_m2": 8})
     t = f.dimensionar({**BASE, "area_m2": 70})
-    assert t["teto_kwp"] == 10 and t["tabela"]["kwp"].max() <= 10
+    assert t["teto_kwp"] <= 10 and t["tabela"]["kwp"].max() <= 10
 
 
 def test_limite_de_potencia_75kwp():
-    t = f.dimensionar({**BASE, "consumo_mes_kwh": 30000})
+    t = f.dimensionar({**BASE, "consumo_mes_kwh": 30000, "area_m2": 800})
     assert t["tabela"]["kwp"].max() <= 75
 
 
@@ -189,14 +189,14 @@ def test_caso_viavel_recomenda_instalar_e_ranking_so_com_aprovadas():
 
 def test_nao_instalar_pode_ser_a_recomendacao():
     """Tarifa baixa, consumo pequeno e consumo noturno: nenhuma instalação passa no filtro."""
-    d = saw.decisao({**BASE, "consumo_mes_kwh": 300, "tarifa_kwh": 0.30, "consumo_diurno_fracao": 0.1})
+    d = saw.decisao({**BASE, "consumo_mes_kwh": 250, "tarifa_kwh": 0.25, "consumo_diurno_fracao": 0.1})
     assert d["recomendacao"]["tipo"] == "nao_instalar"
     assert d["ranking"][0]["nome"] == saw.NAO_INSTALAR
     assert d["recomendacao"]["n_aprovadas"] == 0
 
 
 def test_alternativa_reprovada_nunca_e_recomendada():
-    d = saw.decisao({**BASE, "consumo_mes_kwh": 600, "tarifa_kwh": 0.45, "consumo_diurno_fracao": 0.3})
+    d = saw.decisao({**BASE, "consumo_mes_kwh": 600, "tarifa_kwh": 0.35, "consumo_diurno_fracao": 0.3})
     rec = d["recomendacao"]
     escolhida = next(a for a in d["ranking"] if a["nome"] == rec["nome"])
     assert escolhida["nome"] == saw.NAO_INSTALAR or escolhida["veredito"]["nivel"] != "nao"
@@ -220,7 +220,7 @@ def test_taxa_de_desconto_e_custo_mudam_o_vpl_no_sentido_esperado():
 
 
 def test_unica_alternativa_nao_gera_indice_absoluto():
-    d = saw.decisao({**BASE, "consumo_mes_kwh": 300, "tarifa_kwh": 0.30, "consumo_diurno_fracao": 0.1})
+    d = saw.decisao({**BASE, "consumo_mes_kwh": 250, "tarifa_kwh": 0.25, "consumo_diurno_fracao": 0.1})
     assert d["ranking"][0]["indice"] is None
 
 
@@ -245,10 +245,10 @@ def test_taxa_de_financiamento_alta_prefere_a_vista():
 
 
 def test_economia_limitada_ao_consumo_faturavel_acima_do_minimo():
-    """Consumo igual ao custo de disponibilidade (100 kWh): o autoconsumo não reduz a fatura mínima -> economia zero."""
-    e = f.montar_entrada({**BASE, "consumo_mes_kwh": 100}, 3.0)
+    """Consumo igual ao custo de disponibilidade (100 kWh, trifásica) não gera economia."""
+    e = f.montar_entrada({**BASE, "consumo_mes_kwh": 100, "custo_disponibilidade_kwh_mes": 100}, 3.0)
     assert f.simular(e)["economia_ano1"][0] == pytest.approx(0.0, abs=1e-6)
-    e2 = f.montar_entrada({**BASE, "consumo_mes_kwh": 150}, 3.0)
+    e2 = f.montar_entrada({**BASE, "consumo_mes_kwh": 150, "custo_disponibilidade_kwh_mes": 100}, 3.0)
     r = f.simular(e2)
     teto = (150 - e2["custo_disponibilidade_kwh_mes"]) * 12 * e2["tarifa_kwh"]
     assert 0 < r["economia_ano1"][0] <= teto + 1e-6
@@ -306,10 +306,10 @@ def test_diferenca_percentual_de_geracao_usa_a_referencia_como_denominador():
 
 
 def test_custo_informado_substitui_a_tabela_no_investimento_e_no_vpl():
-    u = {**BASE, "consumo_mes_kwh": 4889, "tarifa_kwh": 0.90}
-    base = f.analisar({**u, "financiado": 0}, kwp=41)
-    caro = f.analisar({**u, "financiado": 0, "custo_kwp": 5200}, kwp=41)
-    assert caro["investimento"] == pytest.approx(41 * 5200)
+    u = {**BASE, "consumo_mes_kwh": 250, "area_m2": 30}
+    base = f.analisar({**u, "financiado": 0}, kwp=1.86)
+    caro = f.analisar({**u, "financiado": 0, "custo_kwp": 5200}, kwp=1.86)
+    assert caro["investimento"] == pytest.approx(1.86 * 5200)
     assert caro["vpl"] < base["vpl"] and caro["payback"] > base["payback"]
     d = saw.decisao({**u, "area_m2": 300, "custo_kwp": 5200})
     x = d["ranking"][d["recomendacao"]["indice_exibido"]]
@@ -318,8 +318,8 @@ def test_custo_informado_substitui_a_tabela_no_investimento_e_no_vpl():
 
 
 def test_area_utilizavel_240_limita_o_teto_a_34_kwp():
-    assert f.dimensionar({**BASE, "area_m2": 240})["teto_kwp"] == 34
-    assert f.dimensionar({**BASE, "area_m2": 300})["teto_kwp"] == 42
+    assert f.dimensionar({**BASE, "area_m2": 240})["teto_kwp"] == pytest.approx(34.10)
+    assert f.dimensionar({**BASE, "area_m2": 300})["teto_kwp"] == pytest.approx(42.78)
 
 
 def test_resultado_muda_quando_custo_geracao_ou_area_mudam():
@@ -327,3 +327,44 @@ def test_resultado_muda_quando_custo_geracao_ou_area_mudam():
     vpl = lambda **kw: saw.decisao({**u, **kw})["ranking"][0]["vpl_projeto"]
     base = vpl()
     assert vpl(custo_kwp=5200) < base and vpl(fator_desempenho_real=0.6) < base
+
+
+# ---------------------------------------------------------------- comportamento residencial novo
+def test_area_30m2_limita_modulos_em_salvador():
+    u = {**BASE, "consumo_mes_kwh": 250, "area_m2": 30}
+    d = f.dimensionar(u)
+    assert d["modulos_max"] == 6
+    assert d["tabela"]["modulos"].tolist() == [2, 3, 4, 5, 6]
+    assert all(d["tabela"].kwp * padroes()["m2_por_kwp"] <= 30 + 1e-8)
+    assert f.analisar(u)["modulos"] in (2, 3, 4, 5, 6)
+
+
+def test_area_8m2_bloqueia_minimo_de_duas_placas():
+    with pytest.raises(f.AreaInsuficiente):
+        f.dimensionar({**BASE, "area_m2": 8})
+
+
+def test_area_9m2_permite_duas_placas():
+    d = f.dimensionar({**BASE, "area_m2": 9})
+    assert d["modulos_max"] == 2
+    assert d["kwp_recomendado"] == pytest.approx(1.24)
+
+
+def test_nao_ultrapassar_area_em_alternativas():
+    d = saw.decisao({**BASE, "area_m2": 30}, n_mc=100)
+    for a in d["ranking"]:
+        assert a["kwp"] * 7 <= 30 + 1e-9
+
+
+def test_tarifa_social_limita_energia_economizavel():
+    u = {**BASE, "consumo_mes_kwh": 110, "custo_disponibilidade_kwh_mes": 30}
+    comum = f.simular(f.montar_entrada(u, 1.24))
+    social = f.simular(f.montar_entrada({**u, "tarifa_social": True}, 1.24))
+    assert social["economia_ano1"][0] <= comum["economia_ano1"][0]
+    assert social["cobertura_consumo"][0] <= (110 - 80) / 110 + 1e-9
+
+
+def test_investimento_residencial_referencia_de_2025():
+    assert f.custo_kwp_tabela(2) == pytest.approx(3640)
+    assert f.custo_kwp_tabela(4) == pytest.approx(2880)
+    assert f.custo_kwp_tabela(8) == pytest.approx(2420)

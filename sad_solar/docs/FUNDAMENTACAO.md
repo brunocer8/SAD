@@ -1,87 +1,65 @@
-# Fundamentação teórica, modelo e validação
+# Fundamentação e modelo de decisão — Sol da Bahia (residencial)
 
-## 1. Classificação da decisão
-- **Nível gerencial: estratégico** (Anthony, 1965): investimento de longo prazo (25 anos), alocação de capital e efeito sobre o custo operacional futuro. Em PMEs pequenas pode ser tratada como decisão tática; a classificação depende do porte e do peso do investimento no caixa.
-- **Estruturação: semiestruturada** (Simon, 1960; Gorry e Scott Morton, 1971): os cálculos energéticos e financeiros seguem regras matemáticas (parte estruturada), mas o tamanho, a forma de pagamento e a aceitação de risco dependem de preferências do decisor e de premissas incertas (parte não estruturada).
+## 1. Introdução
 
-## 2. Variáveis e justificativa
-| Grupo | Variáveis | Fundamento |
+**Tema:** sistema de apoio à decisão para avaliar a instalação de um sistema fotovoltaico conectado à rede (*on-grid*) em residências atendidas na Bahia. **Decisão:** instalar um conjunto de módulos, escolher um tamanho entre as alternativas tecnicamente viáveis ou não investir agora? **Objetivo:** combinar dados solares, características informadas pelo usuário, simulação financeira e preferências para apresentar uma decisão explicada e passível de questionamento.
+
+**Decisor:** morador/proprietário da residência, sem exigir conhecimento de engenharia ou planilhas financeiras. **Nível:** estratégico no âmbito doméstico por comprometer recursos financeiros com horizonte longo. **Estruturação:** semiestruturada; há fórmulas de geração e fluxo de caixa, mas preferências, preços futuros e limitações técnicas dependem de premissas, informações incompletas e julgamento humano (Simon; Gorry e Scott Morton).
+
+## 2. Entradas, variáveis e justificativa
+
+| Variável | Tipo/papel | Justificativa |
 |---|---|---|
-| Entrada do decisor | município, consumo mensal, tarifa com tributos, área do telhado, fração do consumo diurno | descrevem a empresa; a fração diurna define quanto da geração é autoconsumida |
-| Regressão (alvo e preditoras) | alvo: geração específica diária (kWh/kWp.dia) simulada com pvlib; preditoras: irradiação global (ghi), fração difusa, temperatura média | modelos de produção FV (pvlib, PVWatts) dependem de irradiância, componente difusa e temperatura de célula (Holmgren et al., 2018; Dobos, 2014) |
-| Indicadores econômicos | investimento, economia, VPL, TIR, payback, LCOE | engenharia econômica (Brealey, Myers e Allen) |
-| Incerteza | reajuste tarifário, custo, desempenho real, degradação, O&M, inversor, taxas | Monte Carlo para análise de risco de investimentos (Hertz, 1964); distribuições e fontes em `parametros.py` |
-| Critérios do SAW | VPL e payback do projeto, valor da alavancagem (retorno econômico); exposição regulatória; cobertura e ausência de dívida (preferências do decisor); probabilidade de prejuízo e VPL p10 (risco econômico) | ver seção 4 |
+| Município / clima (GHI, fração difusa, temperatura) | Independentes da regressão | Estimam a energia fotovoltaica gerada em cada mês; base disponível para 417 municípios |
+| Consumo residencial médio (kWh/mês) | Independente da decisão | Demanda energética que pode ser atendida / compensada |
+| Tarifa marginal (R$/kWh) | Independente da decisão | Valor econômico do consumo evitável; valor homologado B1 como referência, sem tributos |
+| Área útil do telhado (m²) | Restrição técnica informada | Impede dimensionar instalação acima do espaço declarado; modelo usa 7 m²/kWp como hipótese |
+| Tipo de ligação e modalidade tarifária | Independentes/regras | Definem mínimo faturável (30/50/100 kWh/mês) e ressalvas para Tarifa Social |
+| Fator de simultaneidade e consumo diurno | Premissas distintas | Simultaneidade: parcela da geração consumida imediatamente; perfil diurno: parcela da carga disponível durante o sol |
+| Custo de implantação (R$/kWp) | Independente da decisão | Afeta investimento, VPL e retorno; usuário pode substituir tabela ilustrativa por orçamento |
+| Geração específica diária (kWh/kWp/dia) | **Dependente da regressão** | Alvo de modelo linear treinado em geração **simulada por pvlib** |
+| Recomendação (instalar/não instalar/tamanho) | **Saída do SAD** | Determinada por filtros, indicadores econômicos, risco e ranking SAW, não por classe real rotulada |
 
-## 3. Modelo de energia e fluxo de caixa
-Em cada mês *m* do ano *t*: `G = kWp x gerEsp x fDesempenho x share_m x (1-degr)^(t-1)`; autoconsumo `S = min(simult x G, fd x C)`; injeção `I = G - S`;
-consumo abatível `N = max(C - S - disp, 0)`; os créditos `I` formam lotes por mês de origem, **expiram após 60 meses** (Lei 14.300/2022, art. 13) e são usados dos mais antigos para os mais novos: `U = min(créditos válidos, N)`.
-`simult` (simultaneidade, 0,85; sorteada em 0,70 a 1,00) é uma **premissa**: sem curva de carga horária, só parte da geração coincide com a carga no mesmo instante; o restante é injetado.
-Economia anual `= tarifa_t x (S + U) - tarifa_t x shareFioB x pctFioB(ano) x U` (Fio B só sobre a energia compensada; 60%, 75% e 90% em 2026, 2027 e 2028, art. 27; de 2029 em diante o art. 17 remete à regulamentação: adota-se 100% como cenário-base conservador e o Monte Carlo varre 60% a 100%).
-**Fluxo do projeto** (sem financiamento): `CF0 = -investimento`; `CFt = economia - O&M - troca do inversor`. Dele saem o **VPL do projeto** e o **payback do projeto**, comparáveis entre tamanhos e formas de pagamento.
-**Fluxo do capital próprio**: `CF0 = -(investimento - financiado)`; `CFt = economia - O&M - troca - parcelas`. Financiamento Price com carência de 6 meses (juros capitalizados); o prazo de 12 anos é **total** (carência incluída): 138 parcelas. A diferença entre o VPL do capital próprio e o do projeto mede o valor da alavancagem (dívida a 7,9% a.a. descontada a 12% a.a.).
-Todos os fluxos são **nominais** e a taxa de desconto também. Potência: o limite legal de 75 kW refere-se à potência em **corrente alternada**; o protótipo limita os módulos a `75 x relação CC/CA` kWp (relação padrão 1,0), sem modelar o inversor.
+## 3. Funções analíticas exigidas (entrada → processamento → uso decisório)
 
-## 4. Modelo de decisão (o que diferencia de um painel)
-1. **Restrições técnicas**: potência (75 kW CA, aproximada em kWp) e área do telhado (7 m²/kWp, deve ser positiva); sem área para 3 kWp, não há alternativa e o sistema informa. O dimensionamento usa o VPL do **projeto**, independente da forma de pagamento.
-2. **Filtro de viabilidade**: a alternativa só concorre se VPL > 0 e P(VPL > 0) >= 50% (Monte Carlo, no fluxo da própria alternativa). Reprovadas são exibidas, com o motivo, sem índice.
-3. **SAW** entre as aprovadas e "Não instalar": `S_i = soma(w_j r_ij)`, normalização min-max (Hwang e Yoon, 1981). Quatro fatores, em ordem de preferência **assumida pelo autor (a validar com o decisor)**, convertida em pesos pelo método **ROC** (Barron e Barrett, 1996): 52,08%, 27,08%, 14,58%, 6,25%; dentro do fator, pesos iguais:
-   - Retorno econômico (2 critérios; 3 se houver alternativa financiada viável): VPL do projeto, payback do projeto e, só com financiamento, valor da alavancagem por R$ financiado (separa a escolha da forma de pagamento do dimensionamento, sem premiar sistemas maiores só por terem mais dívida).
-   - Exposição regulatória (1): parcela da economia que depende da compensação de créditos.
-   - Preferências do decisor (1; 2 com financiamento viável): cobertura do consumo; ausência de endividamento.
-   - Risco econômico (2): probabilidade de prejuízo; VPL no percentil 10.
-4. **Sensibilidade dos pesos** (±30%, 1.000 sorteios): frequência com que cada alternativa lidera e com que o líder supera cada uma.
-5. **Agrupamento hierárquico** (ligação completa) do índice, com corte = raiz(2) x desvio médio do índice sob a sensibilidade. O corte é uma **heurística do projeto**, não um limite estatístico validado; por isso a frequência com que o líder supera cada alternativa acompanha o agrupamento.
-6. **Recomendação** = maior índice, que pode ser "Não instalar". Se for a única alternativa, o índice não é exibido (seria artefato da normalização).
+**Função 1 — Regressão.** Entrada: GHI, fração difusa e temperatura média municipal por mês (`dados/dataset_ba_modelo.csv`). Processamento: regressão linear múltipla com intercepto, cujos coeficientes estão em `dados/modelo_geracao_linear.json`. Resultado: kWh/kWp.dia por município/mês; integra o balanço de geração e o fluxo de caixa. **Validação:** `scripts/validar_regressao.py` separa municípios inteiros entre treino e teste (cinco grupos). A validação é contra geração **simulada**, não medições de campo.
 
-O índice SAW é **relativo ao conjunto** de alternativas (min-max): incluir ou excluir alternativas pode mudar o ranking; não é nota absoluta de viabilidade.
-Escolhas do projeto (não vêm de norma): ordem dos fatores, limites 50%/90%/5 anos/90% do veredito, amplitude de 30%, 7 m²/kWp, simultaneidade, 100% de Fio B pós-2028.
-Observações: o custo do Fio B em R$ **não** é critério, pois já reduz a economia (e o VPL). VPL, payback e VPL p10 são correlacionados; a correlação não foi removida, apenas reconhecida.
+**Função 2 — Sumarização.** Entrada: geração, investimento, consumo, tarifas, custos de manutenção e cenários aleatórios. Processamento: indicadores (geração anual/mensal, cobertura do consumo, economia, VPL, TIR, payback) e distribuição de VPL em simulações de Monte Carlo com percentis P10/P50/P90 e proporção de VPL positivo. Resultado: evidencia viabilidade e risco de cada alternativa, alimenta filtro e critérios do SAW.
 
-## 5. Validação
-- **Testes automáticos** (`pytest -q`, 32 testes): balanço mensal e expiração de créditos de 60 meses conferidos por implementação independente em laços (FIFO); conservação de energia; simultaneidade; VPL recalculado manualmente; cronograma do financiamento (138 parcelas, saldo zera, parcelas e juros conferidos por cálculo independente, sem parcelas após o mês 144); VPL do projeto igual nas duas formas de pagamento; payback pelo primeiro cruzamento; área zero/negativa rejeitada; dimensionamento independente do flag de financiamento; pesos ROC; normalização; agrupamento; "Não instalar" pode vencer; reprovada nunca é recomendada; veredito usa o payback do projeto; API ponta a ponta.
-- **Regressão** (`scripts/validar_regressao.py`, validação cruzada agrupada por município, 5 grupos): R² médio 0,956; MAE 0,081 kWh/kWp.dia; RMSE 0,096; erro percentual médio 1,9%. Coeficientes refeitos coincidem com os do arquivo. O erro tem **viés sazonal** (cerca de ±3%). Como o alvo é simulado, mede a aproximação do pvlib, **não** a precisão em usinas reais.
-- **Comparação exploratória com estimativas comerciais** (`docs/validacao_orcamentos.md`, `dados/orcamentos_neosolar.csv`): NÃO é validação empírica (as referências são estimativas de um fornecedor e de calculadoras, não medições). Resultado: a geração específica do SAD (124,0 kWh/kWp.mês) é 38% a 70% maior que a das propostas NeoSolar (73 a 90), discrepância **não resolvida** (coeficientes não foram ajustados para coincidir); o custo-padrão do SAD (R$ 2,42/Wp) é menos da metade do preço NeoSolar (R$ 5,02 a 5,34/Wp). As cinco propostas NeoSolar foram conferidas nos PDFs fornecidos (todas declaram tarifa R$ 0,90, inflação de 8% a.a. e perda de 0,7%/ano). O SAD aceita orçamento real (`custo_kwp`) e inclui cenários separados de custo NeoSolar e de baixa geração.
-- **Preferências e financiamento:** a recomendação muda conforme a prioridade do decisor (padrão, retorno em 1º, cautela) e deixa de preferir o financiamento quando a taxa passa de ~12% (taxa de desconto): ver `docs/caso_demonstracao.md`.
-- **Caso concreto e estresse**: `docs/caso_demonstracao.md`. Os testes de estresse variam parâmetros do próprio modelo e portanto não substituem uma planilha independente nem orçamentos reais.
+**Função 3 — Agrupamento.** Entrada: notas SAW das alternativas aprovadas, incluindo a referência *não instalar*. Processamento: agrupamento hierárquico aglomerativo por ligação completa sobre distância de notas; o limiar é calibrado pela análise de sensibilidade dos pesos (variação ilustrativa de ±30%). Resultado: mostra alternativas com desempenho multicritério muito parecido, evitando tratar pequena diferença numérica como certeza. **Ressalva:** é agrupamento de alternativas, não identificação de perfis reais de consumidores.
 
-## 6. Limitações
-- Fluxos de caixa são anuais (fim de ano), embora as parcelas sejam mensais: simplificação que afeta pouco o VPL, mas favorece levemente o financiamento.
-- Financiamento **opcional**: só entra se o decisor informar a taxa (CET a.a.); sem taxa, decide-se só à vista. Fontes de taxa discordam muito: BNB FNE Sol, piso de 7,9% (notícia, não verificado) e BB Crédito Energia Renovável, a partir de 1,81% a.m. (~24,0% a.a.; CET de 30,36% a.a.; texto do site informado pelo autor, não verificado). Financiada que rende menos que a mesma instalação à vista é descartada por dominância. Demais condições: prazo de até 12 anos, carência de até 6 meses e financiamento de até 100% vêm da cartilha do BNB (FNE Sol, jun/2022, itens c, g, h); a cartilha não informa a taxa ("abaixo da média do mercado"), e os 7,9% a.a. vêm de notícia de jul/2026, não verificada em fonte oficial. A entrada de 10% e a capitalização de juros na carência são escolhas do autor. As condições reais dependem de porte, garantias e aprovação de crédito.
-- Alvo da regressão é simulação (pvlib), sem validação contra geração medida; há viés sazonal.
-- Autoconsumo: usa fator de simultaneidade (premissa), não curva de carga horária; o resultado depende dele e a recomendação favorece sistemas que consomem quase toda a geração. Consumo mensal constante; sem Tarifa Branca nem grupo A.
-- Potência: a restrição legal é em kW CA; o protótipo aproxima por kWp x relação CC/CA, sem modelar o inversor.
-- Fio B: 28% da tarifa com tributos é estimativa, não a componente oficial da Coelba; a regra de 2029 em diante é cenário (60% a 100%).
-- Financiamento: taxa de 7,9% a.a. é piso de referência, não garantida; o valor da alavancagem depende da diferença para a taxa de desconto (12%), o que favorece financiar. O payback do capital próprio do financiado (~0,16 ano) **não** é usado na decisão; só o payback do projeto.
-- SAW: min-max amplia diferenças pequenas; resultado depende da ordem e do mapeamento dos fatores (preferências assumidas); critérios financeiros correlacionados; índice relativo ao conjunto.
-- Agrupamento de alternativas: corte heurístico. Agrupamento de perfis: k-means sobre cenários simulados (não PMEs reais), k = 4 fixado pelo autor; P(VPL>0) quase 100% em todos os grupos, logo pouco discrimina.
-- Retornos altos (payback ~1,5 ano) e Monte Carlo quase sem VPL negativo (P(VPL>0)=100%): P(VPL>0) discrimina pouco. Custos por kWp recalibrados com 3 referências (uma proposta real a R$ 5,01/Wp); poucas observações, então a incerteza de custo é grande e deve ser ampliada com mais orçamentos.
-- TIR por bisseção devolve "n/d" sem raiz única no intervalo.
-- O classificador é experimental, treinado em cenários sintéticos, e não participa da recomendação.
+## 4. Regras técnicas e financeiras
 
-## 6b. Limitações adicionais (consistentes com código, interface e README)
-- O custo de disponibilidade de 100 kWh/mês corresponde ao mínimo faturável trifásico; monofásico e bifásico não são configuráveis.
-- O fluxo de caixa é anual (fim de ano); as parcelas mensais do financiamento são agregadas por ano.
-- A TIR por bisseção só é confiável quando há uma mudança de sinal; sem raiz no intervalo o valor é "n/d".
-- A regressão (R² 0,956) foi avaliada por validação cruzada por município contra geração **simulada** (pvlib), não contra medições.
-- Os grupos do k-means são perfis de cenários simulados, não segmentos observados de PMEs; o agrupamento de alternativas usa corte heurístico (exploratório); o classificador offline não participa da decisão.
-- Fio B após 2028: 100% é cenário-base conservador do projeto; o Monte Carlo varia de 60% a 100%. Textos legais devem ser conferidos em fonte oficial.
-- Potência: o limite legal de 75 kW refere-se à potência em corrente alternada; o SAD limita a potência CC dos módulos (kWp) dividida pela relação CC/CA (padrão 1,0) e não modela o inversor. Rótulos comerciais (10/20/30/40 kWp) não são potência física: 24 módulos de 450 Wp = 10,8 kWp CC e 6 inversores de 2 kW = 12 kW CA nominais agregados.
-- A área informada deve ser a área UTILIZÁVEL do telhado; sem ela, o espaço físico não limita o dimensionamento (a recomendação avisa).
+- Telhado informado: potência máxima aproximada = `area_util_m2 / 7`; as opções usam inteiros de **620 Wp por módulo**. Dois módulos são um mínimo **didático** de 1,24 kWp; depende da compatibilidade real de inversor e módulos. Se o espaço não comporta o mínimo, o SAD devolve erro técnico claro, em vez de inventar área.
+- Geração: regressão municipal sazonal × kWp × fator de desempenho × degradação anual.
+- Balanço **mensal**: consumo simultâneo é limitado tanto pela produção quanto pela carga diurna; o excedente gera créditos com validade de 60 meses; o uso de créditos respeita a energia da rede que pode ser compensada, acima da disponibilidade. Os dados não permitem modelagem horária completa.
+- Cobrança mínima: 30 kWh/mês para monofásica, 50 para bifásica e 100 para trifásica no grupo B (simplificação operacional). Para Tarifa Social, aplica-se limite conservador adicional de 80 kWh/mês sem economia evitável. **Não substitui** cálculo real da fatura nem todas as condições legais de subsídio.
+- Fluxo do projeto: `CF0 = -investimento`; `CFt = economia anual - operação/manutenção - substituição do inversor`. VPL compara esse fluxo com uma taxa de desconto; payback calcula o retorno do capital. Financiamento é opcional e só é simulado se o decisor informa uma taxa anual (CET).
+- Fio B: cronograma de 60% em 2026, 75% em 2027 e 90% em 2028 sobre a parcela relevante; **100% após 2028 é cenário conservador do programa**, não uma regra definitiva da lei. A participação do Fio B no preço total é estimada e não reproduz fatura completa da Coelba.
 
-## 7. Referências
-- ANEEL. Resolução Normativa nº 1.000/2021; Resolução Homologatória nº 3.578/2026 (tarifas Coelba).
-- Anthony, R. N. *Planning and Control Systems: A Framework for Analysis*. Harvard University, 1965.
-- Barron, F. H.; Barrett, B. E. Decision quality using ranked attribute weights. *Management Science*, 42(11), 1515-1523, 1996.
-- Brasil. Lei nº 14.300, de 6 de janeiro de 2022 (marco legal da microgeração e minigeração distribuída).
-- Brealey, R. A.; Myers, S. C.; Allen, F. *Principles of Corporate Finance* (edição e capítulos de orçamento de capital a registrar).
-- Dobos, A. P. *PVWatts Version 5 Manual*. NREL/TP-6A20-62641, 2014.
-- Gorry, G. A.; Scott Morton, M. S. A framework for management information systems. *Sloan Management Review*, 13(1), 55-70, 1971.
-- Han, J.; Kamber, M.; Pei, J. *Data Mining: Concepts and Techniques*. Morgan Kaufmann (funções de mineração: sumarização, agrupamento, regressão, classificação).
-- Hertz, D. B. Risk analysis in capital investment. *Harvard Business Review*, 42(1), 95-106, 1964.
-- Holmgren, W. F.; Hansen, C. W.; Mikofski, M. A. pvlib python: a python package for modeling solar energy systems. *Journal of Open Source Software*, 3(29), 884, 2018.
-- Hwang, C.-L.; Yoon, K. *Multiple Attribute Decision Making: Methods and Applications*. Springer, 1981.
-- Simon, H. A. *The New Science of Management Decision*. Harper & Row, 1960.
-- Turban, E.; Sharda, R.; Delen, D. *Decision Support and Business Intelligence Systems* (edição a registrar).
-- Greener. Estudo Estratégico: Geração Distribuída, mercado fotovoltaico, 1S/2026 (indicar tabela exata dos preços por kWp).
-- Dados de irradiação: Atlas Solar/INPE e NASA POWER (indicar versão e período utilizados).
+## 5. Modelo decisório: por que é um SAD, não um dashboard?
+
+1. **Geração de alternativas:** compara opções discretas (compacta, preferida pelo VPL e ampliada), respeitando limites do telhado, além de *não instalar*.
+2. **Filtro de viabilidade:** alternativas de instalação com VPL não positivo ou probabilidade de VPL positivo abaixo de 50% são reprovadas. Financiamento desfavorável em relação à mesma instalação à vista recebe ressalva ou rejeição.
+3. **Avaliação multicritério SAW:** normaliza critérios econômicos, exposição à compensação/Fio B, cobertura, endividamento e risco. Pesos são definidos de forma explícita e podem mudar conforme a prioridade selecionada (padrão, retorno, cautela).
+4. **Agrupamento e sensibilidade:** quantifica a estabilidade do ranking sob pequenas variações dos pesos e identifica empates técnicos de classificação.
+5. **Recomendação final:** indica uma alternativa com motivo, ressalvas e indicadores; *não instalar* participa do ranking e pode vencer. A interface permite explorar alternativas diferentes da primeira colocada.
+
+## 6. Validação e limites
+
+Aplicar cenários de consumo baixo/médio/alto e sensibilidade a tarifa, custo e área; confirmar que áreas pequenas impedem configurações maiores e que opções reprovadas não vencem o ranking. Executar `python -m pytest -q` e `python scripts/validar_regressao.py`. Recalcular indicadores com fórmulas independentes para um caso pequeno e comparar somente sob premissas iguais. Ver `docs/CASO_E_VALIDACAO.md`.
+
+A validade externa é limitada por dados simulados e hipóteses de consumo e preço. Uma conta de energia real pode fornecer entrada observada, **mas não valida a economia futura de um sistema que ainda não existe**. Não incluir contas com dados pessoais no repositório. Ausência de projeto executivo, garantia de inversor, estudo estrutural, vistoria, curvas horárias, detalhes tributários e orçamento são limitações declaradas.
+
+## Referências principais
+
+- COSTA, F. F. A. et al. *Avaliação do payback em sistemas fotovoltaicos on-grid para consumidores residenciais grupo B1 sob a Lei 14300/2022*. Revista Brasileira de Energia Solar, v. 16, n. 2, p. 147–157, dez. 2025.
+- ANEEL. *Resolução Homologatória nº 3.578*, de abril de 2026, tarifas Neoenergia Coelba Grupo B, vigentes até abril de 2027.
+- BRASIL. *Lei nº 14.300*, de 6 de janeiro de 2022.
+- HOLMGREN, W. F.; HANSEN, C. W.; MIKOFSKI, M. A. *pvlib python: a python package for modeling solar energy systems*. Journal of Open Source Software, v. 3, n. 29, 884, 2018.
+- GORRY, G. A.; SCOTT MORTON, M. S. *A framework for management information systems*. Sloan Management Review, 13(1), 55–70, 1971.
+- SIMON, H. A. *The New Science of Management Decision*. Harper & Row, 1960.
+- HERTZ, D. B. *Risk analysis in capital investment*. Harvard Business Review, 42(1), 95–106, 1964.
+- HWANG, C.-L.; YOON, K. *Multiple Attribute Decision Making*. Springer, 1981.
+
+As fontes específicas de cada coeficiente/hipótese estão nos arquivos `parametros.py`, `parametros_premissas.csv` e `docs/DICIONARIO_DADOS.md`.

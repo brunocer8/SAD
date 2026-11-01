@@ -1,5 +1,5 @@
 """
-Parâmetros e premissas do SAD de viabilidade de energia solar para PMEs na Bahia.
+Parâmetros e premissas do SAD de viabilidade de energia solar para residências na Bahia.
 
 Cada parâmetro tem:
   padrao  : valor usado na simulação determinística (editável pelo usuário)
@@ -18,8 +18,8 @@ PARAMETROS = {
     # ---------------- Tarifa e regras de compensação ----------------
     "tarifa_kwh": dict(
         padrao=0.87773, mc=None, tipo="fonte", unidade="R$/kWh",
-        fonte="Neoenergia Coelba, tarifa B3 consumo ativo SEM tributos, REH ANEEL nº 3.578/2026 "
-              "(vigência 22/04/2026 a 21/04/2027). O usuário deve informar o preço da fatura (com tributos).",
+        fonte="Neoenergia Coelba, tarifa B1 residencial convencional consumo ativo SEM tributos, REH ANEEL nº 3.578/2026 "
+              "(vigência 22/04/2026 a 21/04/2027). O usuário pode informar tarifa marginal de energia da fatura; não usar total da fatura dividido pelos kWh quando houver descontos, CIP ou Tarifa Social.",
     ),
     "reajuste_tarifa": dict(
         padrao=0.060, mc=("tri", 0.035, 0.060, 0.090), tipo="estimado", unidade="% a.a.",
@@ -37,28 +37,21 @@ PARAMETROS = {
               "da ANEEL, que não fixa 100% do Fio B. Cenário-base conservador: 100%; o Monte Carlo varre de 60% (nível de 2026) a 100%.",
     ),
     "simultaneidade": dict(
-        padrao=0.85, mc=("uni", 0.70, 1.00), tipo="premissa", unidade="fração da geração mensal coincidente com a carga",
-        fonte="A geração se concentra no meio do dia e a carga varia ao longo do expediente: só parte da geração é consumida no mesmo "
-              "instante. Sem curva de carga horária, usa-se um fator de simultaneidade (premissa do autor, com sensibilidade 0,70 a 1,00). "
-              "Autoconsumo mensal = min(simultaneidade x geração, fração diurna x consumo).",
+        padrao=0.35, mc=("tri", 0.20, 0.35, 0.55), tipo="premissa", unidade="fração da geração coincidente com carga",
+        fonte="Costa et al., Revista Brasileira de Energia Solar 16(2), 2025, p.149: 35% de simultaneidade em caso residencial. Faixa 20%-55% é sensibilidade assumida e não medição da residência.",
     ),
     "custo_disponibilidade_kwh_mes": dict(
-        padrao=100, mc=None, tipo="premissa", unidade="kWh/mês",
-        fonte="Mínimo faturável de ligação trifásica (30/50/100 kWh). Confirmar na REN 1.000/2021.",
+        padrao=50, mc=None, tipo="premissa", unidade="kWh/mês",
+        fonte="Mínimo faturável conforme ligação informada: mono 30, bi 50, tri 100 kWh/mês. Confirmar na REN 1.000/2021.",
     ),
     "consumo_diurno_fracao": dict(
-        padrao=0.60, mc=("uni", 0.40, 0.80), tipo="premissa", unidade="fração do consumo",
-        fonte="Parcela do consumo que ocorre durante as horas de sol. A energia gerada e consumida na hora "
-              "(limitada por essa parcela) não passa pela rede e não sofre Fio B. Premissa para PME com "
-              "expediente diurno; é entrada do usuário no sistema.",
+        padrao=0.45, mc=("tri", 0.25, 0.45, 0.65), tipo="premissa", unidade="fração do consumo",
+        fonte="Perfil residencial simplificado: fração de demanda no período com sol. Não equivale ao fator de simultaneidade (35% da geração). Sem medição horária, valor apenas ilustrativo.",
     ),
     # ---------------- Custos e desempenho ----------------
     "fator_custo": dict(
-        padrao=1.20, mc=("tri", 0.95, 1.20, 2.65), tipo="estimado", unidade="multiplicador",
-        fonte="Calibrado com orçamentos/simulações para Salvador (faixa 40 a 55 kWp; tabela Greener = R$ 2,02 a 2,07/Wp): "
-              "Portal Solar R$ 1,99 a 2,41/Wp (fator 0,98 a 1,19); WEG Solar ~R$ 2,36/Wp (kWp assumido; ~1,17); "
-              "proposta NeoSolar R$ 5,02/Wp, 54 kWp (fator 2,42); as outras quatro propostas NeoSolar (10/20/30/40 kWp, conferidas no PDF) vão de R$ 5,06 a 5,34/Wp (fator até 2,64). Moda 1,20 e faixa 0,95 a 2,65 refletem essas fontes; NeoSolar é UM fornecedor, não preço de mercado. Orçamento real pode ser informado em R$/kWp (campo custo_kwp) e então vale como custo fixo. "
-              "Ver docs/validacao_orcamentos.md.",
+        padrao=1.00, mc=("tri", 0.85, 1.00, 1.35), tipo="premissa", unidade="multiplicador",
+        fonte="Tabela histórica Greener jan/2025 reproduzida por Costa et al. (2025), tabela 1 (2, 4, 8 kWp). Padrão 1,0; incerteza 0,85-1,35 é hipótese para orçamento residencial em 2026, não cotação. Inserir orçamento real em R$/kWp prevalece.",
     ),
     "om_pct_investimento": dict(
         padrao=0.010, mc=("tri", 0.005, 0.010, 0.015), tipo="premissa", unidade="% do investimento/ano",
@@ -66,7 +59,7 @@ PARAMETROS = {
               "Faixa de 0,5% a 1,5% é premissa do autor.",
     ),
     "degradacao_anual": dict(
-        padrao=0.005, mc=("tri", 0.004, 0.005, 0.008), tipo="fonte", unidade="% a.a.",
+        padrao=0.007, mc=("tri", 0.004, 0.007, 0.008), tipo="fonte", unidade="% a.a.",
         fonte="Viana et al. (2012), citado em trabalho do CBENS: 0,5% ao ano, típico no Brasil. Teto de 0,8%: a cartilha do BNB cita garantia de "
               "mais de 80% da produção inicial em 25 anos (20%/25 anos = 0,8% a.a.).",
     ),
@@ -137,21 +130,23 @@ PARAMETROS = {
     ),
 }
 
-# Custo do sistema instalado (kit + integração), telhado, R$/kWp. Greener SED 1S/2026, jun/2026.
-CUSTO_KWP_PONTOS = {  # kWp: R$/kWp
-    8: 2430, 12: 2220, 30: 2020, 50: 2020, 75: 2350,
-}
+# Custos indicativos de sistemas residenciais instalados, R$/kWp.
+# Valores de 2, 4 e 8 kWp: Greener jan/2025 reproduzido em Costa et al., RBENS 16(2), 2025, tabela 1.
+# O ponto de 1 kWp é EXTRAPOLAÇÃO DIDÁTICA; preço real em 2026 depende de orçamento.
+CUSTO_KWP_PONTOS = {1: 4500, 2: 3640, 4: 2880, 8: 2420, 12: 2220, 30: 2020, 50: 2020, 75: 2350}
 
 # Percentual do Fio B (Lei 14.300) por ano calendário
 FIO_B_PCT = {2026: 0.60, 2027: 0.75, 2028: 0.90}
 
-# Intervalos usados para sortear cenários de clientes (não são premissas do modelo, definem o "universo")
-UNIVERSO_PME = dict(
-    consumo_mes_kwh=(1000, 30000),   # log-uniforme; faixa típica de PME em baixa tensão (premissa)
-    tarifa_kwh=(0.85, 1.30),         # de B3 sem tributos até um valor com tributos (premissa)
-    cobertura_alvo=(0.4, 1.6),       # relação entre geração e consumo do sistema dimensionado
-    kwp_min=3.0,
+# Intervalos para cenários sintéticos de residências (não representam amostra populacional).
+UNIVERSO_RESIDENCIAL = dict(
+    consumo_mes_kwh=(100, 1200),
+    tarifa_kwh=(0.75, 1.30),
+    cobertura_alvo=(0.45, 1.45),
+    kwp_min=1.24,  # dois módulos ilustrativos de 620 Wp, sujeitos à checagem do inversor real
 )
+# Alias para scripts do experimento de classificação legado (não usado na recomendação ao usuário).
+UNIVERSO_PME = UNIVERSO_RESIDENCIAL
 
 
 def padroes() -> dict:
@@ -166,7 +161,7 @@ def exportar_csv(caminho: str) -> None:
             w.writerow([k, v["padrao"], v["unidade"], v["mc"] if v["mc"] else "fixo", v["tipo"], v["fonte"]])
         for kwp, c in CUSTO_KWP_PONTOS.items():
             w.writerow([f"custo_kwp_{kwp}kWp", c, "R$/kWp", "x fator_custo", "fonte",
-                        "Greener, Estudo Estratégico SED 1S/2026 (set/2026), preço médio de sistema instalado em jun/2026"])
+                        "Greener jan/2025 (Costa et al., 2025, tabela 1) para 2/4/8 kWp; demais pontos são aproximações"])
 
 
 if __name__ == "__main__":

@@ -28,7 +28,7 @@ def test_fluxo_completo_instalar():
 
 def test_fluxo_completo_nao_instalar():
     h = _h()
-    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=300, tarifa_kwh=0.30,
+    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=250, tarifa_kwh=0.25,area_m2=30,
                                                       consumo_diurno_fracao=0.1))
     assert r.status_code == 200
     d = r.json()
@@ -38,7 +38,7 @@ def test_fluxo_completo_nao_instalar():
 
 def test_area_insuficiente_retorna_422():
     h = _h()
-    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=10))
+    r = c.post("/api/analisar", headers=h, json=dict(cod_ibge=COD, consumo_mes_kwh=4000, tarifa_kwh=1.10, area_m2=8))
     assert r.status_code == 422 and "área" in r.json()["detail"].lower()
 
 
@@ -54,3 +54,22 @@ def test_custo_informado_pela_api():
     assert r.status_code == 200
     res = r.json()["resultado"]
     assert res["investimento"] == res["kwp"] * 5200 or abs(res["investimento"] - res["kwp"] * 5200) < 1
+
+
+def test_area_obrigatoria_e_ligacao():
+    h=_h()
+    sem_area=c.post("/api/analisar",headers=h,json=dict(cod_ibge=COD,consumo_mes_kwh=250,tarifa_kwh=0.87773))
+    assert sem_area.status_code==422
+    mono=c.post("/api/analisar",headers=h,json=dict(cod_ibge=COD,consumo_mes_kwh=250,tarifa_kwh=0.87773,
+                                                     area_m2=30,tipo_ligacao="monofasica"))
+    assert mono.status_code==200
+    assert mono.json()["entrada"]["custo_disponibilidade_kwh_mes"]==30
+    assert mono.json()["resultado"]["area_informada_m2"]==30
+
+
+def test_tarifa_social_api_sinaliza_entrada():
+    h=_h()
+    res=c.post("/api/analisar",headers=h,json=dict(cod_ibge=COD,consumo_mes_kwh=169,tarifa_kwh=0.74406,
+                                                   area_m2=30,tipo_ligacao="bifasica",tarifa_social=True))
+    assert res.status_code==200
+    assert res.json()["entrada"]["tarifa_social"] is True
