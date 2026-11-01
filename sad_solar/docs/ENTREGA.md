@@ -6,7 +6,7 @@
 - [ ] **2. Dados/funções:** apresentar fonte das tarifas B1 e dados municipais; explicar entrada/processamento/resultado da regressão, sumarização e agrupamento.
 - [ ] **3. Modelo de decisão:** explicar geração de alternativas, restrição por área, filtro de VPL/risco, SAW, pesos e opção não instalar. Incluir exemplo de mudança de prioridade.
 - [ ] **4. Protótipo:** publicar o projeto executável, testar URL, criar usuário de demonstração, inserir URL + credenciais no PDF. Incluir link do repositório, instruções README e diagrama de `FLUXO.md`.
-- [ ] **Vídeo de 3 a 5 minutos:** mostrar login, entrada residencial de Salvador com 250 kWh/mês e 30 m², cálculo, ranking, gráfico, ressalvas, alternativa de não instalar e relatório. Colocar URL do vídeo no PDF.
+- [ ] **Vídeo de 3 a 5 minutos:** mostrar login, entrada de Salvador com 250 kWh/mês e 30 m², recomendação e quatro indicadores; abrir **Comparar alternativas**, **Entenda os números** e **Como o SAD decidiu?**; mostrar Relatórios e impressão em PDF; demonstrar também um caso de não instalar. Colocar URL do vídeo no PDF.
 - [ ] **5. Demonstração/validação:** apresentar caso didático e ao menos dois testes de sensibilidade/limite, com resultados reais gerados pela versão publicada. A regressão é comparada à simulação pvlib (não a painéis reais); a conta residencial ajuda nas entradas, mas não comprova economia real.
 - [ ] **6. Conclusão/referências:** limites de tarifa/tributos/área/sombreamento/custos, referências acadêmicas e oficiais.
 - [ ] **Privacidade:** NÃO subir CPF, endereço, identificação de unidade consumidora, fotografias de fatura, tokens nem senhas reais.

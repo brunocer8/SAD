@@ -98,6 +98,52 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 @media(max-width:860px){header{padding:14px 17px}header h2{flex:1;min-width:190px}header h2 .brand-title{font-size:24px}.login-in{gap:22px}}
 @media(max-width:760px){main{padding:18px 13px}.page-intro{padding:25px 22px}.page-intro:after{opacity:.3}#f{grid-template-columns:1fr}.form-heading h2{font-size:21px}.card{padding:18px}.login-in{grid-template-columns:1fr;gap:25px;margin-top:60px}.login-copy{padding-top:0}.login-copy h1{font-size:35px}.login-copy p{font-size:13px;line-height:1.6}.login-foot{display:none}#v-login{overflow-y:auto;align-items:flex-start;padding:88px 0 28px;box-sizing:border-box}#v-login .logo{font-size:25px;top:22px}.login-card h3{font-size:22px}#v-login .card{padding:24px}nav{width:100%;justify-content:space-between;order:4}nav button{flex:1;text-align:center}#quem{display:none}.brand-symbol{width:40px;height:40px}header .bt.sec{margin-left:auto}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* Interface de decisão enxuta: uma recomendação clara e detalhes sob demanda */
+#f{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px}
+.form-heading p{margin-bottom:18px}.form-card{padding:28px}
+#f .adv{grid-column:1/-1;padding:0;background:#FBFCFB;border:1px solid #DCE6E3;overflow:hidden}
+#f .adv>summary{padding:15px 17px;list-style:none;display:flex;align-items:center;gap:12px;justify-content:space-between;font-size:14px}
+#f .adv>summary::-webkit-details-marker{display:none}#f .adv>summary:after{content:'+';font-size:22px;font-weight:400;color:#087C88}
+#f .adv[open]>summary:after{content:'−'}
+.details-hint{font-size:11px;color:#6C8187;font-weight:400;letter-spacing:0;white-space:normal;text-align:right}
+.advanced-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;padding:17px;border-top:1px solid #E5ECE9}
+#f .adv label{max-width:none;margin:0}#f .bt-primary{grid-column:1/-1;justify-self:start;margin-top:0;min-width:230px}
+.form-feedback{font-size:13px;color:#A3472E;margin:10px 0 0}.form-feedback:empty{display:none}
+.result-main{padding:28px 30px 24px;border:1px solid #D9E8E1;background:#fff}
+.decision-eyebrow{text-transform:uppercase;letter-spacing:.15em;font-size:11px;font-weight:700;color:#087C88}
+.decision-heading{font-size:clamp(24px,3vw,32px);line-height:1.2;letter-spacing:-.045em;margin:8px 0 9px;color:#183F4D}
+.decision-desc{font-size:14px;line-height:1.7;color:#4C6168;margin:0 0 13px;max-width:790px}
+.decision-detail{font-size:12px;color:#597178;background:#F3F9F7;padding:11px 13px;border-radius:10px;margin:10px 0 18px}
+.decision-detail.warn{background:#FFF6E9;color:#87502F}
+.result-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:20px}
+.metric{background:#F5F8F7;border-radius:12px;padding:16px 15px;min-height:82px;box-sizing:border-box}
+.metric-label{display:block;font-size:11px;color:#587078;font-weight:600;margin-bottom:5px}
+.metric-value{font-size:21px;font-weight:800;color:#133E4B;letter-spacing:-.04em;line-height:1.24}
+.metric-help{font-size:10px;color:#6F858A;display:block;margin-top:5px;font-weight:400}
+.result-note{margin:15px 0 0;color:#60757D;font-size:12px;line-height:1.5}
+.report-details{padding:0;overflow:hidden}.report-details>summary{display:flex;justify-content:space-between;align-items:center;list-style:none;padding:18px 23px;cursor:pointer;gap:20px}
+.report-details>summary::-webkit-details-marker{display:none}.report-details>summary b{display:block;color:#163F4D;font-size:15px}
+.report-details>summary small{display:block;font-size:12px;margin-top:3px;font-weight:400;color:#70838A}
+.summary-arrow{font-size:24px;font-weight:400;color:#087C88;transition:transform .15s}.report-details[open] .summary-arrow{transform:rotate(180deg)}
+.details-body{padding:0 23px 24px;border-top:1px solid #EDF0EF;font-size:13px;color:#344B53}
+.details-body h3{font-size:14px;margin:20px 0 12px;color:#14394A}.details-body p{line-height:1.65}
+.table-wrap{overflow-x:auto;width:100%}.options-table{width:100%;min-width:580px}.options-table th{font-size:11px;letter-spacing:.03em;color:#58737B;text-transform:uppercase}.options-table td{vertical-align:middle;font-size:12px}
+.options-table tr.is-selected{background:#F1FAF7}.options-table tr.is-winner td:first-child{font-weight:700;color:#087C88}
+.status-pill{display:inline-block;font-size:10px;font-weight:700;border-radius:999px;padding:4px 9px;background:#EAF4EF;color:#1B725B;white-space:nowrap}
+.status-pill.muted{background:#F0F2F3;color:#6E7A82}.status-pill.warn{background:#FFF0D7;color:#93582B}
+.mini-btn{font-size:11px;border:1px solid #BFD6D4;color:#116B72;background:#fff;border-radius:8px;padding:7px 10px;cursor:pointer}.mini-btn:disabled{cursor:default;color:#89979C;border-color:#E1E6E7}
+.risk-box{background:#F6F9F8;padding:15px 18px;margin-top:20px;border-radius:10px;font-size:12px;line-height:1.7}
+.method-list{padding-left:20px;line-height:1.7}.criteria-table{max-width:760px}.criteria-table td,.criteria-table th{font-size:12px}
+.result-disclaimer{font-size:11px;color:#687E83;line-height:1.6;margin:0 5px 22px}
+.charts-pair>div{min-width:0}.charts-pair canvas{max-height:250px}
+.report-toolbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:15px;flex-wrap:wrap}.report-toolbar h2{margin:0;font-size:20px}.report-toolbar p{font-size:12px;color:#70838A;margin:4px 0 0}
+#rt td,#rt th{font-size:12px;padding:12px 10px}#rt .bt{font-size:11px;padding:8px 11px;white-space:nowrap}#rt th{white-space:nowrap}
+#det{margin-top:20px}#det .decision-heading{font-size:25px}#det .report-details{box-shadow:none;border-color:#E1E9E7}
+@media(max-width:950px){#f{grid-template-columns:repeat(2,minmax(0,1fr))}.result-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){#f,.advanced-grid{grid-template-columns:1fr}.result-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{padding:12px 10px}.metric-value{font-size:18px}.details-hint{max-width:160px;font-size:10px}.result-main{padding:21px 17px}.report-details>summary{padding:16px}.details-body{padding:0 16px 20px}.charts-pair{grid-template-columns:1fr}.form-card{padding:21px 17px}.report-toolbar{align-items:flex-start}}
+@media print{header,nav,#v-login,#v-dash,#v-sim,#v-rel>.page-intro,#v-rel>.card:not(#det),footer,.noprint{display:none!important}#v-rel,#det{display:block!important}body{background:white!important}main{max-width:none;padding:0}#det{box-shadow:none;border:none;padding:0}#det .report-details{break-inside:avoid}#det .report-details>summary{padding:12px 0}#det .details-body{padding:0 10px 12px}#det .report-toolbar{display:block}.result-metrics{grid-template-columns:repeat(4,1fr)}}
+
 </style></head><body>
 <header class="hide" id="top"><h2 class="brand-header"><svg class="brand-symbol" width="48" height="48" viewBox="0 0 64 64" role="img" aria-label="Símbolo do Sol da Bahia"><rect x="2" y="2" width="60" height="60" rx="18" fill="#F7C55D"/><circle cx="35" cy="26" r="12" fill="#FDF4D9"/><path d="M9 40c10-7 17-7 27 0s17 7 22 2v11c-8 4-14 2-22-3s-18-7-27 0z" fill="#087C88"/><path d="M9 49c10-6 17-6 27 0s17 6 22 1" fill="none" stroke="#14394A" stroke-width="4" stroke-linecap="round"/></svg><span class="brand-title">Sol <em>da Bahia</em><small>ENERGIA SOLAR RESIDENCIAL · SAD</small></span></h2>
 <nav><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
@@ -122,30 +168,46 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 <div class="g2"><div class="card"><b>Comparação dos cenários de decisão (índice SAW)</b><canvas id="dc3"></canvas><p><small id="dn3"></small></p></div>
 <div class="card"><b>Risco: VPL nos cenários simulados (R$)</b><canvas id="dc4"></canvas><p><small id="dn4"></small></p></div></div></div></div>
 
-<div id="v-sim" class="hide"><section class="page-intro intro-sim"><span class="eyebrow">SIMULADOR RESIDENCIAL</span><h1>Quanto sol cabe no seu telhado?</h1><p>Informe o consumo, a localização e a área útil. Nós comparamos alternativas — inclusive a opção de não instalar.</p><span class="intro-sun" aria-hidden="true">☼</span></section><div class="card form-card"><div class="form-heading"><span class="step-marker">ETAPA 01 / DADOS DA RESIDÊNCIA</span><h2>Conte um pouco sobre sua casa</h2><p>Os campos marcados com * são necessários para a análise técnica e financeira.</p></div><form id="f">
-<label>Município *<input id="mun" list="lista" required placeholder="Ex.: Salvador" autocomplete="address-level2"></label><datalist id="lista"></datalist>
-<label>Consumo médio mensal (kWh) *<input id="cons" type="number" min="1" value="250" required><span class="dica">Use a média dos últimos 12 meses da sua fatura.</span></label>
-<label>Tarifa marginal de energia (R$/kWh) *<input id="tar" type="number" min="0.01" step="0.00001" value="0.87773" required><span class="dica">Referência B1 Coelba 2026: R$ 0,87773/kWh, sem tributos. Não divida o total da conta pelos kWh.</span></label>
-<label>Área útil do telhado (m²) *<input id="area" type="number" min="1" step="0.1" value="30" required placeholder="Ex.: 30"><span class="dica">Área livre de sombras e obstáculos. O SAD não recomendará potência acima desse espaço.</span></label>
-<label>Quando a casa mais consome energia?<select id="dia"><option value="65">Mais durante o dia</option><option value="45" selected>Equilibrado: dia e noite</option><option value="25">Principalmente à noite</option></select><span class="dica">Perfil aproximado. O cálculo usa também uma premissa separada de simultaneidade de 35% da geração.</span></label>
-<label>O que é mais importante para você?<select id="prio"><option value="padrao">Padrão (retorno primeiro)</option><option value="retorno">Retorno financeiro em 1º</option><option value="cautela">Cautela (menos risco regulatório e sem dívida)</option></select><span class="dica">Ordem de importância dos fatores no ranking.</span></label>
-<div class="campo"><span class="rot">Ligação elétrica da residência *</span><select id="ligacao"><option value="monofasica">Monofásica · 30 kWh mínimos</option><option value="bifasica" selected>Bifásica · 50 kWh mínimos</option><option value="trifasica">Trifásica · 100 kWh mínimos</option></select><span class="dica">Verifique na conta. Afeta o custo mínimo de disponibilidade.</span></div>
-<div class="campo"><span class="rot">Modalidade tarifária</span><select id="social"><option value="0">Residencial convencional B1</option><option value="1">Tarifa Social (estimativa simplificada)</option></select><span class="dica">Tarifa Social: primeiras 80 kWh/mês não são tratadas como economia evitável; projeção requer cautela.</span></div>
-<div class="campo"><span class="rot">Forma de pagamento</span>
-<div class="seg"><label><input type="radio" name="pgto" value="vista" checked>À vista</label><label><input type="radio" name="pgto" value="fin">Financiado</label></div>
-<span class="dica" id="dpg">Só pagamento à vista.</span></div>
-<label id="boxtx" class="hide">Taxa de juros do financiamento (% a.a.)<input id="tx" type="number" min="1" max="100" step="0.1" placeholder="Ex.: 24"><span class="dica">Informe o CET da proposta do banco. O SAD compara à vista e financiado.</span></label>
-<details class="adv"><summary>Opções avançadas</summary>
-<label>Custo do orçamento (R$/kWp)<input id="ck" type="number" min="500" step="10" placeholder="Vazio = tabela de referência"><span class="dica">Use só se já tiver um orçamento real: custo total ÷ kWp.</span></label></details>
-<button class="bt bt-primary">☀ Analisar minha residência <span aria-hidden="true">→</span></button></form><small id="msg"></small></div>
-<div id="res" class="hide"><div class="result-section-label"><span class="step-marker">ETAPA 02 / ANÁLISE INTELIGENTE</span><h2>O que os dados mostram</h2></div><div class="card" id="veredito"></div><div class="card"><div class="kpis" id="kpis"></div><p id="classe"></p></div><div class="card" id="decisao"></div>
-<div class="g2"><div class="card"><b>Geração mensal estimada (kWh)</b><canvas id="c1"></canvas></div>
-<div class="card"><b>Fluxo de caixa acumulado (R$)</b><canvas id="c2"></canvas></div></div>
-<div class="card"><b>Risco (simulação de cenários)</b><div id="risco"></div></div>
-<div class="card"><b>Análise</b><p id="texto"></p><small>Salva automaticamente em Relatórios.</small></div></div></div>
-
-<div id="v-rel" class="hide"><section class="page-intro intro-rel"><span class="eyebrow">HISTÓRICO</span><h1>Decisões com memória.</h1><p>Revisite suas simulações e exporte os resultados para análise.</p></section><div class="card"><button class="bt" id="csv">Exportar CSV</button><table id="rt"></table></div>
-<div id="det" class="card hide"><button class="bt sec noprint" onclick="window.print()">Imprimir / salvar PDF</button><div id="dbody"></div></div></div>
+<div id="v-sim" class="hide">
+ <section class="page-intro intro-sim"><span class="eyebrow">SIMULAÇÃO RESIDENCIAL</span><h1>Energia solar vale a pena para sua casa?</h1><p>Informe três dados para receber uma recomendação. O Sol da Bahia faz as estimativas para você.</p><span class="intro-sun" aria-hidden="true">☀</span></section>
+ <div class="card form-card"><div class="form-heading"><span class="step-marker">01 · SUA CASA</span><h2>Comece com o essencial</h2><p>Sem orçamento prévio. Os cálculos usam referências documentadas, que você pode ajustar abaixo.</p></div>
+ <form id="f">
+  <label>Município *<input id="mun" list="lista" required placeholder="Ex.: Salvador" autocomplete="address-level2"></label><datalist id="lista"></datalist>
+  <label>Consumo médio (kWh/mês) *<input id="cons" type="number" min="1" value="250" required><span class="dica">Está na sua conta de luz. Prefira a média de 12 meses.</span></label>
+  <label>Área útil do telhado (m²) *<input id="area" type="number" min="1" step="0.1" value="30" required><span class="dica">Desconsidere partes com sombra ou obstáculos.</span></label>
+  <details class="adv" id="form-advanced"><summary>Ajustar premissas <span class="details-hint">Opcional · tarifa, tipo de ligação e orçamento</span></summary>
+    <div class="advanced-grid">
+     <label>Tipo de ligação<select id="ligacao"><option value="monofasica">Monofásica · mínimo 30 kWh</option><option value="bifasica" selected>Bifásica · mínimo 50 kWh</option><option value="trifasica">Trifásica · mínimo 100 kWh</option></select></label>
+     <label>Tarifa da residência<select id="social"><option value="0">Residencial convencional</option><option value="1">Tarifa Social (aproximação)</option></select><span class="dica">Tarifa Social tem regras diferentes; resultado aproximado.</span></label>
+     <label>Tarifa de referência (R$/kWh)<input id="tar" type="number" min="0.01" step="0.00001" value="0.87773" required><span class="dica">Coelba B1 2026, sem tributos. Ajuste só se souber a tarifa marginal.</span></label>
+     <label>Quando a casa mais consome?<select id="dia"><option value="65">Mais de dia</option><option value="45" selected>Dia e noite</option><option value="25">Mais à noite</option></select></label>
+     <label>Prioridade da análise<select id="prio"><option value="padrao" selected>Retorno e viabilidade (padrão)</option><option value="cautela">Maior cautela regulatória</option></select><span class="dica">Ajusta os pesos da recomendação, não os resultados financeiros.</span></label>
+     <label>Orçamento real (R$/kWp) <span class="dica">Opcional</span><input id="ck" type="number" min="500" step="10" placeholder="Automático se vazio"><span class="dica">Valor total do orçamento dividido pela potência em kWp.</span></label>
+     <div class="campo"><span class="rot">Forma de pagamento</span><div class="seg"><label><input type="radio" name="pgto" value="vista" checked>À vista</label><label><input type="radio" name="pgto" value="fin">Financiado</label></div><span class="dica" id="dpg">Análise apenas à vista.</span></div>
+     <label id="boxtx" class="hide">Juros do financiamento (% a.a.)<input id="tx" type="number" min="1" max="100" step="0.1" placeholder="Ex.: 24"><span class="dica">Informe o CET anual da proposta.</span></label>
+    </div>
+  </details>
+  <button class="bt bt-primary" id="analisar-btn">Analisar minha casa <span aria-hidden="true">→</span></button>
+ </form><p class="form-feedback" id="msg" role="status" aria-live="polite"></p></div>
+ <section id="res" class="hide" aria-live="polite">
+  <div class="result-section-label"><span class="step-marker">02 · SUA DECISÃO</span><h2>Resultado da simulação</h2></div>
+  <div class="card result-main" id="resumo-principal">
+    <div id="veredito"></div>
+    <div class="result-metrics" id="kpis"></div>
+    <p class="result-note" id="classe"></p>
+  </div>
+  <details class="card report-details" id="comparacao"><summary><span><b>Comparar alternativas</b><small>Veja as opções avaliadas e escolha uma para explorar</small></span><span class="summary-arrow" aria-hidden="true">⌄</span></summary><div id="decisao" class="details-body"></div></details>
+  <details class="card report-details" id="graficos"><summary><span><b>Entenda os números</b><small>Geração solar, retorno e incerteza</small></span><span class="summary-arrow" aria-hidden="true">⌄</span></summary>
+    <div class="details-body"><div class="g2 charts-pair"><div><h3>Geração mensal estimada</h3><canvas id="c1"></canvas></div><div><h3>Retorno acumulado (R$)</h3><canvas id="c2"></canvas></div></div><div id="risco" class="risk-box"></div></div>
+  </details>
+  <details class="card report-details" id="metodologia"><summary><span><b>Como o SAD decidiu?</b><small>Critérios, pesos, filtros e funções analíticas</small></span><span class="summary-arrow" aria-hidden="true">⌄</span></summary><div id="metodo" class="details-body"></div></details>
+  <p class="result-disclaimer">Estimativa educativa. Não substitui orçamento, inspeção do telhado ou projeto elétrico. Os dados de geração e retorno são projeções.</p>
+ </section>
+</div>
+<div id="v-rel" class="hide"><section class="page-intro intro-rel"><span class="eyebrow">SUAS ANÁLISES</span><h1>Simulações salvas</h1><p>Consulte sua recomendação e baixe o relatório quando precisar.</p></section>
+ <div class="card"><div class="report-toolbar"><div><h2>Histórico</h2><p>Selecione uma análise para ver o resumo e os dados usados.</p></div><button class="bt sec" id="csv">Exportar CSV</button></div><div class="table-wrap"><table id="rt"></table></div><p class="result-note">* Payback do cenário de instalação estudado, mesmo quando a recomendação final for não instalar.</p></div>
+ <div id="det" class="card hide"><div class="report-toolbar"><h2>Relatório da simulação</h2><button class="bt sec noprint" onclick="imprimirRelatorio()">Imprimir / salvar PDF</button></div><div id="dbody"></div></div>
+</div>
 <footer class="footer"><span class="footer-brand">☀ Sol da Bahia</span><span>Feito para decisões mais claras, com a energia da nossa terra.</span><small>Projeções educativas com premissas e incertezas. Não substitui projeto elétrico, vistoria de telhado nem orçamento profissional. Em Tarifa Social, os resultados são especialmente aproximados.</small></footer>
 </main>
 <script>
@@ -174,6 +236,8 @@ async function api(p,o={}){const h={"Content-Type":"application/json"};if(tok)h.
  if(r.status==401&&p.indexOf("/api/login")<0&&p.indexOf("/api/registrar")<0){sair();throw new Error("Sessão expirada")}
  if(!r.ok){let m;try{m=(await r.json()).detail}catch(e){m=r.statusText}throw new Error(typeof m=="string"?m:"Dados inválidos")}return r.json()}
 function graf(id,cfg){if(ch[id])ch[id].destroy();ch[id]=new Chart($(id),cfg)}
+// Gráficos dentro de seções recolhidas precisam recalcular a largura ao abrir.
+$("graficos").addEventListener("toggle",()=>{if($("graficos").open)requestAnimationFrame(()=>{ch.c1?.resize?.();ch.c2?.resize?.()})});
 function ver(v){["login","dash","sim","rel"].forEach(x=>$("v-"+x).classList.toggle("hide",x!=v));
  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));
  if(v=="dash")dash();if(v=="rel")rel()}
@@ -204,51 +268,112 @@ async function dash(id){const l=await api("/api/simulacoes");
  graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:"#F7B500"},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:"#1D6A96"}]}});
  $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
 $("dsel").onchange=()=>dash(+$("dsel").value);
-const NOMEF={"1) Retorno econômico":"Retorno econômico","2) Exposição regulatória":"Exposição regulatória","3) Preferências do decisor":"Preferências do decisor","4) Risco econômico":"Risco econômico"};
-function carta(r,inter,sel){return `<div class="carta${r.grupo==1?" top":""}${inter&&r._i==sel?" sel":""}"${inter&&r.res?` onclick="selecionar(${r._i})" style="cursor:pointer"`:""}>${inter&&r._i==sel?'<span class="fita" style="left:auto;right:12px;background:#0B3C5D">Exibido</span>':""}${r.grupo==1?'<span class="fita">🏆 Mais recomendado</span>':""}${r.nome.startsWith("Não instalar")&&r.grupo!=1?'<span class="fita" style="background:#64748b">Referência: não investir</span>':""}
- <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>☀️ ${r.nome}</b><div class="poder" title="Índice SAW x 100">${r.indice==null?"—":Math.round(r.indice*100)}</div></div>
- ${Object.entries(r.atributos).map(([f,v])=>`<div class="stat" title="Fator: ${f}"><span>${NOMEF[f]||f}</span><b>${Math.round(v)}</b><div class="barra"><i style="width:${v}%"></i></div></div>`).join("")}
- <div class="specs"><span>${R(r.investimento)}</span><span>VPL projeto ${R(r.vpl_projeto==null?r.vpl:r.vpl_projeto)}</span>${r.financiado?`<span>VPL capital próprio ${R(r.vpl)}</span>`:""}<span>${Y(r.payback)}</span><span>abate ${P(r.cobertura)}</span>${r.veredito?`<span><b>${r.veredito.classe}</b></span>`:""}${r.prob_lider>0?`<span>lidera em ${P(r.prob_lider)} dos sorteios de pesos</span>`:""}${r.prob_lider_supera!=null?`<span>o líder supera esta em ${P(r.prob_lider_supera)} dos sorteios</span>`:""}</div></div>`}
-function decisaoHTML(d,inter,sel){if(!d)return"";d.ranking.forEach((r,i)=>r._i=i);const pf={};d.criterios.forEach(c=>pf[c.fator]=(pf[c.fator]||0)+c.peso);const PF=Object.entries(pf).map(([f,v])=>`${f} ${Math.round(v*100)}%`).join(", ");const gs={};d.ranking.forEach(r=>(gs[r.grupo]=gs[r.grupo]||[]).push(r));
- const ordem=Object.keys(gs).map(Number).filter(g=>g>0).sort((a,b)=>a-b).concat(gs[-1]?[-1]:[]);
- const G=ordem.map(g=>`<h4 style="margin:16px 0 10px">${gs[g][0].rotulo}</h4><div class="cartas">${gs[g].map(r=>carta(r,inter,sel)).join("")}</div>`).join("");
- const C=d.criterios.map(c=>`<tr><td>${c.fator}</td><td>${c.nome}</td><td>${(c.peso*100).toFixed(1)}%</td><td>${c.sentido=="max"?"quanto maior, melhor":"quanto menor, melhor"}</td></tr>`).join("");
- return `<b>Cenários de decisão (método SAW)</b><p><small>Cada carta é um cenário.${inter?" <b>Clique em uma carta para ver os indicadores, os gráficos e a análise desse cenário.</b>":""} O <b>índice</b> é a nota SAW x 100, e as barras mostram o desempenho do cenário em cada fator (0 a 100). Só entram no ranking as alternativas aprovadas no filtro de viabilidade (VPL > 0 e probabilidade de VPL positivo ≥ ${P((d.filtro||{}).prob_min||0.5)}); as reprovadas aparecem no final, sem índice, com o motivo. Os cenários foram agrupados por agrupamento hierárquico (ligação completa) do índice, com corte de ${(d.delta||0).toFixed(3)}, que é o ruído do índice quando os pesos variam ±30%. Pesos por fator, em ordem de preferência (método dos centroides de ranking): ${PF}.</small></p>${G}
- <p><b>Variáveis que determinam a decisão</b></p><table><tr><th>Fator</th><th>Critério</th><th>Peso</th><th>Sentido</th></tr>${C}</table>`}
-let CUR=null,TXT={},SEL=-1;
-async function selecionar(i,ini){const D=CUR.resultado.decisao,s=D.ranking[i];if(!s||!s.res)return;SEL=i;
- $("decisao").innerHTML=decisaoHTML(D,true,i);mostrar(s.res,s.risco,null,s.financiado);
- const RC=D.recomendacao,vz=RC&&RC.tipo=="nao_instalar";const banner=RC?`<div style="border-left:8px solid ${vz?"#64748b":"#2E9E5B"};padding-left:12px;margin-bottom:14px"><b style="font-size:20px">${vz?"🚫 Recomendação do SAD: não instalar agora":"🏆 Recomendação do SAD: "+RC.nome}</b><br><small>${RC.motivo}${RC.prob_lider?` Lidera em ${P(RC.prob_lider)} dos sorteios de pesos.`:""}${RC.empate_tecnico&&RC.empate_tecnico.length?` Empate técnico (índices dentro do ruído dos pesos) com: ${RC.empate_tecnico.join("; ")}.`:""}${vz?" O cenário detalhado abaixo é apenas para consulta.":""}</small></div>`:"";const v=s.veredito;$("veredito").innerHTML=banner+(v?`<div style="border-left:8px solid ${v.nivel=="sim"?"#2E9E5B":v.nivel=="ressalvas"?"#F7B500":"#B91C1C"};padding-left:12px"><b style="font-size:20px">${v.nivel=="sim"?"✅":v.nivel=="ressalvas"?"⚠️":"⛔"} ${v.classe}</b><br><small>${s.nome}</small>${v.ressalvas.length?`<ul style="margin:8px 0 0">${v.ressalvas.map(x=>`<li>${x}</li>`).join("")}</ul>`:""}</div>`:"");
- $("classe").textContent=`Cenário exibido: ${s.nome} (${s.rotulo}). `+$("classe").textContent;
- if(TXT[i]){$("texto").textContent=TXT[i];return}$("texto").textContent="Gerando análise...";
- const ctx=`Cenário analisado: ${s.nome}, grupo "${s.rotulo}", índice SAW ${s.indice==null?"n/d (descartada pelo filtro)":s.indice.toFixed(2)}. Cenários mais recomendados: ${D.ranking.filter(r=>r.grupo==1).map(r=>r.nome).join("; ")}. Recomendação final do SAD: ${D.recomendacao.nome}.`;
- try{const t=(await api("/api/texto",{method:"POST",body:{resultado:s.res,risco:s.risco,contexto:ctx,id:ini?CUR.id:null}})).texto;TXT[i]=t;if(SEL==i)$("texto").textContent=t}catch(x){if(SEL==i)$("texto").textContent=x.message}}
-function mostrar(a,k,id,fin){$("res").classList.remove("hide");
- $("kpis").innerHTML=[["Sistema exibido",a.kwp.toFixed(2)+" kWp"],["Investimento",R(a.investimento)],["Economia no 1º ano",R(a.economia_ano1)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Abatimento estimado",P(a.cobertura_consumo)]]
-  .map(x=>kpi(x[0],x[1])).join("");
- const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];
- $("classe").textContent=`Faixa de retorno mais provável: ${top[0]} (${P(top[1])} dos cenários).`+(a.cobertura_consumo<0.9?` Atenção: este cenário cobre só ${P(a.cobertura_consumo)} do consumo; o restante continua sendo comprado da distribuidora.`:"");
- graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:"#F7B500"}]},options:{plugins:{legend:{display:false}}}});
- graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:"#E8590C",pointRadius:0}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
- $("risco").innerHTML=`<p>VPL positivo em <b>${P(fin?k.prob_vpl_positivo_financiado:k.prob_vpl_positivo)}</b> dos ${k.n_cenarios} cenários${fin?" (cenário financiado)":""}. VPL entre ${R((fin?k.vpl_financiado:k.vpl_a_vista).p10)} e ${R((fin?k.vpl_financiado:k.vpl_a_vista).p90)} (percentis 10 e 90).</p>
- <p>Financiado rende mais que à vista em <b>${P(k.prob_financiado_melhor)}</b> dos cenários.</p><p>Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>`}
-$("f").onsubmit=async e=>{e.preventDefault();const cod=mapa[$("mun").value.toLowerCase()];if(!cod){$("msg").textContent="Escolha um município da lista.";return}
- $("msg").textContent="Calculando...";
- try{const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
-  consumo_diurno_fracao:+$("dia").value/100,area_m2:+$("area").value,tipo_ligacao:$("ligacao").value,tarifa_social:$("social").value==="1",prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:(document.querySelector("input[name=pgto]:checked").value==="fin"&&$("tx").value)?+$("tx").value/100:null}});
-  $("msg").textContent="";CUR=d;TXT={};selecionar(d.resultado.decisao.recomendacao.indice_exibido,1)}catch(x){$("msg").textContent=x.message}};
-async function rel(){$("det").classList.add("hide");lista=await api("/api/simulacoes");
- $("rt").innerHTML="<tr><th>Data</th><th>Município</th><th>kWp</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Faixa</th><th></th></tr>"+lista.map(r=>
-  `<tr><td>${r.criado}</td><td>${r.municipio}</td><td>${r.kwp.toFixed(2)}</td><td>${R(r.investimento)}</td><td>${Y(r.payback)}</td><td>${R(r.vpl)}</td><td>${r.classe}</td>
-  <td><button class="bt sec" onclick="abrir(${r.id})">Abrir</button> <button class="bt sec" onclick="apagar(${r.id})">Excluir</button></td></tr>`).join("")}
-async function abrir(id){const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco;$("det").classList.remove("hide");
- $("dbody").innerHTML=`<h3>Relatório de simulação nº ${id} · ${d.criado}</h3><p><b>${a.municipio}</b> · consumo ${d.entrada.consumo_mes_kwh} kWh/mês · tarifa R$ ${d.entrada.tarifa_kwh}/kWh · consumo diurno ${P(d.entrada.consumo_diurno_fracao)}</p>
- <div class="kpis">${[["kWp",a.kwp.toFixed(2)],["Investimento",R(a.investimento)],["Payback",Y(a.payback)],["VPL",R(a.vpl)],["TIR",P(a.tir)],["Abatimento",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("")}</div>
- ${a.veredito?`<p><b>${a.veredito.classe}</b>${a.veredito.ressalvas.length?": "+a.veredito.ressalvas.join("; "):""}</p>`:""}<div>${decisaoHTML(a.decisao)}</div>
- <p>VPL positivo em ${P(k.prob_vpl_positivo)} dos ${k.n_cenarios} cenários; financiado melhor em ${P(k.prob_financiado_melhor)}. Faixas: ${Object.entries(k.prob_classe).map(([c,p])=>`${c} ${P(p)}`).join(" · ")}</p>
- <p id="dtxt"></p><small>Simulação baseada em premissas; não substitui orçamento de integrador.</small>`;$("dtxt").textContent=d.texto||"(sem análise de texto salva)";$("det").scrollIntoView()}
+// Resultado principal sem poluição visual; demonstrações analíticas ficam nos detalhes.
+const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const N=v=>v==null||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("pt-BR",{maximumFractionDigits:2});
+const K=(label,value,hint="")=>`<div class="metric"><span class="metric-label">${label}</span><div class="metric-value">${value}</div>${hint?`<span class="metric-help">${hint}</span>`:""}</div>`;
+const statusAlt=a=>!a.res?"Manter conta":a.veredito?.nivel==="nao"?"Fora do filtro":a.veredito?.nivel==="ressalvas"?"Com ressalvas":"Viável no modelo";
+function resumoRecomendacao(D,exib){
+ const rec=D?.recomendacao,nao=rec?.tipo==="nao_instalar";
+ const titulo=rec?(nao?"Não instalar por enquanto":`Instalar: ${E(rec.nome.replace(/^Sistema /i,"sistema "))}`):"Resultado não disponível";
+ const descricao=nao?"Pelas premissas utilizadas, manter a conta atual ficou à frente das opções de instalação. Você pode rever a análise se mudar o orçamento ou o consumo.":"O sistema comparou opções de potência e escolheu a melhor combinação de viabilidade econômica e critérios definidos para a decisão.";
+ const notas=[];
+ if(rec?.n_reprovadas>0)notas.push(rec.n_reprovadas===1?"1 alternativa ficou fora do filtro financeiro":`${rec.n_reprovadas} alternativas ficaram fora do filtro financeiro`);
+ if(rec?.empate_tecnico?.length)notas.push(`${rec.empate_tecnico.length===1?"Há outra alternativa com pontuação muito próxima":`Há ${rec.empate_tecnico.length} alternativas com pontuação muito próxima`}`);
+ if(nao)notas.push("Os indicadores abaixo são do melhor sistema estudado, apenas para comparação — não uma recomendação de compra");
+ else if(exib?.veredito?.ressalvas?.length)notas.push(exib.veredito.ressalvas[0]);
+ return `<span class="decision-eyebrow">${nao?"Decisão do Sol da Bahia":"Recomendação do Sol da Bahia"}</span><h3 class="decision-heading">${titulo}</h3><p class="decision-desc">${descricao}</p>${notas.length?`<div class="decision-detail ${nao?"warn":""}">${notas.map(E).join(" · ")}</div>`:""}`;
+}
+function indicadores(a,k,fin){
+ const risco=fin?k?.prob_vpl_positivo_financiado:k?.prob_vpl_positivo;
+ return [K("Investimento estimado",R(a?.investimento),"Equipamentos + instalação"),K("Economia no 1º ano",R(a?.economia_ano1),"Economia anual prevista"),K("Tempo de retorno",Y(a?.payback),"Payback estimado"),K("VPL em 25 anos",R(a?.vpl),"Retorno trazido a valor presente")].join("");
+}
+function comparacaoHTML(D,inter,sel){
+ if(!D?.ranking)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
+ return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Situação</th>${inter?"<th></th>":""}</tr></thead><tbody>`+
+ D.ranking.map((a,i)=>{const isNao=!a.res,v=a.veredito?.nivel,principal=D.recomendacao?.tipo==="nao_instalar"?isNao:a.nome===D.recomendacao?.nome;
+ const badge=isNao?"muted":v==="nao"?"muted":v==="ressalvas"?"warn":"";
+ const ativo=inter&&a.res;
+ return `<tr class="${i===sel?"is-selected ":""}${principal?"is-winner":""}"><td><b>${E(isNao?"Não instalar":a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':""}</td><td>${isNao?"—":R(a.investimento)}</td><td>${isNao?"—":Y(a.payback)}</td><td>${isNao?"—":R(a.vpl)}</td><td><span class="status-pill ${badge}">${statusAlt(a)}</span></td>${inter?`<td>${ativo?`<button type="button" class="mini-btn" onclick="selecionar(${i})" ${i===sel?"disabled":""}>${i===sel?"Exibindo":"Ver detalhes"}</button>`:""}</td>`:""}</tr>`}).join("")+`</tbody></table></div><p><small>A comparação de alternativas é feita pelo filtro de viabilidade e pelos pesos do método SAW. A potência mais alta não é necessariamente a melhor.</small></p>`;
+}
+function metodoHTML(D){
+ if(!D?.criterios)return "<p>Os dados de decisão não estão disponíveis nesta simulação antiga.</p>";
+ const pesos=D.criterios.map(c=>`<tr><td>${E(c.nome)}</td><td>${E(c.fator)}</td><td>${(c.peso*100).toFixed(1)}%</td></tr>`).join("");
+ return `<p>O SAD não se limita a mostrar indicadores: elimina alternativas de instalação sem viabilidade mínima, classifica as demais por pesos (SAW) e também permite recomendar <b>não instalar</b>.</p>
+ <ol class="method-list"><li><b>Regressão:</b> estima a geração mensal do sistema a partir dos dados solares e meteorológicos disponíveis para o município.</li><li><b>Sumarização:</b> calcula consumo, economia, retorno, VPL e distribuições dos cenários de risco.</li><li><b>Agrupamento:</b> reúne alternativas de índice SAW próximo por agrupamento hierárquico.</li></ol>
+ <p><b>Regra de viabilidade:</b> VPL maior que zero e chance de VPL positivo de pelo menos ${P(D.filtro?.prob_min||0.5)}. Alternativas que não passam não são recomendadas. ${D.recomendacao?.n_aprovadas??"—"} aprovada(s); ${D.recomendacao?.n_reprovadas??"—"} descartada(s).</p>
+ <h3>Pesos dos critérios de decisão</h3><div class="table-wrap"><table class="criteria-table"><tr><th>Critério</th><th>Fator</th><th>Peso</th></tr>${pesos}</table></div>
+ <p><small>Os percentuais resultam do método de ordenação dos critérios e podem ser alterados pela prioridade selecionada. Os números são projeções; o SAD não analisa a estrutura física do telhado.</small></p>`;
+}
+let CUR=null,SEL=-1;
+function mostrar(a,k,fin){
+ $("res").classList.remove("hide");
+ $("kpis").innerHTML=indicadores(a,k,fin);
+ const prob=fin?k.prob_vpl_positivo_financiado:k.prob_vpl_positivo;
+ $("classe").textContent=`Sistema detalhado: ${N(a.kwp)} kWp · geração anual estimada: ${N(a.geracao_mensal_kwh.reduce((s,v)=>s+v,0))} kWh · probabilidade estimada de VPL positivo: ${P(prob)}.`;
+ graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:"#E6AD45"}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+ graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:"#087C88",backgroundColor:"#087C881a",pointRadius:0,fill:true}]},options:{plugins:{legend:{display:false}},scales:{x:{title:{display:true,text:"Ano"}}}}});
+ const faixa=fin?k.vpl_financiado:k.vpl_a_vista;
+ $("risco").innerHTML=`<b>Incerteza financeira</b><p>Em ${P(prob)} dos ${k.n_cenarios} cenários simulados, o VPL foi positivo. Entre os percentis 10 e 90, o VPL variou de <b>${R(faixa.p10)}</b> a <b>${R(faixa.p90)}</b>. Taxa interna de retorno estimada (TIR): <b>${P(a.tir)}</b>.</p><small>Os cenários dependem de preços, geração solar e outras premissas. Não representam garantia de rendimento.</small>`;
+}
+function selecionar(i){
+ if(!CUR?.resultado?.decisao)return;
+ const D=CUR.resultado.decisao,a=D.ranking[i];if(!a?.res)return;
+ SEL=i;
+ $("veredito").innerHTML=resumoRecomendacao(D,a);
+ $("decisao").innerHTML=comparacaoHTML(D,true,i);
+ $("metodo").innerHTML=metodoHTML(D);
+ mostrar(a.res,a.risco,Boolean(a.financiado));
+ if(i!==D.recomendacao.indice_exibido){
+   $("classe").textContent+=" Você selecionou outra alternativa para comparação; a recomendação principal do SAD não mudou.";
+ }
+}
+$("f").onsubmit=async e=>{
+ e.preventDefault();const cod=mapa[$("mun").value.trim().toLowerCase()];
+ if(!cod){$("msg").textContent="Escolha um município da Bahia na lista.";return;}
+ const btn=$("analisar-btn");btn.disabled=true;btn.textContent="Analisando sua casa…";$("msg").textContent="";
+ try{
+   const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
+    consumo_diurno_fracao:+$("dia").value/100,area_m2:+$("area").value,tipo_ligacao:$("ligacao").value,tarifa_social:$("social").value==="1",
+    prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:(document.querySelector('input[name="pgto"]:checked').value==="fin"&&$("tx").value)?+$("tx").value/100:null}});
+   CUR=d;selecionar(d.resultado.decisao.recomendacao.indice_exibido);
+   ["comparacao","graficos","metodologia"].forEach(id=>$(id).open=false);
+   $("res").scrollIntoView({behavior:"smooth",block:"start"});
+ }catch(x){$("msg").textContent=x.message;}finally{btn.disabled=false;btn.innerHTML='Analisar minha casa <span aria-hidden="true">→</span>';}
+};
+function rel(){
+ $("det").classList.add("hide");
+ return api("/api/simulacoes").then(l=>{
+ lista=l;
+ if(!l.length){$("rt").innerHTML='<tr><td>Você ainda não fez nenhuma simulação. Comece pela aba Simulação.</td></tr>';return;}
+ $("rt").innerHTML='<tr><th>Data</th><th>Local</th><th>Resultado</th><th>Payback*</th><th>Ações</th></tr>'+l.map(r=>`<tr><td>${E(r.criado)}</td><td>${E(r.municipio)}</td><td>${E(r.decisao_resumo||r.classe)}</td><td>${Y(r.payback)}</td><td><button class="bt sec" onclick="abrir(${r.id})">Ver relatório</button> <button class="bt sec" onclick="apagar(${r.id})" aria-label="Excluir simulação ${r.id}">Excluir</button></td></tr>`).join("");
+ 
+ });
+}
+async function abrir(id){
+ const d=await api("/api/simulacoes/"+id),a=d.resultado,k=d.risco,D=a.decisao,rec=D?.recomendacao;
+ $("det").classList.remove("hide");
+ const fin=Boolean(D?.ranking?.[rec?.indice_exibido]?.financiado);
+ const parametros=`<b>Dados utilizados:</b> ${E(a.municipio)} · ${N(d.entrada.consumo_mes_kwh)} kWh/mês · ${N(d.entrada.area_m2)} m² de telhado · tarifa R$ ${Number(d.entrada.tarifa_kwh).toLocaleString("pt-BR",{minimumFractionDigits:3,maximumFractionDigits:5})}/kWh · ${E(d.entrada.tipo_ligacao||"ligação não registrada")}.`;
+ $("dbody").innerHTML=`<p class="decision-eyebrow">Análise nº ${id} · ${E(d.criado)}</p><div>${resumoRecomendacao(D,a)}</div><div class="result-metrics">${indicadores(a,k,fin)}</div>
+ <p class="result-note">${parametros} A recomendação é <b>${E(rec?.nome||"não registrada")}</b>.</p>
+ <details class="report-details" id="rel-comp"><summary><span><b>Alternativas avaliadas</b><small>Comparação do modelo decisório</small></span><span class="summary-arrow">⌄</span></summary><div class="details-body">${comparacaoHTML(D,false,-1)}</div></details>
+ <details class="report-details" id="rel-method"><summary><span><b>Método e validação</b><small>Premissas, funções analíticas e incertezas</small></span><span class="summary-arrow">⌄</span></summary><div class="details-body">${metodoHTML(D)}<p><b>Risco:</b> VPL positivo em ${P(fin?k.prob_vpl_positivo_financiado:k.prob_vpl_positivo)} dos ${k.n_cenarios} cenários. <b>TIR:</b> ${P(a.tir)}. <b>Geração anual:</b> ${N(a.geracao_mensal_kwh.reduce((s,v)=>s+v,0))} kWh.</p><p>Confira o relatório acadêmico do repositório para as referências, as limitações da regressão e a validação de cálculos.</p></div></details>
+ <p class="result-disclaimer">Projeção educativa. Os valores são referentes ao cenário técnico detalhado; quando o SAD recomenda não instalar, este cenário é apenas ilustrativo. Não substitui orçamento nem vistoria.</p>`;
+ $("det").scrollIntoView({behavior:"smooth",block:"start"});
+}
+function imprimirRelatorio(){
+ const ds=[...document.querySelectorAll('#det details')],abertos=ds.filter(x=>x.open);
+ ds.forEach(x=>x.open=true);
+ const restaurar=()=>ds.forEach(x=>x.open=abertos.includes(x));
+ window.addEventListener('afterprint',restaurar,{once:true});
+ window.print();
+}
 async function apagar(id){if(confirm("Excluir esta simulação?")){await api("/api/simulacoes/"+id,{method:"DELETE"});rel()}}
-$("csv").onclick=()=>{const c=[["data","municipio","kwp","investimento","payback_anos","vpl","faixa"],...lista.map(r=>[r.criado,r.municipio,r.kwp,r.investimento,r.payback,r.vpl,r.classe])];
- const a=document.createElement("a");a.href=URL.createObjectURL(new Blob(["\ufeff"+c.map(l=>l.join(";")).join("\n")],{type:"text/csv"}));a.download="simulacoes.csv";a.click()};
+$("csv").onclick=()=>{
+ const c=[["data","municipio","recomendacao","kwp_cenario","investimento_cenario","payback_anos","vpl","faixa"],...lista.map(r=>[r.criado,r.municipio,r.decisao_resumo,r.kwp,r.investimento,r.payback,r.vpl,r.classe])];
+ const a=document.createElement("a"),url=URL.createObjectURL(new Blob(["\ufeff"+c.map(l=>l.join(";")).join("\n")],{type:"text/csv"}));
+ a.href=url;a.download="simulacoes.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+};
 if(tok)entrou({token:tok,nome:sessionStorage.nome});else ver("login");
 </script></body></html>

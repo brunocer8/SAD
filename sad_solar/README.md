@@ -12,7 +12,7 @@ Pré-requisitos: Python 3.12+ e internet para carregar a biblioteca de gráficos
 
 ```bash
 # 1. Entre na pasta do projeto
-cd sol_da_bahia_residencial
+cd sol_da_bahia_simplificado
 
 # 2. Instale as dependências
 python -m pip install -r requirements.txt
@@ -27,22 +27,21 @@ No Windows, o mesmo procedimento funciona no PowerShell. Para publicar no Render
 
 ## Demonstração rápida
 
-Na aba **Simulação**, informe:
+Na aba **Simulação**, informe apenas os três dados iniciais:
 
 | Campo | Exemplo didático |
 |---|---|
 | Município | Salvador |
-| Consumo mensal | 250 kWh |
-| Tarifa de energia B1 | R$ 0,87773/kWh, valor homologado **sem tributos** (Coelba, vigência 22/04/2026–21/04/2027) |
+| Consumo médio mensal | 250 kWh |
 | Área **útil** do telhado | 30 m² |
-| Perfil | Equilibrado (45% do consumo durante o dia) |
-| Ligação | Bifásica (50 kWh de disponibilidade) |
-| Modalidade tarifária | B1 convencional |
-| Pagamento | À vista, sem cotação de financiamento |
 
-Clique em **Analisar minha residência**. O sistema calcula a geração, testa sistemas com **número inteiro de módulos ilustrativos de 620 Wp**, respeita o limite da área informada (7 m²/kWp, hipótese simplificada), projeta a conta, o fluxo financeiro e o risco, compara alternativas e indica uma recomendação multicritério. Uma instalação real exige conferência de módulos/inversor, sombreamento, estrutura, conexão e orçamento.
+Clique em **Analisar minha casa**. Por padrão, o modelo utiliza a tarifa B1 homologada **sem tributos** de R$ 0,87773/kWh (Coelba, vigência 22/04/2026–21/04/2027), ligação bifásica (mínimo de 50 kWh), consumo equilibrado entre dia e noite, custos estimados e pagamento à vista. Essas opções **podem ser alteradas em “Ajustar premissas”**, incluindo Tarifa Social, financiamento, prioridade e um orçamento real facultativo.
 
-**Tarifa Social:** o formulário oferece uma opção de cálculo **simplificado** que impede tratar os primeiros 80 kWh/mês como economia evitável. Não representa todos os impostos, descontos ou regras de elegibilidade. A decisão financeira nesses casos deve ser interpretada com especial cautela. O preço da tarifa social não é substituído automaticamente: informe um valor de referência compatível com a fatura e a modalidade.
+A tela mostra primeiro a **recomendação** e quatro números importantes: investimento, economia estimada no primeiro ano, payback e VPL. Os demais resultados permanecem acessíveis em seções opcionais: **Comparar alternativas**, **Entenda os números** e **Como o SAD decidiu?**. Em **Relatórios**, o histórico indica **Instalar/Não instalar**, e o relatório pode ser impresso/salvo em PDF com detalhes metodológicos incluídos.
+
+O sistema calcula a geração, testa sistemas com **número inteiro de módulos ilustrativos de 620 Wp**, respeita o limite da área informada (7 m²/kWp, hipótese simplificada), projeta a conta, o fluxo financeiro e o risco, compara alternativas e indica uma recomendação multicritério. Uma instalação real exige conferência de módulos/inversor, sombreamento, estrutura, conexão e orçamento.
+
+**Tarifa Social:** em "Ajustar premissas", o formulário oferece uma opção de cálculo **simplificado** que impede tratar os primeiros 80 kWh/mês como economia evitável. Não representa todos os impostos, descontos ou regras de elegibilidade. A decisão financeira nesses casos deve ser interpretada com especial cautela. Ao selecionar Tarifa Social, o formulário altera a tarifa de referência para a faixa acima de 80 kWh; a correspondência com a fatura continua dependendo de verificação.
 
 ## O que faz do protótipo um SAD?
 
@@ -95,3 +94,12 @@ A execução de `scripts/caso_demonstracao.py` recria o relatório de teste resi
 **Limitações centrais:** tarifa simplificada, impossibilidade de substituir projeto elétrico ou orçamento; consumo residencial mensal uniforme; ausência de curvas de carga horárias, sombreamento, orientação do telhado e restrições do inversor; previsão solar baseada em simulações; cenários e parâmetros sujeitos a incerteza. O sistema pode recomendar **não instalar** ou indicar ressalvas.
 
 **Privacidade:** nenhuma conta de energia pessoal, endereço residencial, CPF, número de instalação ou credencial real foi incluído neste projeto.
+
+## Decisões de interface (versão simplificada)
+
+- Os três campos visíveis bastam para iniciar uma estimativa, sem orçamento obrigatório.
+- O orçamento opcional continua disponível para recalcular o custo com um valor real de R$/kWp.
+- Priorização do usuário reduzida a duas escolhas na seção avançada (padrão e maior cautela), preservando o método SAW.
+- A tela de resultados **não repete a mesma recomendação** em vários cartões; as sete métricas anteriores foram reduzidas a quatro principais.
+- Os gráficos, distribuição de risco, alternativas descartadas, agrupamento e critérios SAW **não foram excluídos do cálculo**: estão nos painéis expansíveis e na versão imprimível do relatório.
+- O relatório mostra a **decisão recomendada**, não apenas a classe estatística de retorno; quando o SAD recomenda não instalar, os indicadores do sistema de referência são identificados como ilustrativos.

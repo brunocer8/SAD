@@ -157,9 +157,19 @@ def texto(d: dict, u=Depends(usuario)):
 @app.get("/api/simulacoes")
 def listar(u=Depends(usuario)):
     with db() as c:
-        rows = c.execute("select id,criado,municipio,kwp,investimento,payback,vpl,classe from simulacoes where usuario_id=? order by id desc",
+        rows = c.execute("select id,criado,municipio,kwp,investimento,payback,vpl,classe,resultado from simulacoes where usuario_id=? order by id desc",
                          (u["id"],)).fetchall()
-    return [dict(r) for r in rows]
+    historico = []
+    for r in rows:
+        item = dict(r)
+        try:
+            rec = json.loads(item.pop("resultado") or "{}").get("decisao", {}).get("recomendacao", {})
+        except (ValueError, TypeError):
+            rec = {}
+        item["decisao_resumo"] = ("Não instalar" if rec.get("tipo") == "nao_instalar"
+                                  else "Instalar" if rec.get("tipo") == "instalar" else "Não registrada")
+        historico.append(item)
+    return historico
 
 
 @app.get("/api/simulacoes/{sid}")

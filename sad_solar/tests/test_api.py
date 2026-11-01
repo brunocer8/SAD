@@ -73,3 +73,13 @@ def test_tarifa_social_api_sinaliza_entrada():
                                                    area_m2=30,tipo_ligacao="bifasica",tarifa_social=True))
     assert res.status_code==200
     assert res.json()["entrada"]["tarifa_social"] is True
+
+
+def test_historico_exibe_recomendacao_e_nao_apenas_faixa_financeira():
+    h = _h()
+    c.post("/api/analisar", headers=h, json=dict(
+        cod_ibge=COD, consumo_mes_kwh=250, tarifa_kwh=0.25,
+        area_m2=30, consumo_diurno_fracao=0.1))
+    historico = c.get("/api/simulacoes", headers=h).json()
+    assert historico[0]["decisao_resumo"] == "Não instalar"
+    assert "resultado" not in historico[0]  # não enviar objetos pesados para a listagem
