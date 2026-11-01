@@ -144,6 +144,48 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 @media(max-width:620px){#f,.advanced-grid{grid-template-columns:1fr}.result-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.metric{padding:12px 10px}.metric-value{font-size:18px}.details-hint{max-width:160px;font-size:10px}.result-main{padding:21px 17px}.report-details>summary{padding:16px}.details-body{padding:0 16px 20px}.charts-pair{grid-template-columns:1fr}.form-card{padding:21px 17px}.report-toolbar{align-items:flex-start}}
 @media print{header,nav,#v-login,#v-dash,#v-sim,#v-rel>.page-intro,#v-rel>.card:not(#det),footer,.noprint{display:none!important}#v-rel,#det{display:block!important}body{background:white!important}main{max-width:none;padding:0}#det{box-shadow:none;border:none;padding:0}#det .report-details{break-inside:avoid}#det .report-details>summary{padding:12px 0}#det .details-body{padding:0 10px 12px}#det .report-toolbar{display:block}.result-metrics{grid-template-columns:repeat(4,1fr)}}
 
+
+/* Garagem solar: seleção de alternativas em cartões, inspirada em interfaces de jogos de corrida.
+   Indicadores são reais do modelo; ilustrações vetoriais são apenas decorativas. */
+.solar-showroom{margin:0 0 20px;border-radius:23px;background:linear-gradient(130deg,#102F41 0%,#164E5B 62%,#0C6770 100%);color:white;padding:26px 26px 22px;box-shadow:0 17px 40px #14394a20;position:relative;overflow:hidden}
+.solar-showroom:before{content:"";position:absolute;width:280px;height:280px;right:-115px;top:-160px;border:45px solid #f4c45e19;border-radius:50%;pointer-events:none}
+.showroom-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;position:relative;z-index:1;margin-bottom:18px}
+.showroom-kicker{font-size:10px;letter-spacing:.16em;color:#F6C65D;font-weight:800}
+.showroom-head h2{color:#fff;font-size:clamp(23px,3vw,32px);letter-spacing:-.045em;margin:5px 0 6px}
+.showroom-head p{color:#D3E7E8;font-size:12px;max-width:670px;line-height:1.6;margin:0}.showroom-head p b{color:#fff}
+.showroom-controls{display:flex;gap:8px;flex:0 0 auto;padding-bottom:5px}
+.showroom-controls button{border:1px solid #ffffff66;background:#ffffff17;color:white;width:40px;height:40px;padding:0;border-radius:12px;font-size:26px;cursor:pointer;line-height:1;transition:background .15s}
+.showroom-controls button:hover:not(:disabled){background:#ffffff38}.showroom-controls button:disabled{opacity:.38;cursor:default}
+.solar-deck{display:flex;gap:14px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-color:#F6C65D #ffffff25;scrollbar-width:thin;padding:3px 3px 14px;overscroll-behavior-x:contain}
+.solar-choice{all:unset;box-sizing:border-box;display:flex;flex-direction:column;min-width:250px;max-width:285px;flex:0 0 270px;position:relative;background:#F7FAF9;border:3px solid transparent;border-radius:19px;overflow:hidden;color:#1A3E4D;cursor:pointer;scroll-snap-align:start;transition:transform .18s,border-color .18s,box-shadow .18s;box-shadow:0 9px 20px #001d2740}
+.solar-choice:hover{transform:translateY(-4px)}.solar-choice:focus-visible{outline:3px solid #F5C45D;outline-offset:3px}
+.solar-choice.is-selected{border-color:#F8C95F;box-shadow:0 0 0 2px #F8C95F77,0 15px 30px #001b2d66;transform:translateY(-2px)}
+.solar-choice.is-recommended .choice-scene{background:linear-gradient(145deg,#F4D391 0%,#EFB36F 43%,#84C6CB 100%)}
+.solar-choice.is-ineligible{opacity:.73}.solar-choice.is-ineligible.is-selected{opacity:1}
+.choice-scene{height:126px;position:relative;background:linear-gradient(145deg,#BADCE0,#5DABB5);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.choice-scene svg{width:100%;height:100%;object-fit:cover;display:block}.choice-scene:after{content:"";position:absolute;inset:auto 0 0;height:23px;background:linear-gradient(transparent,#17394725);pointer-events:none}
+.choice-badges{position:absolute;z-index:2;top:10px;left:10px;right:10px;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start}
+.choice-badge{background:#173E4DE8;color:#fff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:800;letter-spacing:.03em}
+.choice-badge.best{background:#F6C65D;color:#163E4B}.choice-badge.blocked{background:#FFF1E3;color:#97442A}
+.choice-core{flex:1;padding:15px 14px 11px;display:flex;flex-direction:column;gap:12px}
+.choice-profile{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.choice-type{font-size:10px;font-weight:800;letter-spacing:.09em;color:#327680;text-transform:uppercase}
+.choice-name{font-size:18px;font-weight:800;letter-spacing:-.04em;line-height:1.23;color:#183D4A;margin:4px 0 3px}
+.choice-sub{font-size:10px;color:#6B8287;line-height:1.4}
+.choice-power{text-align:right;min-width:65px}.choice-power b{font-size:25px;display:block;line-height:1;letter-spacing:-.055em}.choice-power small{font-size:10px;color:#6B8187}
+.choice-metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px 7px;padding:10px 0;border-top:1px solid #E3ECEA;border-bottom:1px solid #E3ECEA}
+.choice-metrics span{font-size:10px;color:#6A7E85;display:block}.choice-metrics strong{font-size:12px;display:block;margin-top:2px;color:#173947}
+.choice-rating{margin-top:auto;display:grid;gap:4px}.choice-rating-head{display:flex;justify-content:space-between;font-size:10px;color:#5E777F}
+.choice-rating-head b{color:#184B56}.choice-meter{background:#E1E8E6;border-radius:99px;height:6px;overflow:hidden}.choice-meter>i{height:100%;display:block;background:linear-gradient(90deg,#DB8948,#D7BC5B,#087C88);border-radius:99px}
+.choice-cta{display:block;text-align:center;font-size:11px;font-weight:800;padding:11px 8px;background:#E5F0EF;color:#146C73;letter-spacing:.02em}.solar-choice.is-selected .choice-cta{background:#F6C65D;color:#173E4B}
+.showroom-foot{font-size:10px;line-height:1.6;color:#CBE4E4;margin:13px 3px 0}.showroom-foot b{color:white}
+.option-inspector{background:#fff;border-left:5px solid #E2B45B;padding:22px 27px}.inspector-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+.inspector-head h3{font-size:22px;letter-spacing:-.045em;margin:5px 0 6px;color:#14394A;line-height:1.3}
+.inspector-head .status-pill{margin-top:4px}.inspector-help{font-size:12px;color:#526E73;line-height:1.6;margin:2px 0 15px}
+.option-inspector .result-metrics{margin-top:13px}.option-inspector .result-note{margin-bottom:0}
+@media(max-width:700px){.solar-showroom{padding:20px 15px 16px;margin-left:-2px;margin-right:-2px}.showroom-head{align-items:flex-start}.showroom-head p{font-size:11px}.showroom-controls button{width:34px;height:34px}.solar-choice{flex-basis:245px;min-width:245px}.choice-scene{height:115px}.option-inspector{padding:18px 17px}.inspector-head{flex-direction:column;gap:2px}}
+@media print{.solar-showroom{background:white;color:#153D4A;padding:12px 0;box-shadow:none;overflow:visible}.showroom-head h2,.showroom-head p,.showroom-foot{color:#1C4850}.solar-deck{flex-wrap:wrap;overflow:visible;gap:7px;padding:0;scroll-snap-type:none}.solar-choice{flex:0 0 190px;min-width:190px;max-width:190px;break-inside:avoid;box-shadow:none;border:1px solid #DDE7E5}.choice-scene{height:74px}.choice-core{gap:4px;padding:8px}.choice-metrics{gap:4px}.choice-cta{display:none}}
+
 </style></head><body>
 <header class="hide" id="top"><h2 class="brand-header"><svg class="brand-symbol" width="48" height="48" viewBox="0 0 64 64" role="img" aria-label="Símbolo do Sol da Bahia"><rect x="2" y="2" width="60" height="60" rx="18" fill="#F7C55D"/><circle cx="35" cy="26" r="12" fill="#FDF4D9"/><path d="M9 40c10-7 17-7 27 0s17 7 22 2v11c-8 4-14 2-22-3s-18-7-27 0z" fill="#087C88"/><path d="M9 49c10-6 17-6 27 0s17 6 22 1" fill="none" stroke="#14394A" stroke-width="4" stroke-linecap="round"/></svg><span class="brand-title">Sol <em>da Bahia</em><small>ENERGIA SOLAR RESIDENCIAL · SAD</small></span></h2>
 <nav><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
@@ -191,12 +233,20 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
  </form><p class="form-feedback" id="msg" role="status" aria-live="polite"></p></div>
  <section id="res" class="hide" aria-live="polite">
   <div class="result-section-label"><span class="step-marker">02 · SUA DECISÃO</span><h2>Resultado da simulação</h2></div>
-  <div class="card result-main" id="resumo-principal">
-    <div id="veredito"></div>
-    <div class="result-metrics" id="kpis"></div>
-    <p class="result-note" id="classe"></p>
+  <div class="card result-main" id="resumo-principal"><div id="veredito"></div></div>
+  <section id="comparacao" class="solar-showroom" aria-labelledby="showroom-title">
+   <div class="showroom-head">
+    <div><span class="showroom-kicker">03 · ESCOLHA SUA CONFIGURAÇÃO</span><h2 id="showroom-title">Garagem solar</h2><p>Explore as alternativas como numa seleção de equipamentos. <b>A recomendação do SAD não muda</b> quando você troca a opção exibida.</p></div>
+    <div class="showroom-controls noprint"><button id="deck-prev" type="button" aria-label="Ver alternativas anteriores" title="Anterior">‹</button><button id="deck-next" type="button" aria-label="Ver próximas alternativas" title="Próxima">›</button></div>
+   </div>
+   <div id="decisao" class="solar-deck" aria-label="Alternativas de decisão; navegue horizontalmente" role="group"></div>
+   <p class="showroom-foot">Os indicadores SAW são <b>relativos às opções desta simulação</b>, não uma nota universal de qualidade. Alternativas fora do filtro são exibidas, mas não podem ser recomendadas.</p>
+  </section>
+  <div class="card option-inspector" id="option-inspector">
+   <div class="inspector-head"><div><span class="decision-eyebrow">OPÇÃO EM EXIBIÇÃO</span><h3 id="opcao-titulo">Selecione uma alternativa</h3></div><span id="opcao-status" class="status-pill">Comparação</span></div>
+   <p id="opcao-ajuda" class="inspector-help">Os números abaixo acompanham a opção selecionada acima.</p>
+   <div class="result-metrics" id="kpis"></div><p class="result-note" id="classe"></p>
   </div>
-  <details class="card report-details" id="comparacao"><summary><span><b>Comparar alternativas</b><small>Veja as opções avaliadas e escolha uma para explorar</small></span><span class="summary-arrow" aria-hidden="true">⌄</span></summary><div id="decisao" class="details-body"></div></details>
   <details class="card report-details" id="graficos"><summary><span><b>Entenda os números</b><small>Geração solar, retorno e incerteza</small></span><span class="summary-arrow" aria-hidden="true">⌄</span></summary>
     <div class="details-body"><div class="g2 charts-pair"><div><h3>Geração mensal estimada</h3><canvas id="c1"></canvas></div><div><h3>Retorno acumulado (R$)</h3><canvas id="c2"></canvas></div></div><div id="risco" class="risk-box"></div></div>
   </details>
@@ -288,13 +338,52 @@ function indicadores(a,k,fin){
  const risco=fin?k?.prob_vpl_positivo_financiado:k?.prob_vpl_positivo;
  return [K("Investimento estimado",R(a?.investimento),"Equipamentos + instalação"),K("Economia no 1º ano",R(a?.economia_ano1),"Economia anual prevista"),K("Tempo de retorno",Y(a?.payback),"Payback estimado"),K("VPL em 25 anos",R(a?.vpl),"Retorno trazido a valor presente")].join("");
 }
+function solarArt(qtd,nao){
+ // Ilustração autoral de telhado solar; não substitui projeto nem corresponde ao número exato de módulos.
+ if(nao)return `<svg viewBox="0 0 320 132" aria-hidden="true"><circle cx="252" cy="32" r="22" fill="#F6C65D"/><path d="M0 110Q78 84 150 110T320 106V132H0Z" fill="#277A83"/><path d="M58 80L160 31L261 80V123H58Z" fill="#F5E8D8"/><path d="M39 83L160 23L281 83" fill="none" stroke="#27566A" stroke-width="13" stroke-linejoin="round"/><rect x="143" y="92" width="37" height="31" rx="2" fill="#427786"/><path d="M0 123H320" stroke="#F6C65D" stroke-width="4"/></svg>`;
+ const count=Math.min(8,Math.max(2,Number(qtd)||2));
+ const panels=Array.from({length:count},(_,i)=>{const col=i%4,row=Math.floor(i/4);return `<g transform="translate(${113+col*25-row*13},${48+row*25}) skewX(-18)"><rect width="21" height="23" rx="1.5" fill="#174459" stroke="#B7D8DB" stroke-width="1"/><path d="M10.5 1V22M1 11.5H20" stroke="#7EB7C1" stroke-width="1"/></g>`}).join("");
+ return `<svg viewBox="0 0 320 132" aria-hidden="true"><circle cx="269" cy="34" r="25" fill="#F8D37A" opacity=".95"/><path d="M0 113Q50 91 100 108T215 106T320 111V132H0Z" fill="#2B8D90" opacity=".55"/><path d="M31 105L147 28L284 102V132H31Z" fill="#ECDECD"/><path d="M21 106L146 24L298 106" fill="none" stroke="#2A6072" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M0 130H320" stroke="#D8A56A" stroke-width="5"/>${panels}</svg>`;
+}
+function escolhaHTML(D,sel){
+ if(!D?.ranking?.length)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
+ const recomendado=D.recomendacao?.nome;
+ return D.ranking.map((a,i)=>{
+  const nao=!a.res, rejeitada=a.veredito?.nivel==="nao", vencedor=a.nome===recomendado;
+  const qtd=nao?0:Math.round((a.kwp||0)/0.62);
+  const tipo=nao?"Sem instalação":/compacto/i.test(a.nome)?"Sistema compacto":/ampliado/i.test(a.nome)?"Sistema ampliado":"Sistema solar";
+  const titulo=nao?"Manter a conta atual":`${N(a.kwp)} kWp`;
+  const badge=nao?"Sem investimento":rejeitada?"Fora do filtro":statusAlt(a);
+  const score=a.indice==null?"—":N(a.indice);
+  const percentual=a.indice==null?0:Math.max(0,Math.min(100,a.indice*100));
+  const geracao=nao?0:a.res.geracao_mensal_kwh?.reduce((s,v)=>s+v,0)||0;
+  const cls=`solar-choice${vencedor?' is-recommended':''}${i===sel?' is-selected':''}${rejeitada?' is-ineligible':''}`;
+  return `<button type="button" class="${cls}" onclick="selecionar(${i},true)" aria-pressed="${i===sel}" aria-label="Explorar ${E(a.nome)}${vencedor?', escolha recomendada pelo SAD':''}">
+    <div class="choice-scene">${solarArt(qtd,nao)}<div class="choice-badges">${vencedor?'<span class="choice-badge best">★ ESCOLHA DO SAD</span>':''}${rejeitada?'<span class="choice-badge blocked">NÃO RECOMENDÁVEL</span>':''}${a.grupo===1&&!vencedor?'<span class="choice-badge">GRUPO PRÓXIMO AO LÍDER</span>':''}</div></div>
+    <div class="choice-core"><div class="choice-profile"><div><span class="choice-type">${E(tipo)} · ${E(nao?'sem painéis':(a.financiado?'financiado':'à vista'))}</span><div class="choice-name">${E(titulo)}</div><div class="choice-sub">${nao?'Não gera energia; continua pagando a distribuidora.':`${qtd} painéis de 620 Wp · ~${N(geracao)} kWh/ano`}</div></div><div class="choice-power"><b>${nao?'0':qtd}</b><small>painéis</small></div></div>
+    <div class="choice-metrics"><div><span>Investimento</span><strong>${nao?'R$ 0':R(a.investimento)}</strong></div><div><span>Economia no 1º ano</span><strong>${nao?'R$ 0':R(a.res.economia_ano1)}</strong></div><div><span>Payback</span><strong>${nao?'—':Y(a.payback)}</strong></div><div><span>VPL</span><strong>${nao?'R$ 0':R(a.vpl)}</strong></div></div>
+    <div class="choice-rating"><div class="choice-rating-head"><span>Índice SAW (relativo)</span><b>${score}${a.indice==null?'':' / 1'}</b></div><div class="choice-meter" aria-hidden="true"><i style="width:${percentual.toFixed(0)}%"></i></div><span class="choice-sub">${E(badge)}</span></div>
+    </div><span class="choice-cta">${i===sel?'✓ EM EXIBIÇÃO':'EXPLORAR ESTA OPÇÃO →'}</span>
+   </button>`;
+ }).join("");
+}
+function atualizarDeck(D,sel){
+ $("decisao").innerHTML=escolhaHTML(D,sel);
+ const deck=$("decisao");
+ $("deck-prev").disabled=deck.scrollLeft<8;
+ $("deck-next").disabled=deck.scrollWidth-deck.clientWidth-deck.scrollLeft<8;
+}
+$("deck-prev").onclick=()=>$("decisao").scrollBy({left:-290,behavior:"smooth"});
+$("deck-next").onclick=()=>$("decisao").scrollBy({left:290,behavior:"smooth"});
+$("decisao").addEventListener("scroll",()=>{const deck=$("decisao");$("deck-prev").disabled=deck.scrollLeft<8;$("deck-next").disabled=deck.scrollWidth-deck.clientWidth-deck.scrollLeft<8;},{passive:true});
+window.addEventListener("resize",()=>{if(CUR?.resultado?.decisao){const deck=$("decisao");$("deck-prev").disabled=deck.scrollLeft<8;$("deck-next").disabled=deck.scrollWidth-deck.clientWidth-deck.scrollLeft<8;}});
 function comparacaoHTML(D,inter,sel){
+ // Versão tabular mantida no relatório imprimível; no formulário, o usuário vê os cartões interativos.
  if(!D?.ranking)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
- return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Situação</th>${inter?"<th></th>":""}</tr></thead><tbody>`+
- D.ranking.map((a,i)=>{const isNao=!a.res,v=a.veredito?.nivel,principal=D.recomendacao?.tipo==="nao_instalar"?isNao:a.nome===D.recomendacao?.nome;
+ return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Situação</th></tr></thead><tbody>`+
+ D.ranking.map((a,i)=>{const isNao=!a.res,v=a.veredito?.nivel,principal=a.nome===D.recomendacao?.nome;
  const badge=isNao?"muted":v==="nao"?"muted":v==="ressalvas"?"warn":"";
- const ativo=inter&&a.res;
- return `<tr class="${i===sel?"is-selected ":""}${principal?"is-winner":""}"><td><b>${E(isNao?"Não instalar":a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':""}</td><td>${isNao?"—":R(a.investimento)}</td><td>${isNao?"—":Y(a.payback)}</td><td>${isNao?"—":R(a.vpl)}</td><td><span class="status-pill ${badge}">${statusAlt(a)}</span></td>${inter?`<td>${ativo?`<button type="button" class="mini-btn" onclick="selecionar(${i})" ${i===sel?"disabled":""}>${i===sel?"Exibindo":"Ver detalhes"}</button>`:""}</td>`:""}</tr>`}).join("")+`</tbody></table></div><p><small>A comparação de alternativas é feita pelo filtro de viabilidade e pelos pesos do método SAW. A potência mais alta não é necessariamente a melhor.</small></p>`;
+ return `<tr class="${i===sel?'is-selected ':''}${principal?'is-winner':''}"><td><b>${E(isNao?'Não instalar':a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':''}</td><td>${isNao?'—':R(a.investimento)}</td><td>${isNao?'—':Y(a.payback)}</td><td>${isNao?'—':R(a.vpl)}</td><td><span class="status-pill ${badge}">${statusAlt(a)}</span></td></tr>`}).join("")+`</tbody></table></div><p><small>A recomendação resulta do filtro de viabilidade e da comparação multicritério; maior potência não significa necessariamente melhor escolha.</small></p>`;
 }
 function metodoHTML(D){
  if(!D?.criterios)return "<p>Os dados de decisão não estão disponíveis nesta simulação antiga.</p>";
@@ -316,16 +405,34 @@ function mostrar(a,k,fin){
  const faixa=fin?k.vpl_financiado:k.vpl_a_vista;
  $("risco").innerHTML=`<b>Incerteza financeira</b><p>Em ${P(prob)} dos ${k.n_cenarios} cenários simulados, o VPL foi positivo. Entre os percentis 10 e 90, o VPL variou de <b>${R(faixa.p10)}</b> a <b>${R(faixa.p90)}</b>. Taxa interna de retorno estimada (TIR): <b>${P(a.tir)}</b>.</p><small>Os cenários dependem de preços, geração solar e outras premissas. Não representam garantia de rendimento.</small>`;
 }
-function selecionar(i){
+function selecionar(i,foco=false){
  if(!CUR?.resultado?.decisao)return;
- const D=CUR.resultado.decisao,a=D.ranking[i];if(!a?.res)return;
+ const D=CUR.resultado.decisao,a=D.ranking[i];if(!a)return;
  SEL=i;
  $("veredito").innerHTML=resumoRecomendacao(D,a);
- $("decisao").innerHTML=comparacaoHTML(D,true,i);
+ atualizarDeck(D,i);
  $("metodo").innerHTML=metodoHTML(D);
- mostrar(a.res,a.risco,Boolean(a.financiado));
- if(i!==D.recomendacao.indice_exibido){
-   $("classe").textContent+=" Você selecionou outra alternativa para comparação; a recomendação principal do SAD não mudou.";
+ const nao=!a.res;
+ const vencedor=a.nome===D.recomendacao?.nome;
+ $("opcao-titulo").textContent=nao?"Manter a conta atual":a.nome;
+ const status=$("opcao-status");status.textContent=vencedor?"Escolha do SAD":statusAlt(a);
+ status.className=`status-pill${nao?' muted':a.veredito?.nivel==='nao'?' muted':a.veredito?.nivel==='ressalvas'?' warn':''}`;
+ $("opcao-ajuda").textContent=vencedor?"Você está vendo a alternativa recomendada pelo SAD.":"Você está explorando outra alternativa. A recomendação principal permanece a mesma.";
+ $("graficos").classList.toggle("hide",nao);
+ if(nao){
+  $("kpis").innerHTML=[K("Investimento","R$ 0"),K("Economia solar","R$ 0"),K("Payback","—"),K("VPL incremental","R$ 0")].join("");
+  $("classe").textContent="Nesta opção, a residência continua comprando energia da distribuidora; não há investimento nem economia solar.";
+ }else{
+  mostrar(a.res,a.risco,Boolean(a.financiado));
+  if(a.veredito?.nivel==="nao")$("classe").textContent+=" Esta alternativa não passou no filtro de viabilidade e não pode ser recomendada.";
+  else if(!vencedor)$("classe").textContent+=" Opção exibida apenas para comparação; não altera a escolha do SAD.";
+ }
+ // Cartões continuam na posição atual após atualização do conteúdo, e a alternativa ativa fica visível.
+ const deck=$("decisao"),card=deck.querySelector('.solar-choice.is-selected');
+ if(card){
+  if(foco)card.focus({preventScroll:true});
+  const c=card.getBoundingClientRect(), d=deck.getBoundingClientRect();
+  if(c.left<d.left||c.right>d.right)deck.scrollBy({left:c.left-d.left-9,behavior:"smooth"});
  }
 }
 $("f").onsubmit=async e=>{
@@ -336,8 +443,9 @@ $("f").onsubmit=async e=>{
    const d=await api("/api/analisar",{method:"POST",body:{cod_ibge:cod,consumo_mes_kwh:+$("cons").value,tarifa_kwh:+$("tar").value,financiado:0,
     consumo_diurno_fracao:+$("dia").value/100,area_m2:+$("area").value,tipo_ligacao:$("ligacao").value,tarifa_social:$("social").value==="1",
     prioridade:$("prio").value,custo_kwp:$("ck").value?+$("ck").value:null,taxa_financiamento:(document.querySelector('input[name="pgto"]:checked').value==="fin"&&$("tx").value)?+$("tx").value/100:null}});
-   CUR=d;selecionar(d.resultado.decisao.recomendacao.indice_exibido);
-   ["comparacao","graficos","metodologia"].forEach(id=>$(id).open=false);
+   $("decisao").scrollLeft=0;
+   CUR=d;const D=d.resultado.decisao;selecionar(Math.max(0,D.ranking.findIndex(a=>a.nome===D.recomendacao.nome)));
+   ["graficos","metodologia"].forEach(id=>$(id).open=false);
    $("res").scrollIntoView({behavior:"smooth",block:"start"});
  }catch(x){$("msg").textContent=x.message;}finally{btn.disabled=false;btn.innerHTML='Analisar minha casa <span aria-hidden="true">→</span>';}
 };

@@ -2,7 +2,7 @@
 
 **Sistema de Apoio à Decisão (SAD) para avaliar a instalação de energia solar fotovoltaica em residências da Bahia.**
 
-![Prévia da interface Sol da Bahia](docs/preview.png)
+![Garagem solar: alternativas visuais do Sol da Bahia](docs/garagem_solar.png)
 
 A marca *Sol da Bahia* combina a luz solar, o azul do mar e cores quentes que remetem à cultura baiana. O protótipo não é um orçamento nem um projeto de engenharia: ele ajuda o morador a comparar opções tecnicamente admissíveis e economicamente estimadas, **incluindo a opção de não instalar**.
 
@@ -12,7 +12,7 @@ Pré-requisitos: Python 3.12+ e internet para carregar a biblioteca de gráficos
 
 ```bash
 # 1. Entre na pasta do projeto
-cd sol_da_bahia_simplificado
+cd sol_da_bahia_gameficado
 
 # 2. Instale as dependências
 python -m pip install -r requirements.txt
@@ -37,7 +37,7 @@ Na aba **Simulação**, informe apenas os três dados iniciais:
 
 Clique em **Analisar minha casa**. Por padrão, o modelo utiliza a tarifa B1 homologada **sem tributos** de R$ 0,87773/kWh (Coelba, vigência 22/04/2026–21/04/2027), ligação bifásica (mínimo de 50 kWh), consumo equilibrado entre dia e noite, custos estimados e pagamento à vista. Essas opções **podem ser alteradas em “Ajustar premissas”**, incluindo Tarifa Social, financiamento, prioridade e um orçamento real facultativo.
 
-A tela mostra primeiro a **recomendação** e quatro números importantes: investimento, economia estimada no primeiro ano, payback e VPL. Os demais resultados permanecem acessíveis em seções opcionais: **Comparar alternativas**, **Entenda os números** e **Como o SAD decidiu?**. Em **Relatórios**, o histórico indica **Instalar/Não instalar**, e o relatório pode ser impresso/salvo em PDF com detalhes metodológicos incluídos.
+A tela mostra a **recomendação principal** e uma **Garagem solar** interativa: cartões visuais com os sistemas compactos, de referência e ampliados (quando viáveis), além de **Não instalar**. Cada cartão exibe potência, painéis, investimento, economia, payback, VPL e índice SAW. O decisor pode navegar lateralmente e selecionar uma opção para consultar os quatro indicadores essenciais; a seleção visual não altera a recomendação calculada pelo modelo. Os detalhes complementares permanecem em **Entenda os números** e **Como o SAD decidiu?**. Em **Relatórios**, o histórico indica **Instalar/Não instalar**, e o relatório pode ser impresso/salvo em PDF com detalhes metodológicos incluídos.
 
 O sistema calcula a geração, testa sistemas com **número inteiro de módulos ilustrativos de 620 Wp**, respeita o limite da área informada (7 m²/kWp, hipótese simplificada), projeta a conta, o fluxo financeiro e o risco, compara alternativas e indica uma recomendação multicritério. Uma instalação real exige conferência de módulos/inversor, sombreamento, estrutura, conexão e orçamento.
 
@@ -101,5 +101,14 @@ A execução de `scripts/caso_demonstracao.py` recria o relatório de teste resi
 - O orçamento opcional continua disponível para recalcular o custo com um valor real de R$/kWp.
 - Priorização do usuário reduzida a duas escolhas na seção avançada (padrão e maior cautela), preservando o método SAW.
 - A tela de resultados **não repete a mesma recomendação** em vários cartões; as sete métricas anteriores foram reduzidas a quatro principais.
-- Os gráficos, distribuição de risco, alternativas descartadas, agrupamento e critérios SAW **não foram excluídos do cálculo**: estão nos painéis expansíveis e na versão imprimível do relatório.
+- As **alternativas aparecem em cartões de seleção inspirados em interfaces de jogos**, sempre visíveis após simular; a escolhida pelo SAD recebe um destaque e a alternativa **Não instalar** pode ser explorada.
+- Os gráficos, distribuição de risco, alternativas descartadas, agrupamento e critérios SAW **não foram excluídos do cálculo**: aparecem na garagem solar, nos painéis de detalhe e na versão imprimível do relatório.
 - O relatório mostra a **decisão recomendada**, não apenas a classe estatística de retorno; quando o SAD recomenda não instalar, os indicadores do sistema de referência são identificados como ilustrativos.
+
+## Apresentação gamificada das alternativas
+
+A **Garagem solar**, apresentada após cada simulação, utiliza cartões horizontais inspirados em interfaces de seleção de veículos de jogos de corrida. Em vez de automóveis, o usuário compara **configurações de painéis solares** e a opção **Não instalar**. A proposta é facilitar a exploração das alternativas, conforme orientação didática do professor, sem transformar a recomendação técnica em uma competição fictícia.
+
+Cada cartão mostra uma ilustração vetorial de telhado, quantidade de módulos de referência, potência em kWp, geração anual, investimento, economia no primeiro ano, payback, VPL, viabilidade e **índice SAW relativo**. A recomendação do modelo aparece identificada. Opções reprovadas pelo filtro de viabilidade continuam visíveis, com aviso, mas não se tornam recomendáveis apenas porque o usuário as selecionou. A seleção altera **os números em exibição**, não os critérios nem o resultado da decisão.
+
+No **Relatório**, a comparação tabular permanece disponível por ser mais apropriada para impressão, validação e apresentação acadêmica. A ilustração é decorativa e não representa um projeto elétrico ou uma disposição de placas certificada.

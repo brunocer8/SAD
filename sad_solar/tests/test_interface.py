@@ -34,7 +34,13 @@ def test_resultado_preserva_comparacao_analise_e_modelo_de_decisao():
     assert {"veredito", "kpis", "comparacao", "graficos", "metodologia", "metodo", "decisao", "risco"} <= doc.ids
     assert "Não instalar" in HTML
     assert "Regressão" in HTML and "Sumarização" in HTML and "Agrupamento" in HTML
-    for detail_id in ("comparacao", "graficos", "metodologia"):
+    # As alternativas são o elemento de escolha em destaque, e não um acordeão escondido.
+    assert "Garagem solar" in HTML
+    assert "escolhaHTML(D,sel)" in HTML
+    assert "solar-choice" in HTML
+    assert {"option-inspector", "deck-prev", "deck-next", "opcao-titulo"} <= doc.ids
+    assert all(a.get("id") != "comparacao" for a in doc.details)
+    for detail_id in ("graficos", "metodologia"):
         assert not next(a for a in doc.details if a.get("id") == detail_id).get("open")
 
 
