@@ -83,3 +83,61 @@ def test_historico_exibe_recomendacao_e_nao_apenas_faixa_financeira():
     historico = c.get("/api/simulacoes", headers=h).json()
     assert historico[0]["decisao_resumo"] == "Não instalar"
     assert "resultado" not in historico[0]  # não enviar objetos pesados para a listagem
+
+
+def test_explicacao_automatica_usa_recomendacao_e_nao_vaza_pessoais(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    h = _h()
+    req = dict(cod_ibge=COD, consumo_mes_kwh=250, tarifa_kwh=0.25,
+               area_m2=30, consumo_diurno_fracao=0.1)
+    sim = c.post('/api/analisar', headers=h, json=req)
+    assert sim.status_code == 200
+    sid = sim.json()['id']
+    assert sim.json()['resultado']['decisao']['recomendacao']['tipo'] == 'nao_instalar'
+    r = c.get(f'/api/simulacoes/{sid}/explicacao', headers=h)
+    assert r.status_code == 200
+    assert r.json()['fonte'] == 'automatico'
+    assert 'não instalar' in r.json()['texto'].lower()
+    assert 'apenas para comparação' in r.json()['texto'].lower()
+    assert c.get(f'/api/simulacoes/{sid}/explicacao').status_code == 401
+    assert c.get('/api/simulacoes/999999/explicacao', headers=h).status_code == 404
+
+
+def test_explicacao_por_ia_eh_cacheada_e_nunca_envia_credenciais(monkeypatch):
+    monkeypatch.setenv('GEMINI_API_KEY', 'chave_teste_nao_real')
+    h = _h()
+    sim = c.post('/api/analisar', headers=h, json=dict(
+        cod_ibge=COD, consumo_mes_kwh=250, tarifa_kwh=0.87773, area_m2=30))
+    assert sim.status_code == 200
+    sid = sim.json()['id']
+    chamadas=[]
+    texto_ia = ('O modelo recomenda instalar apenas nas condições simuladas. '
+                'O investimento e o retorno dependem das premissas. '
+                'Antes de contratar, consulte um profissional para vistoria e orçamento.')
+    class Resposta:
+        def raise_for_status(self): pass
+        def json(self):
+            return {'candidates':[{'content':{'parts':[{'text':texto_ia}]}}]}
+    def falso_post(url, **kw):
+        chamadas.append((url,kw))
+        return Resposta()
+    monkeypatch.setattr(appmod.requests, 'post', falso_post)
+    primeiro=c.get(f'/api/simulacoes/{sid}/explicacao',headers=h)
+    segundo=c.get(f'/api/simulacoes/{sid}/explicacao',headers=h)
+    assert primeiro.status_code==200 and primeiro.json()==segundo.json()
+    assert primeiro.json()['fonte']=='gemini' and len(chamadas)==1
+    prompt=chamadas[0][1]['json']['contents'][0]['parts'][0]['text']
+    assert 'senha123' not in prompt and 'teste_sad' not in prompt and 'chave_teste_nao_real' not in prompt
+
+
+def test_explicacao_ia_indisponivel_tem_fallback(monkeypatch):
+    monkeypatch.setenv('GEMINI_API_KEY', 'chave_teste_nao_real')
+    h=_h()
+    sim=c.post('/api/analisar',headers=h,json=dict(cod_ibge=COD,consumo_mes_kwh=250,tarifa_kwh=0.87773,area_m2=30))
+    sid=sim.json()['id']
+    def falhar(*args, **kwargs):
+        raise appmod.requests.Timeout('Fora do ar')
+    monkeypatch.setattr(appmod.requests,'post',falhar)
+    r=c.get(f'/api/simulacoes/{sid}/explicacao',headers=h)
+    assert r.status_code==200 and r.json()['fonte']=='automatico'
+    assert 'Sol da Bahia' in r.json()['texto'] or 'SAD recomenda' in r.json()['texto']

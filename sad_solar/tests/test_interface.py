@@ -49,3 +49,19 @@ def test_relatorio_preserva_impressao_e_historico():
     doc.feed(HTML)
     assert {"rt", "csv", "det", "dbody"} <= doc.ids
     assert "imprimirRelatorio()" in HTML
+
+
+def test_graficos_retorno_apresentam_tooltip_em_reais():
+    assert 'function tooltipRetorno()' in HTML
+    assert HTML.count('options:tooltipRetorno()') == 2  # Painel e Simulação
+    assert 'Saldo acumulado:' in HTML and 'pt-BR' in HTML
+    assert 'pointHoverRadius:6' in HTML
+
+
+def test_interpretacao_ia_estah_visivel_e_recuperavel_no_relatorio():
+    doc=Inputs();doc.feed(HTML)
+    assert {'explicacao','explicacao-fonte','explicacao-texto'} <= doc.ids
+    assert 'carregarExplicacao(d.id' in HTML
+    assert '/explicacao`' in HTML
+    assert 'id="rel-explicacao-texto"' in HTML
+    assert 'd.fonte==="gemini"' in HTML

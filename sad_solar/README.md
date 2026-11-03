@@ -12,7 +12,7 @@ Pré-requisitos: Python 3.12+ e internet para carregar a biblioteca de gráficos
 
 ```bash
 # 1. Entre na pasta do projeto
-cd sol_da_bahia_gameficado
+cd sol_da_bahia
 
 # 2. Instale as dependências
 python -m pip install -r requirements.txt
@@ -42,6 +42,28 @@ A tela mostra a **recomendação principal** e uma **Garagem solar** interativa:
 O sistema calcula a geração, testa sistemas com **número inteiro de módulos ilustrativos de 620 Wp**, respeita o limite da área informada (7 m²/kWp, hipótese simplificada), projeta a conta, o fluxo financeiro e o risco, compara alternativas e indica uma recomendação multicritério. Uma instalação real exige conferência de módulos/inversor, sombreamento, estrutura, conexão e orçamento.
 
 **Tarifa Social:** em "Ajustar premissas", o formulário oferece uma opção de cálculo **simplificado** que impede tratar os primeiros 80 kWh/mês como economia evitável. Não representa todos os impostos, descontos ou regras de elegibilidade. A decisão financeira nesses casos deve ser interpretada com especial cautela. Ao selecionar Tarifa Social, o formulário altera a tarifa de referência para a faixa acima de 80 kWh; a correspondência com a fatura continua dependendo de verificação.
+
+## Explicação por IA e retorno acumulado interativo
+
+O gráfico **Retorno acumulado (R$)** na Simulação e o gráfico correspondente no Painel exibem um **tooltip** com o ano e o saldo em reais quando o usuário passa o mouse ou toca na curva.
+
+Após uma simulação, a seção **Entenda a recomendação** explica a decisão oficial do SAW, e não apenas o cartão selecionado na Garagem Solar. A mesma explicação também aparece em **Relatórios** e pode ser impressa. A API só envia ao serviço de IA dados resumidos da simulação (município, consumo, área, premissas e indicadores), **sem credenciais ou documentos privados**.
+
+Para ativar texto **realmente gerado por IA**, configure a variável de ambiente `GEMINI_API_KEY` no **servidor**, usando a chave obtida na plataforma Google AI Studio. O aplicativo usa o modelo configurado em `GEMINI_MODEL` (padrão `gemini-2.5-flash`). Por exemplo:
+
+```bash
+# Linux/macOS (somente na sessão atual)
+export GEMINI_API_KEY="sua_chave"
+python -m uvicorn app:app --reload
+```
+
+```powershell
+# PowerShell (somente na sessão atual)
+$env:GEMINI_API_KEY="sua_chave"
+python -m uvicorn app:app --reload
+```
+
+**No Render**, cadastre `GEMINI_API_KEY` como variável de ambiente do serviço. **Nunca coloque a chave no GitHub nem no HTML.** A primeira explicação gerada pela IA é salva junto à simulação para evitar chamadas repetidas. **Sem chave ou se houver falha do provedor, a aplicação continua funcional e exibe uma explicação automática identificada como tal**, sem fingir que o texto veio da IA. A geração por IA é uma camada interpretativa: **não modifica cálculos, pesos, filtros ou a recomendação**.
 
 ## O que faz do protótipo um SAD?
 
