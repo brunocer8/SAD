@@ -1,0 +1,74 @@
+{
+ "features": [
+  "log_consumo",
+  "tarifa_kwh",
+  "consumo_diurno_fracao",
+  "razao_ger_consumo"
+ ],
+ "media": [
+  3.7368497767202857,
+  1.074386449816316,
+  0.5960578649790791,
+  0.8733310693259029
+ ],
+ "desvio": [
+  0.4286858132867635,
+  0.1294544007235261,
+  0.11577627682021899,
+  0.3659128993095498
+ ],
+ "grupos": [
+  {
+   "nome": "consumo alto, tarifa baixa, perfil menos diurno",
+   "centroide": [
+    4.075266096279462,
+    1.0721380561098637,
+    0.4904455565382716,
+    0.5958256083676561
+   ],
+   "n": 1452,
+   "prob_vpl_positivo": 1.0,
+   "payback_mediano": 2.3831384105738485,
+   "consumo_mediano": 13219.997008561266
+  },
+  {
+   "nome": "consumo baixo, tarifa alta, perfil menos diurno",
+   "centroide": [
+    3.4400197208360894,
+    1.1947615812325931,
+    0.5889181365272184,
+    1.1117153206148767
+   ],
+   "n": 1557,
+   "prob_vpl_positivo": 1.0,
+   "payback_mediano": 2.358595720830349,
+   "consumo_mediano": 2674.600948016735
+  },
+  {
+   "nome": "consumo alto, tarifa alta, perfil diurno",
+   "centroide": [
+    4.094073915123507,
+    1.080448970991324,
+    0.7089349433459616,
+    0.5952836523182583
+   ],
+   "n": 1357,
+   "prob_vpl_positivo": 1.0,
+   "payback_mediano": 2.3238122189054984,
+   "consumo_mediano": 13765.6046430603
+  },
+  {
+   "nome": "consumo baixo, tarifa baixa, perfil diurno",
+   "centroide": [
+    3.422303109155136,
+    0.9566470047809097,
+    0.6029681671282349,
+    1.1236884713661843
+   ],
+   "n": 1634,
+   "prob_vpl_positivo": 1.0,
+   "payback_mediano": 3.0243510922550305,
+   "consumo_mediano": 2471.803558064791
+  }
+ ]
+}
