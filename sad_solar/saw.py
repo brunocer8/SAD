@@ -8,13 +8,18 @@ Etapas (nesta ordem):
      "alavancagem" e "sem endividamento" ficam com peso 0 + a alternativa "Não instalar". Os tamanhos já respeitam as restrições TÉCNICAS
      (potência <= 75 kWp da microgeração, Lei 14.300/2022; área de telhado). Se a área não comporta o sistema
      mínimo, não há alternativa de instalação (financeiro.AreaInsuficiente).
-  2. FILTRO DE VIABILIDADE (regra, não preferência). Uma alternativa de instalação só entra no ranking se
-     VPL > 0 no cenário-base E probabilidade de VPL positivo (Monte Carlo) >= LIM_PROB_MIN. Alternativas
-     reprovadas são mostradas, com o motivo, mas NÃO recebem índice nem podem ser recomendadas.
+  2. FILTROS. (a) Viabilidade: VPL > 0 e probabilidade de VPL positivo >= LIM_PROB_MIN.
+     (b) Dominância econômica nos perfis padrão e retorno: não recomendar uma instalação que custe
+     mais, tenha VPL menor e payback maior que outra, com cobertura e risco no mínimo equivalentes.
+     As opções dominadas continuam visíveis, mas não disputam o ranking. No perfil cautela,
+     uma preferência explícita de menor risco permite considerar também a diferença na dependência de créditos.
   3. RANKING SAW (Hwang e Yoon, 1981) entre as alternativas aprovadas + "Não instalar". Índice
      S_i = soma_j(w_j * r_ij), com r_ij normalizado por min-max (critério de ganho: (x-min)/(max-min); de
      custo: (max-x)/(max-min); se todas empatam, r_ij = 1). Pesos: ordem de preferência dos quatro fatores
-     convertida em pesos pelo método ROC (Barron e Barrett, 1996); dentro de cada fator, pesos iguais.
+     convertida em pesos pelo método ROC (Barron e Barrett, 1996); dentro de cada fator, o ROC também
+     segue a ordem dos indicadores (ex.: VPL antes de payback).
+     Na opção padrão, retorno econômico > risco financeiro > adequação à demanda > dependência de compensação.
+     Em cada fator, a literatura orienta a ordem dos indicadores e o ROC calcula os pesos dos critérios ativos.
   4. SENSIBILIDADE DOS PESOS. Cada peso é multiplicado por U(0,7; 1,3), renormalizado, e o ranking é refeito
      N vezes. Resultado: desvio-padrão do índice de cada alternativa e frequência com que cada uma lidera.
   5. AGRUPAMENTO (função analítica de mineração de dados). Agrupamento hierárquico aglomerativo,
@@ -31,9 +36,10 @@ alternativa, a frequência com que o líder a supera nos sorteios de pesos. A or
 VPL e payback do critério são os do PROJETO (sem financiamento), comparáveis entre tamanhos e formas de pagamento; o efeito do
 financiamento entra em "valor da alavancagem por R$ financiado" (VPL do capital próprio - VPL do projeto, dividido pelo valor financiado, para não premiar sistemas maiores só por terem mais dívida) e em "sem endividamento".
 
-Observação metodológica: o custo do Fio B em R$ NÃO é critério, pois já está descontado no fluxo de caixa (e portanto no VPL):
-usá-lo também como critério contaria o mesmo efeito duas vezes. O fator Normativa/Legal usa a exposição regulatória
-(parcela da economia que depende da compensação e, portanto, de regras que mudam a partir de 2029).
+Observação metodológica: o custo do Fio B em R$ NÃO é critério, pois já está descontado no fluxo de caixa (e portanto no VPL).
+O critério de exposição regulatória é apenas uma proxy: parcela da economia do primeiro ano que depende de créditos
+compensados, NÃO probabilidade de alteração legal ou risco medido. No perfil padrão, não se sobrepõe ao veto de
+substituições economicamente dominadas. A regra de dominância não é parte do cálculo SAW, mas filtro explícito anterior.
 Limitação conhecida: a normalização min-max amplia diferenças pequenas entre alternativas; por isso a sensibilidade dos pesos
 (etapa 4) e a frequência de liderança são exibidas junto da recomendação.
 
@@ -49,44 +55,71 @@ from parametros import PARAMETROS
 
 # id, nome, fator, peso (preenchido abaixo), sentido
 CRITERIOS = [
-    ("vpl_projeto", "VPL do projeto em 25 anos (R$), sem financiamento", "1) Retorno econômico", 0, "max"),
-    ("payback", "Payback do projeto (anos; sem retorno = pior valor)", "1) Retorno econômico", 0, "min"),
-    ("ganho_fin", "Valor da alavancagem por R$ financiado: (VPL do capital próprio - VPL do projeto) / valor financiado", "1) Retorno econômico", 0, "max"),
-    ("exposicao_reg", "Exposição regulatória: parcela da economia vinda de energia injetada/compensada", "2) Exposição regulatória", 0, "min"),
-    ("cobertura", "Cobertura do consumo (autossuficiência)", "3) Preferências do decisor", 0, "max"),
-    ("sem_divida", "Sem endividamento (0 ou 1)", "3) Preferências do decisor", 0, "max"),
-    ("risco_prejuizo", "Probabilidade de prejuízo, VPL <= 0 (Monte Carlo, fluxo da própria alternativa)", "4) Risco econômico", 0, "min"),
-    ("vpl_p10", "VPL no cenário pessimista, percentil 10 (R$, fluxo da própria alternativa)", "4) Risco econômico", 0, "max"),
+    ("vpl_projeto", "VPL do projeto em 25 anos (R$), sem financiamento", "Retorno econômico", 0, "max"),
+    ("payback", "Payback do projeto (anos; sem retorno = pior valor)", "Retorno econômico", 0, "min"),
+    ("ganho_fin", "Valor da alavancagem por R$ financiado: (VPL do capital próprio - VPL do projeto) / valor financiado", "Retorno econômico", 0, "max"),
+    ("exposicao_reg", "Dependência da compensação: parcela da economia do 1º ano associada a créditos de energia", "Dependência da compensação", 0, "min"),
+    ("cobertura", "Cobertura do consumo (autossuficiência)", "Adequação ao consumo", 0, "max"),
+    ("sem_divida", "Sem endividamento (0 ou 1)", "Adequação ao consumo", 0, "max"),
+    ("risco_prejuizo", "Probabilidade de prejuízo, VPL <= 0 (Monte Carlo, fluxo da própria alternativa)", "Risco econômico", 0, "min"),
+    ("vpl_p10", "VPL no cenário pessimista, percentil 10 (R$, fluxo da própria alternativa)", "Risco econômico", 0, "max"),
 ]
-# Pesos ROC: w_i = (1/n) * soma_{j=i..n} 1/j  -> 52,08%, 27,08%, 14,58%, 6,25% (soma exatamente 1).
-# Dentro de cada fator, os critérios dividem o peso igualmente.
-_FAT = ["1) Retorno econômico", "2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico"]
+# Prioridade substantiva documentada: VPL e payback (rentabilidade), incerteza, atendimento da demanda,
+# e por último dependência de compensação — o efeito de Fio B já está no fluxo de caixa.
+# A literatura fundamenta a ordem e os indicadores, NÃO percentuais universais de preferências.
+# Pesos ROC da ordenação assumida pelo projeto: 52,08%; 27,08%; 14,58%; 6,25%.
+_FAT = ["Retorno econômico", "Risco econômico", "Adequação ao consumo", "Dependência da compensação"]
 PESO_FATOR = {f: sum(1 / j for j in range(i, len(_FAT) + 1)) / len(_FAT) for i, f in enumerate(_FAT, 1)}
-_N = {f: sum(1 for c in CRITERIOS if c[2] == f) for f in _FAT}
-CRITERIOS = [(c[0], c[1], c[2], PESO_FATOR[c[2]] / _N[c[2]], c[4]) for c in CRITERIOS]
+CRITERIOS = [(c[0], c[1], c[2], 0.0, c[4]) for c in CRITERIOS]
 FATORES = list(_FAT)
 
-# Ordens de preferência dos fatores (cenários de decisor). O padrão é a ordem assumida pelo autor.
+# A ordem no perfil padrão é uma hipótese transparente do projeto para o morador que deseja investir.
+# Cada perfil expressa prioridades declaradas pelo decisor; não são pesos extraídos empiricamente da literatura.
 PRIORIDADES = {
-    "padrao": ["1) Retorno econômico", "2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico"],
-    "retorno": ["1) Retorno econômico", "4) Risco econômico", "3) Preferências do decisor", "2) Exposição regulatória"],
-    "cautela": ["2) Exposição regulatória", "3) Preferências do decisor", "4) Risco econômico", "1) Retorno econômico"],
+    "padrao": ["Retorno econômico", "Risco econômico", "Adequação ao consumo", "Dependência da compensação"],
+    "retorno": ["Retorno econômico", "Adequação ao consumo", "Risco econômico", "Dependência da compensação"],
+    "cautela": ["Risco econômico", "Retorno econômico", "Dependência da compensação", "Adequação ao consumo"],
 }
+
+# Ordem intrafator orientada pela avaliação de investimento: VPL representa valor agregado ao longo da
+# vida útil; payback informa liquidez/tempo de recuperação, mas ignora fluxos após o retorno.
+# Quando há financiamento, a alavancagem é secundária à rentabilidade do projeto.
+# Para risco, o P10 discrimina a magnitude de perdas/ganhos em cenários desfavoráveis; a chance de
+# VPL positivo é complementar (e pode empatar em 100% para várias opções).
+ORDEM_CRITERIOS = {
+    "Retorno econômico": ["vpl_projeto", "payback", "ganho_fin"],
+    "Risco econômico": ["vpl_p10", "risco_prejuizo"],
+    "Adequação ao consumo": ["cobertura", "sem_divida"],
+    "Dependência da compensação": ["exposicao_reg"],
+}
+
+
+def roc(n: int) -> list[float]:
+    """Rank Order Centroid (Barron e Barrett, 1996) para n critérios hierarquicamente ordenados."""
+    return [sum(1 / j for j in range(i, n + 1)) / n for i in range(1, n + 1)]
 
 
 CRIT_FINANCIAMENTO = ("ganho_fin", "sem_divida")   # só existem se o decisor informar uma taxa de financiamento
 
 
 def pesos_criterios(prioridade: str = "padrao", com_fin: bool = True) -> list[float]:
-    """Pesos ROC dos critérios para uma ordem de fatores; dentro do fator, pesos iguais entre os critérios ATIVOS.
-    Sem financiamento, os critérios de financiamento ficam com peso 0 e o peso do fator vai para os demais do mesmo fator."""
-    ordem = PRIORIDADES.get(prioridade, PRIORIDADES["padrao"])
-    n = len(ordem)
-    wf = {f: sum(1 / j for j in range(i, n + 1)) / n for i, f in enumerate(ordem, 1)}
-    ativo = [com_fin or c[0] not in CRIT_FINANCIAMENTO for c in CRITERIOS]
-    cont = {f: sum(a for a, c in zip(ativo, CRITERIOS) if c[2] == f) for f in wf}
-    return [wf[c[2]] / cont[c[2]] if a else 0.0 for a, c in zip(ativo, CRITERIOS)]
+    """ROC hierárquico: ordena os fatores e, dentro de cada um, ordena os critérios ativos.
 
+    A importância substantiva é uma premissa declarada; ROC transforma ordenação ordinal em pesos
+    cardinais reproduzíveis, sem afirmar que a literatura impôs percentuais específicos.
+    """
+    ordem = PRIORIDADES.get(prioridade, PRIORIDADES["padrao"])
+    pesos_fatores = dict(zip(ordem, roc(len(ordem))))
+    ativo = {c[0] for c in CRITERIOS if com_fin or c[0] not in CRIT_FINANCIAMENTO}
+    internos = {}
+    for fator, prioridades in ORDEM_CRITERIOS.items():
+        ids = [cid for cid in prioridades if cid in ativo]
+        internos.update({cid: peso for cid, peso in zip(ids, roc(len(ids)))})
+    return [pesos_fatores[c[2]] * internos[c[0]] if c[0] in ativo else 0.0 for c in CRITERIOS]
+
+
+# Referência de pesos quando os critérios de financiamento estão ativos (exibição/compatibilidade).
+CRITERIOS = [(c[0], c[1], c[2], w, c[4]) for c, w in zip(CRITERIOS, pesos_criterios())]
 
 # --- filtro de viabilidade e vereditos (premissas do autor)
 LIM_PROB_MIN = 0.50   # abaixo disso a alternativa é descartada
@@ -123,6 +156,47 @@ def veredito(res: dict, risco: dict, fin: int) -> dict:
     if fin and len(fl) > 1 and fl[1] - fl[0] < 0:
         r.append("o fluxo de caixa do capital próprio no 1º ano é negativo (parcelas e O&M superam a economia)")
     return dict(classe="Recomendado com ressalvas" if r else "Recomendado", nivel="ressalvas" if r else "sim", ressalvas=r)
+
+
+def aplicar_dominancia_economica(aprovadas: list[dict], prioridade: str) -> tuple[list[dict], list[dict]]:
+    """Filtro de dominância ECONÔMICA para prioridades padrão/retorno, sem falsificar o índice SAW.
+
+    Uma alternativa A é economicamente dominada por B quando B custa pelo menos R$ 1 menos,
+    tem VPL superior em ao menos R$ 1, payback menor por pelo menos 0,01 ano, cobertura
+    equivalente/superior (tolerância de arredondamento 0,1 pp) e risco de prejuízo e VPL P10
+    no mínimo equivalentes (tolerância 1 pp e R$ 1). Compara alternativas com mesma modalidade
+    de pagamento; a alternativa "Não instalar" nunca participa desta triagem.
+
+    No perfil de cautela, não excluímos opções: o decisor pode aceitar pior relação financeira
+    em troca de menor dependência da compensação de créditos. A decisão continua transparente.
+    """
+    if prioridade == "cautela":
+        return aprovadas, []
+    mantidas, dominadas = [], []
+    for a in aprovadas:
+        dominadora = next((b for b in aprovadas if b is not a
+            and b["financiado"] == a["financiado"]
+            and b["investimento"] < a["investimento"] - 1.0
+            and b["vpl_projeto"] > a["vpl_projeto"] + 1.0
+            and b["payback"] < a["payback"] - 0.01
+            and b["cobertura"] >= a["cobertura"] - 0.001
+            and b["risco_prejuizo"] <= a["risco_prejuizo"] + 0.01
+            and b["vpl_p10"] >= a["vpl_p10"] - 1.0), None)
+        if dominadora is None:
+            mantidas.append(a)
+        else:
+            a["dominada_por"] = dominadora["nome"]
+            a["veredito"] = dict(
+                classe="Não priorizada no perfil econômico",
+                nivel="dominada",
+                ressalvas=[
+                    f"{dominadora['nome']} custa menos, possui maior VPL, payback menor, "
+                    "cobertura semelhante e risco financeiro não superior. "
+                    "A dependência de créditos pode ser diferente; compare o perfil de cautela para outra prioridade."
+                ],
+            )
+            dominadas.append(a)
+    return mantidas, dominadas
 
 
 # ------------------------------------------------------------------ SAW
@@ -232,17 +306,20 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
             numeros.append((nome, float(n * MODULO_WP / 1000)))
     tamanhos = numeros
     todas = [_alternativa(nome, k, fin, usuario, n_mc) for nome, k in tamanhos for fin in ((0, 1) if com_fin else (0,))]
-    aprovadas = [a for a in todas if a["veredito"]["nivel"] != "nao"]
+    viaveis = [a for a in todas if a["veredito"]["nivel"] != "nao"]
     reprovadas = [a for a in todas if a["veredito"]["nivel"] == "nao"]
+    aprovadas, dominadas = aplicar_dominancia_economica(viaveis, prio)
 
     nao = dict(nome=NAO_INSTALAR, kwp=0.0, financiado=0, vpl=0.0, vpl_projeto=0.0, ganho_fin=0.0, payback=float(VIDA), fio_b=0.0, exposicao_reg=0.0,
                cobertura=0.0, sem_divida=1, risco_prejuizo=0.0, vpl_p10=0.0, investimento=0.0)
     com_fin = any(a["financiado"] for a in aprovadas)   # critérios de financiamento só pesam se houver alternativa financiada viável
     ranking, delta = ranquear(aprovadas + [nao], prio, com_fin)
-    for a in reprovadas:                             # descartadas: sem índice, com motivo
-        a.update(indice=None, atributos={}, grupo=-1, rotulo="Descartada pelo filtro de viabilidade",
+    for a in reprovadas + dominadas:                # mostradas para comparação, mas sem índice SAW
+        rot = ("Não priorizada: dominância econômica" if a in dominadas
+               else "Descartada pelo filtro de viabilidade")
+        a.update(indice=None, atributos={}, grupo=-1, rotulo=rot,
                  posicao=None, prob_lider=0.0, desvio_indice=None)
-    ranking = ranking + reprovadas
+    ranking = ranking + dominadas + reprovadas
 
     if not aprovadas:                                 # único elemento: índice 1,0 seria artefato da normalização (sem comparação)
         ranking[0]["indice"] = None
@@ -254,19 +331,27 @@ def decisao(usuario: dict, n_mc: int = 1000) -> dict:
     exibida = com_res[0] if aprovadas else max(com_res, key=lambda a: a["vpl"])   # cenário mostrado nos gráficos
     empate = [a["nome"] for a in ranking if a.get("grupo") == 1 and a is not melhor]
     if melhor["nome"] == NAO_INSTALAR:
-        motivo = ("Nenhuma alternativa de instalação passou no filtro de viabilidade." if not aprovadas else
-                  "No ranking multicritério, manter a conta atual superou as alternativas de instalação aprovadas no filtro.")
+        motivo = ("Nenhuma alternativa de instalação passou nos filtros de viabilidade e preferência econômica." if not aprovadas else
+                  "No ranking multicritério, manter a conta atual superou as alternativas de instalação admissíveis.")
         recomendacao = dict(tipo="nao_instalar", nome=NAO_INSTALAR, indice=melhor["indice"], motivo=motivo)
     else:
-        recomendacao = dict(tipo="instalar", nome=melhor["nome"], indice=melhor["indice"],
-                            motivo=f"Maior índice SAW entre {len(aprovadas)} alternativa(s) aprovada(s) no filtro e a opção de não instalar.")
+        motivo = (f"Maior índice SAW entre {len(aprovadas)} alternativa(s) admissível(is) e a opção de não instalar. "
+                  "O perfil considera VPL e payback, risco financeiro, adequação à demanda e dependência de compensação "
+                  "na ordem escolhida pelo usuário, com pesos ROC.")
+        if dominadas:
+            motivo += (f" {len(dominadas)} alternativa(s) economicamente dominada(s) não disputaram o ranking "
+                       "no perfil de retorno e viabilidade; continuam visíveis para comparação.")
+        recomendacao = dict(tipo="instalar", nome=melhor["nome"], indice=melhor["indice"], motivo=motivo)
     if usuario.get("area_m2") is None:
         recomendacao["motivo"] += " Atenção: a área do telhado não foi informada; o espaço físico não limitou o dimensionamento (teto técnico apenas por potência)."
     if usuario.get("custo_kwp"):
         recomendacao["motivo"] += f" Custo de instalação informado pelo decisor: R$ {usuario['custo_kwp']:,.0f}/kWp (tratado como fixo no Monte Carlo)."
     recomendacao.update(empate_tecnico=empate, prob_lider=melhor["prob_lider"], indice_exibido=next(i for i, a in enumerate(ranking) if a is exibida),
-                        n_aprovadas=len(aprovadas), n_reprovadas=len(reprovadas))
+                        n_aprovadas=len(aprovadas), n_reprovadas=len(reprovadas), n_dominadas=len(dominadas))
     return dict(criterios=[dict(id=c[0], nome=c[1], fator=c[2], peso=w, sentido=c[4]) for c, w in zip(CRITERIOS, pesos_criterios(prio, com_fin)) if w > 0],
                 prioridade=prio, perfil=perfil, com_financiamento=com_fin,
                 ranking=ranking, delta=delta, recomendacao=recomendacao,
-                filtro=dict(prob_min=LIM_PROB_MIN, regra="VPL > 0 e probabilidade de VPL positivo >= mínimo"))
+                filtro=dict(prob_min=LIM_PROB_MIN,
+                            regra="VPL > 0 e probabilidade de VPL positivo >= mínimo",
+                            dominancia_economica_ativa=prio in ("padrao", "retorno"),
+                            regra_dominancia="Custo menor, VPL maior, payback menor, cobertura e risco não inferiores"))

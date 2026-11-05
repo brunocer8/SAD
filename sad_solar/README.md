@@ -70,7 +70,7 @@ python -m uvicorn app:app --reload
 1. **Regressão** estima o potencial mensal de geração usando irradiação (`ghi`), fração difusa e temperatura média, a partir de uma base de **417 municípios baianos × 12 meses**. A regressão aproxima **geração simulada**, não energia medida em telhados reais.
 2. **Sumarização** calcula consumo, geração, custo, economia, VPL, TIR, payback e resumos de **Monte Carlo** (cenários, percentis e chance de VPL positivo).
 3. **Agrupamento** separa as alternativas com indicadores SAW próximos mediante **agrupamento hierárquico**, cuja distância de corte deriva da sensibilidade dos pesos. O agrupamento não é uma pesquisa de perfis residenciais reais.
-4. **Modelo de decisão:** filtro de viabilidade (VPL e probabilidade de VPL positivo), classificação das opções por **SAW** com pesos ajustados pela prioridade declarada e comparação com a alternativa **Não instalar**.
+4. **Modelo de decisão:** filtro de viabilidade (VPL e probabilidade de VPL positivo); nos perfis padrão/retorno, exclusão do **ranking** de alternativas economicamente inferiores (mas preservadas na Garagem); SAW com pesos **ROC hierárquicos**, em que a ordem padrão é **retorno (52,08%) > risco (27,08%) > adequação (14,58%) > dependência de compensação (6,25%)**. A literatura fundamenta a seleção dos critérios e a técnica; a ordenação é hipótese explícita do projeto e pode mudar por perfil. A alternativa **Não instalar** continua na disputa.
 
 O SAD não obriga a instalar só porque a geração é tecnicamente possível. Sistemas que não cabem na área fornecida não são considerados.
 

@@ -358,12 +358,13 @@ $("dsel").onchange=()=>dash(+$("dsel").value);
 const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const N=v=>v==null||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("pt-BR",{maximumFractionDigits:2});
 const K=(label,value,hint="")=>`<div class="metric"><span class="metric-label">${label}</span><div class="metric-value">${value}</div>${hint?`<span class="metric-help">${hint}</span>`:""}</div>`;
-const statusAlt=a=>!a.res?"Manter conta":a.veredito?.nivel==="nao"?"Fora do filtro":a.veredito?.nivel==="ressalvas"?"Com ressalvas":"Viável no modelo";
+const statusAlt=a=>!a.res?"Manter conta":a.veredito?.nivel==="nao"?"Fora do filtro":a.veredito?.nivel==="dominada"?"Não priorizada: escolha econômica inferior":a.veredito?.nivel==="ressalvas"?"Com ressalvas":"Viável no modelo";
 function resumoRecomendacao(D,exib){
  const rec=D?.recomendacao,nao=rec?.tipo==="nao_instalar";
  const titulo=rec?(nao?"Não instalar por enquanto":`Instalar: ${E(rec.nome.replace(/^Sistema /i,"sistema "))}`):"Resultado não disponível";
  const descricao=nao?"Pelas premissas utilizadas, manter a conta atual ficou à frente das opções de instalação. Você pode rever a análise se mudar o orçamento ou o consumo.":"O sistema comparou opções de potência e escolheu a melhor combinação de viabilidade econômica e critérios definidos para a decisão.";
  const notas=[];
+ if(rec?.n_dominadas>0)notas.push(`${rec.n_dominadas} alternativa(s) economicamente inferior(es) permaneceram disponíveis para comparação, mas não disputaram o ranking padrão`);
  if(rec?.n_reprovadas>0)notas.push(rec.n_reprovadas===1?"1 alternativa ficou fora do filtro financeiro":`${rec.n_reprovadas} alternativas ficaram fora do filtro financeiro`);
  if(rec?.empate_tecnico?.length)notas.push(`${rec.empate_tecnico.length===1?"Há outra alternativa com pontuação muito próxima":`Há ${rec.empate_tecnico.length} alternativas com pontuação muito próxima`}`);
  if(nao)notas.push("Os indicadores abaixo são do melhor sistema estudado, apenas para comparação — não uma recomendação de compra");
@@ -385,17 +386,17 @@ function escolhaHTML(D,sel){
  if(!D?.ranking?.length)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
  const recomendado=D.recomendacao?.nome;
  return D.ranking.map((a,i)=>{
-  const nao=!a.res, rejeitada=a.veredito?.nivel==="nao", vencedor=a.nome===recomendado;
+  const nao=!a.res, rejeitada=["nao","dominada"].includes(a.veredito?.nivel), vencedor=a.nome===recomendado;
   const qtd=nao?0:Math.round((a.kwp||0)/0.62);
   const tipo=nao?"Sem instalação":/compacto/i.test(a.nome)?"Sistema compacto":/ampliado/i.test(a.nome)?"Sistema ampliado":"Sistema solar";
   const titulo=nao?"Manter a conta atual":`${N(a.kwp)} kWp`;
-  const badge=nao?"Sem investimento":rejeitada?"Fora do filtro":statusAlt(a);
+  const badge=nao?"Sem investimento":statusAlt(a);
   const score=a.indice==null?"—":N(a.indice);
   const percentual=a.indice==null?0:Math.max(0,Math.min(100,a.indice*100));
   const geracao=nao?0:a.res.geracao_mensal_kwh?.reduce((s,v)=>s+v,0)||0;
   const cls=`solar-choice${vencedor?' is-recommended':''}${i===sel?' is-selected':''}${rejeitada?' is-ineligible':''}`;
   return `<button type="button" class="${cls}" onclick="selecionar(${i},true)" aria-pressed="${i===sel}" aria-label="Explorar ${E(a.nome)}${vencedor?', escolha recomendada pelo SAD':''}">
-    <div class="choice-scene">${solarArt(qtd,nao)}<div class="choice-badges">${vencedor?'<span class="choice-badge best">★ ESCOLHA DO SAD</span>':''}${rejeitada?'<span class="choice-badge blocked">NÃO RECOMENDÁVEL</span>':''}${a.grupo===1&&!vencedor?'<span class="choice-badge">GRUPO PRÓXIMO AO LÍDER</span>':''}</div></div>
+    <div class="choice-scene">${solarArt(qtd,nao)}<div class="choice-badges">${vencedor?'<span class="choice-badge best">★ ESCOLHA DO SAD</span>':''}${rejeitada?`<span class="choice-badge blocked">${a.veredito?.nivel==="dominada"?'NÃO PRIORIZADA':'FORA DO FILTRO'}</span>`:''}${a.grupo===1&&!vencedor?'<span class="choice-badge">GRUPO PRÓXIMO AO LÍDER</span>':''}</div></div>
     <div class="choice-core"><div class="choice-profile"><div><span class="choice-type">${E(tipo)} · ${E(nao?'sem painéis':(a.financiado?'financiado':'à vista'))}</span><div class="choice-name">${E(titulo)}</div><div class="choice-sub">${nao?'Não gera energia; continua pagando a distribuidora.':`${qtd} painéis de 620 Wp · ~${N(geracao)} kWh/ano`}</div></div><div class="choice-power"><b>${nao?'0':qtd}</b><small>painéis</small></div></div>
     <div class="choice-metrics"><div><span>Investimento</span><strong>${nao?'R$ 0':R(a.investimento)}</strong></div><div><span>Economia no 1º ano</span><strong>${nao?'R$ 0':R(a.res.economia_ano1)}</strong></div><div><span>Payback</span><strong>${nao?'—':Y(a.payback)}</strong></div><div><span>VPL</span><strong>${nao?'R$ 0':R(a.vpl)}</strong></div></div>
     <div class="choice-rating"><div class="choice-rating-head"><span>Índice SAW (relativo)</span><b>${score}${a.indice==null?'':' / 1'}</b></div><div class="choice-meter" aria-hidden="true"><i style="width:${percentual.toFixed(0)}%"></i></div><span class="choice-sub">${E(badge)}</span></div>
@@ -418,7 +419,7 @@ function comparacaoHTML(D,inter,sel){
  if(!D?.ranking)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
  return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Situação</th></tr></thead><tbody>`+
  D.ranking.map((a,i)=>{const isNao=!a.res,v=a.veredito?.nivel,principal=a.nome===D.recomendacao?.nome;
- const badge=isNao?"muted":v==="nao"?"muted":v==="ressalvas"?"warn":"";
+ const badge=isNao?"muted":["nao","dominada"].includes(v)?"muted":v==="ressalvas"?"warn":"";
  return `<tr class="${i===sel?'is-selected ':''}${principal?'is-winner':''}"><td><b>${E(isNao?'Não instalar':a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':''}</td><td>${isNao?'—':R(a.investimento)}</td><td>${isNao?'—':Y(a.payback)}</td><td>${isNao?'—':R(a.vpl)}</td><td><span class="status-pill ${badge}">${statusAlt(a)}</span></td></tr>`}).join("")+`</tbody></table></div><p><small>A recomendação resulta do filtro de viabilidade e da comparação multicritério; maior potência não significa necessariamente melhor escolha.</small></p>`;
 }
 function metodoHTML(D){
@@ -426,7 +427,8 @@ function metodoHTML(D){
  const pesos=D.criterios.map(c=>`<tr><td>${E(c.nome)}</td><td>${E(c.fator)}</td><td>${(c.peso*100).toFixed(1)}%</td></tr>`).join("");
  return `<p>O SAD não se limita a mostrar indicadores: elimina alternativas de instalação sem viabilidade mínima, classifica as demais por pesos (SAW) e também permite recomendar <b>não instalar</b>.</p>
  <ol class="method-list"><li><b>Regressão:</b> estima a geração mensal do sistema a partir dos dados solares e meteorológicos disponíveis para o município.</li><li><b>Sumarização:</b> calcula consumo, economia, retorno, VPL e distribuições dos cenários de risco.</li><li><b>Agrupamento:</b> reúne alternativas de índice SAW próximo por agrupamento hierárquico.</li></ol>
- <p><b>Regra de viabilidade:</b> VPL maior que zero e chance de VPL positivo de pelo menos ${P(D.filtro?.prob_min||0.5)}. Alternativas que não passam não são recomendadas. ${D.recomendacao?.n_aprovadas??"—"} aprovada(s); ${D.recomendacao?.n_reprovadas??"—"} descartada(s).</p>
+ <p><b>Regra de viabilidade:</b> VPL maior que zero e chance de VPL positivo de pelo menos ${P(D.filtro?.prob_min||0.5)}. Alternativas que não passam não são recomendadas. ${D.recomendacao?.n_aprovadas??"—"} aprovada(s); ${D.recomendacao?.n_reprovadas??"—"} descartada(s). ${D.recomendacao?.n_dominadas??0} alternativa(s) com relação financeira inferior, nas prioridades padrão/retorno, não disputaram a seleção mas continuam visíveis para comparação.</p>
+ <p><b>Ordem adotada no padrão:</b> retorno econômico (52,08%) → risco financeiro (27,08%) → adequação ao consumo (14,58%) → dependência da compensação de créditos (6,25%). Dentro do retorno econômico, VPL vem antes de payback. O SAW utiliza pesos ROC, fundamentados em Hwang e Yoon (1981) e Barron e Barrett (1996). A literatura fundamenta os indicadores e a técnica; a ordem é uma hipótese declarada do projeto que pode ser modificada pelo usuário.</p>
  <h3>Pesos dos critérios de decisão</h3><div class="table-wrap"><table class="criteria-table"><tr><th>Critério</th><th>Fator</th><th>Peso</th></tr>${pesos}</table></div>
  <p><small>Os percentuais resultam do método de ordenação dos critérios e podem ser alterados pela prioridade selecionada. Os números são projeções; o SAD não analisa a estrutura física do telhado.</small></p>`;
 }
@@ -452,7 +454,7 @@ function selecionar(i,foco=false){
  const vencedor=a.nome===D.recomendacao?.nome;
  $("opcao-titulo").textContent=nao?"Manter a conta atual":a.nome;
  const status=$("opcao-status");status.textContent=vencedor?"Escolha do SAD":statusAlt(a);
- status.className=`status-pill${nao?' muted':a.veredito?.nivel==='nao'?' muted':a.veredito?.nivel==='ressalvas'?' warn':''}`;
+ status.className=`status-pill${nao?' muted':['nao','dominada'].includes(a.veredito?.nivel)?' muted':a.veredito?.nivel==='ressalvas'?' warn':''}`;
  $("opcao-ajuda").textContent=vencedor?"Você está vendo a alternativa recomendada pelo SAD.":"Você está explorando outra alternativa. A recomendação principal permanece a mesma.";
  $("graficos").classList.toggle("hide",nao);
  if(nao){

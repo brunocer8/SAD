@@ -63,3 +63,58 @@ A validade externa é limitada por dados simulados e hipóteses de consumo e pre
 - HWANG, C.-L.; YOON, K. *Multiple Attribute Decision Making*. Springer, 1981.
 
 As fontes específicas de cada coeficiente/hipótese estão nos arquivos `parametros.py`, `parametros_premissas.csv` e `docs/DICIONARIO_DADOS.md`.
+
+
+## Critérios multicritério e ordem adotada (revisão de novembro de 2026)
+
+O SAD separa **viabilidade** da **preferência**: após restringir as opções à área útil,
+reprova VPL não positivo e chance estimada de VPL positivo inferior a 50% (este
+último é **limiar de projeto**, não regra da literatura). Em seguida, nos perfis
+**Padrão** e **Retorno**, deixa fora da disputa de classificação as opções de
+instalação economicamente inferiores: maiores investimento e payback, menor VPL,
+com cobertura e risco no mínimo equivalentes. Tais opções permanecem **visíveis
+na Garagem Solar**; isso é um *filtro de preferência econômica condicional*, não
+uma prova de dominância em todos os critérios (por exemplo, a dependência de
+créditos pode diferir). O perfil **Cautela** não impõe esse filtro adicional.
+
+A **ordem substantiva padrão** é uma premissa explícita do projeto, informada
+pela literatura de avaliação de investimentos residenciais:
+
+| Ordem | Fator | Peso ROC na opção padrão | Motivo |
+|---|---|---:|---|
+| 1 | Retorno econômico | 52,08% | O VPL considera os fluxos por toda a vida útil; payback é complementar, pois ignora benefícios após o retorno |
+| 2 | Risco financeiro | 27,08% | Monte Carlo representa a incerteza do VPL; o P10 e a chance de prejuízo não são garantias empíricas |
+| 3 | Adequação ao consumo | 14,58% | Cobertura potencial e restrições físicas garantem utilidade energética, sem exigir sistema superdimensionado |
+| 4 | Dependência da compensação | 6,25% | Autoconsumo e créditos dependem da operação; o custo regulatório já está refletido no fluxo financeiro e não deve dominar de novo |
+
+Para evitar dar ao payback o mesmo peso do VPL, aplicamos o método **Rank Order
+Centroid (ROC) em dois níveis**: primeiro aos fatores e depois aos critérios
+ativos dentro de cada fator. Sem financiamento, o retorno (52,08%) é dividido
+entre VPL (39,06%) e payback (13,02%). O risco (27,08%) é dividido em
+VPL P10 (20,31%) e probabilidade de prejuízo (6,77%). Os demais recebem
+14,58% (cobertura) e 6,25% (dependência de compensação), totalizando 100%.
+O método ROC converte **uma ordem de preferências** em pesos reprodutíveis;
+**não** significa que um artigo tenha medido ou imposto estes percentuais.
+
+A prioridade **Retorno** transfere o segundo lugar para a adequação ao consumo;
+a prioridade **Cautela** adota risco econômico > retorno econômico > dependência
+de compensação > adequação ao consumo. Há análise de sensibilidade dos pesos.
+O indicador de dependência de compensação é apenas uma **proxy** da exposição;
+não mede a probabilidade de uma mudança legal.
+
+### Referências específicas da ordenação
+
+- BARRON, F. H.; BARRETT, B. E. Decision quality using ranked attribute weights.
+  *Management Science*, v. 42, n. 11, p. 1515–1523, 1996.
+  DOI: https://doi.org/10.1287/mnsc.42.11.1515.
+- HWANG, C.-L.; YOON, K. *Multiple attribute decision making: methods and applications*.
+  Berlin: Springer, 1981. DOI: https://doi.org/10.1007/978-3-642-48318-9.
+- DELAPEDRA-SILVA, V.; FERREIRA, P.; CUNHA, J.; KIMURA, H. Methods for financial
+  assessment of renewable energy projects: a review. *Processes*, v. 10, n. 2, art. 184, 2022.
+  DOI: https://doi.org/10.3390/pr10020184.
+- NATIONAL RENEWABLE ENERGY LABORATORY. *System Advisor Model: net present value (NPV)*.
+  Disponível em: https://samrepo.nlr.gov/help/mtf_npv.html.
+- COSTA, F. F. A. et al. Avaliação do payback em sistemas fotovoltaicos on-grid
+  para consumidores residenciais grupo B1 sob a Lei 14300/2022. *Revista Brasileira
+  de Energia Solar*, v. 16, n. 2, p. 147–157, dez. 2025.
+

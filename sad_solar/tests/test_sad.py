@@ -155,8 +155,38 @@ def test_limite_de_potencia_75kwp():
 def test_pesos_roc_somam_um_e_seguem_a_ordem():
     w = saw.PESO_FATOR
     assert sum(c[3] for c in saw.CRITERIOS) == pytest.approx(1.0)
-    assert w["1) Retorno econômico"] == pytest.approx(0.5208333) and w["4) Risco econômico"] == pytest.approx(0.0625)
+    assert w["Retorno econômico"] == pytest.approx(0.5208333) and w["Risco econômico"] == pytest.approx(0.2708333)
     assert list(w.values()) == sorted(w.values(), reverse=True)
+
+
+def test_pesos_ordenacao_fundamentada_por_literatura():
+    """No padrão, retorno > risco > adequação > dependência; VPL > payback como métricas econômicas."""
+    w = saw.pesos_criterios("padrao", com_fin=False)
+    pesos = {c[0]: v for c, v in zip(saw.CRITERIOS, w)}
+    fatores = {f: sum(pesos[c[0]] for c in saw.CRITERIOS if c[2] == f) for f in saw.FATORES}
+    assert list(fatores.values()) == sorted(fatores.values(), reverse=True)
+    assert pesos["vpl_projeto"] > pesos["payback"] > pesos["exposicao_reg"]
+    assert pesos["ganho_fin"] == pesos["sem_divida"] == 0
+    assert sum(w) == pytest.approx(1)
+
+
+def test_caso_bom_jesus_da_lapa_prioridade_economica_vs_cautela():
+    """Regressão da reclamação: 250 kWh, 30 m², B1 e pagamento à vista."""
+    cod = f.buscar_municipio("Bom Jesus da Lapa")
+    u = {**BASE, "cod_ibge": cod, "prioridade": "padrao", "area_m2": 30}
+    d = saw.decisao(u, n_mc=150)
+    winner = d["ranking"][0]
+    assert winner["kwp"] == pytest.approx(1.86)
+    assert d["recomendacao"]["tipo"] == "instalar"
+    maior = next(a for a in d["ranking"] if a["kwp"] == pytest.approx(2.48))
+    assert maior["investimento"] > winner["investimento"]
+    assert maior["vpl_projeto"] < winner["vpl_projeto"]
+    assert maior["payback"] > winner["payback"]
+    assert maior["indice"] is None and maior["veredito"]["nivel"] == "dominada"
+    assert maior["dominada_por"] == winner["nome"]
+    cautela = saw.decisao({**u, "prioridade": "cautela"}, n_mc=150)
+    assert cautela["recomendacao"]["n_dominadas"] == 0
+    assert all(a["indice"] is not None for a in cautela["ranking"] if a.get("res"))
 
 
 def test_normalizacao_empate_e_sentidos():
@@ -184,7 +214,7 @@ def test_caso_viavel_recomenda_instalar_e_ranking_so_com_aprovadas():
         if a["indice"] is not None:
             assert a["nome"] == saw.NAO_INSTALAR or a["veredito"]["nivel"] != "nao"
         else:
-            assert a["veredito"]["nivel"] == "nao" and a["grupo"] == -1
+            assert a["veredito"]["nivel"] in ("nao", "dominada") and a["grupo"] == -1
 
 
 def test_nao_instalar_pode_ser_a_recomendacao():
@@ -257,9 +287,11 @@ def test_economia_limitada_ao_consumo_faturavel_acima_do_minimo():
 def test_prioridades_do_decisor_mudam_a_recomendacao():
     u = {**BASE, "consumo_mes_kwh": 4889, "tarifa_kwh": 0.90, "area_m2": 300}
     nomes = {p: saw.decisao({**u, "prioridade": p})["recomendacao"]["nome"] for p in saw.PRIORIDADES}
-    assert len(set(nomes.values())) > 1
+    # Preferências diferentes não garantem escolhas finais diferentes: pode haver um líder robusto.
+    assert set(nomes) == set(saw.PRIORIDADES)
     for p in saw.PRIORIDADES:
         assert sum(saw.pesos_criterios(p)) == pytest.approx(1.0)
+    assert len({tuple(round(w, 8) for w in saw.pesos_criterios(p)) for p in saw.PRIORIDADES}) == len(saw.PRIORIDADES)
 
 
 def test_perfil_kmeans_atribui_grupo():

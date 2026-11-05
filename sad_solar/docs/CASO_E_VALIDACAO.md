@@ -18,14 +18,14 @@ Essa escolha pode não coincidir com a opção de maior nota SAW.
 
 ## Resultado gerado pelo código
 
-**Recomendação multicritério:** Sistema ampliado de 2.48 kWp, à vista. Motivo: Maior índice SAW entre 3 alternativa(s) aprovada(s) no filtro e a opção de não instalar.
+**Recomendação multicritério:** Sistema recomendado de 1.86 kWp, à vista. Motivo: Maior índice SAW entre 2 alternativa(s) admissível(is) e a opção de não instalar. O perfil considera VPL e payback, risco financeiro, adequação à demanda e dependência de compensação na ordem escolhida pelo usuário, com pesos ROC. 1 alternativa(s) economicamente dominada(s) não disputaram o ranking no perfil de retorno e viabilidade; continuam visíveis para comparação.
 
 | Posição | Alternativa | Nota SAW | VPL do projeto (R$) | Payback do projeto (anos) | Área aproximada (m²) |
 |---:|---|---:|---:|---:|---:|
-| 1 | Sistema ampliado de 2.48 kWp, à vista | 0.782 | 12,954.25 | 4.39 | 17.36 |
-| 2 | Sistema recomendado de 1.86 kWp, à vista | 0.755 | 13,868.15 | 3.75 | 13.02 |
-| 3 | Sistema compacto de 1.24 kWp, à vista | 0.602 | 9,552.26 | 3.81 | 8.68 |
-| 4 | Não instalar (manter a conta atual) | 0.302 | 0.00 | — | 0.00 |
+| 1 | Sistema recomendado de 1.86 kWp, à vista | 0.943 | 13,868.15 | 3.75 | 13.02 |
+| 2 | Sistema compacto de 1.24 kWp, à vista | 0.708 | 9,552.26 | 3.81 | 8.68 |
+| 3 | Não instalar (manter a conta atual) | 0.130 | 0.00 | — | 0.00 |
+| 4 | Sistema ampliado de 2.48 kWp, à vista | — | 12,954.25 | 4.39 | 17.36 |
 
 **Interpretação:** a recomendação é consequência dos filtros e dos pesos da análise multicritério, 
 não uma promessa de redução real da fatura. Cada cenário usa geração solar simulada e despesas futuras estimadas.
@@ -34,13 +34,13 @@ não uma promessa de redução real da fatura. Cada cenário usa geração solar
 
 | Cenário | Recomendação | Potência exibida (kWp) | VPL exibido (R$) |
 |---|---|---:|---:|
-| Cenário-base | Sistema ampliado de 2.48 kWp, à vista | 2.48 | 12,954.25 |
+| Cenário-base | Sistema recomendado de 1.86 kWp, à vista | 1.86 | 13,868.15 |
 | Consumo menor: 150 kWh/mês | Sistema recomendado de 1.24 kWp, à vista | 1.24 | 5,316.98 |
 | Consumo maior: 450 kWh/mês | Sistema recomendado de 3.72 kWp, à vista | 3.72 | 30,996.95 |
 | Custo de instalação maior: R$ 5.200/kWp | Sistema recomendado de 1.86 kWp, à vista | 1.86 | 10,835.82 |
 | Tarifa marginal menor: R$ 0,25/kWh | Não instalar (manter a conta atual) | 1.24 | -1,591.25 |
 | Área menor: 12 m² | Sistema recomendado de 1.24 kWp, à vista | 1.24 | 9,552.26 |
-| Tarifa Social: limitação simplificada de 80 kWh | Sistema ampliado de 2.48 kWp, à vista | 2.48 | 7,076.68 |
+| Tarifa Social: limitação simplificada de 80 kWh | Sistema recomendado de 1.86 kWp, à vista | 1.86 | 8,123.98 |
 
 ## Estratégia de validação frente ao enunciado
 
