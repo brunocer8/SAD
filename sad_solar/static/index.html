@@ -161,12 +161,12 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 .solar-choice:hover{transform:translateY(-4px)}.solar-choice:focus-visible{outline:3px solid #F5C45D;outline-offset:3px}
 .solar-choice.is-selected{border-color:#F8C95F;box-shadow:0 0 0 2px #F8C95F77,0 15px 30px #001b2d66;transform:translateY(-2px)}
 .solar-choice.is-recommended .choice-scene{background:linear-gradient(145deg,#F4D391 0%,#EFB36F 43%,#84C6CB 100%)}
-.solar-choice.is-ineligible{opacity:.73}.solar-choice.is-ineligible.is-selected{opacity:1}
+.solar-choice.is-ineligible{opacity:.73}.solar-choice.is-ineligible.is-selected{opacity:1}.solar-choice.is-dominated{border-color:#d4c5a9}.solar-choice.is-dominated.is-selected{border-color:#F8C95F}
 .choice-scene{height:126px;position:relative;background:linear-gradient(145deg,#BADCE0,#5DABB5);overflow:hidden;display:flex;align-items:center;justify-content:center}
 .choice-scene svg{width:100%;height:100%;object-fit:cover;display:block}.choice-scene:after{content:"";position:absolute;inset:auto 0 0;height:23px;background:linear-gradient(transparent,#17394725);pointer-events:none}
 .choice-badges{position:absolute;z-index:2;top:10px;left:10px;right:10px;display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-start}
 .choice-badge{background:#173E4DE8;color:#fff;border-radius:7px;padding:5px 8px;font-size:9px;font-weight:800;letter-spacing:.03em}
-.choice-badge.best{background:#F6C65D;color:#163E4B}.choice-badge.blocked{background:#FFF1E3;color:#97442A}
+.choice-badge.best{background:#F6C65D;color:#163E4B}.choice-badge.blocked{background:#FFF1E3;color:#97442A}.choice-badge.viable{background:#fff4d8;color:#79531d}.choice-badge.reference{background:#e6f3f2;color:#145865}.choice-no-score{font-size:10px;line-height:1.5;color:#6B8287;min-height:34px;padding-top:4px}
 .choice-core{flex:1;padding:15px 14px 11px;display:flex;flex-direction:column;gap:12px}
 .choice-profile{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
 .choice-type{font-size:10px;font-weight:800;letter-spacing:.09em;color:#327680;text-transform:uppercase}
@@ -252,7 +252,7 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
     <div class="showroom-controls noprint"><button id="deck-prev" type="button" aria-label="Ver alternativas anteriores" title="Anterior">‹</button><button id="deck-next" type="button" aria-label="Ver próximas alternativas" title="Próxima">›</button></div>
    </div>
    <div id="decisao" class="solar-deck" aria-label="Alternativas de decisão; navegue horizontalmente" role="group"></div>
-   <p class="showroom-foot">Os indicadores SAW são <b>relativos às opções desta simulação</b>, não uma nota universal de qualidade. Alternativas fora do filtro são exibidas, mas não podem ser recomendadas.</p>
+   <p class="showroom-foot">Ordem para comparação: <b>opções classificadas pelo SAW → instalações viáveis, mas não priorizadas → “Não instalar” como referência → opções reprovadas</b>. Se “Não instalar” vencer, aparece primeiro. Esta ordem visual não substitui o ranking SAW; opções retiradas pelo filtro não recebem índice.</p>
   </section>
   <div class="card option-inspector" id="option-inspector">
    <div class="inspector-head"><div><span class="decision-eyebrow">OPÇÃO EM EXIBIÇÃO</span><h3 id="opcao-titulo">Selecione uma alternativa</h3></div><span id="opcao-status" class="status-pill">Comparação</span></div>
@@ -358,7 +358,7 @@ $("dsel").onchange=()=>dash(+$("dsel").value);
 const E=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const N=v=>v==null||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("pt-BR",{maximumFractionDigits:2});
 const K=(label,value,hint="")=>`<div class="metric"><span class="metric-label">${label}</span><div class="metric-value">${value}</div>${hint?`<span class="metric-help">${hint}</span>`:""}</div>`;
-const statusAlt=a=>!a.res?"Manter conta":a.veredito?.nivel==="nao"?"Fora do filtro":a.veredito?.nivel==="dominada"?"Não priorizada: escolha econômica inferior":a.veredito?.nivel==="ressalvas"?"Com ressalvas":"Viável no modelo";
+const statusAlt=a=>!a.res?"Referência: não instalar":a.veredito?.nivel==="nao"?"Fora do filtro de viabilidade":a.veredito?.nivel==="dominada"?"Viável, mas não priorizada":a.veredito?.nivel==="ressalvas"?"Com ressalvas":"Viável no modelo";
 function resumoRecomendacao(D,exib){
  const rec=D?.recomendacao,nao=rec?.tipo==="nao_instalar";
  const titulo=rec?(nao?"Não instalar por enquanto":`Instalar: ${E(rec.nome.replace(/^Sistema /i,"sistema "))}`):"Resultado não disponível";
@@ -382,24 +382,42 @@ function solarArt(qtd,nao){
  const panels=Array.from({length:count},(_,i)=>{const col=i%4,row=Math.floor(i/4);return `<g transform="translate(${113+col*25-row*13},${48+row*25}) skewX(-18)"><rect width="21" height="23" rx="1.5" fill="#174459" stroke="#B7D8DB" stroke-width="1"/><path d="M10.5 1V22M1 11.5H20" stroke="#7EB7C1" stroke-width="1"/></g>`}).join("");
  return `<svg viewBox="0 0 320 132" aria-hidden="true"><circle cx="269" cy="34" r="25" fill="#F8D37A" opacity=".95"/><path d="M0 113Q50 91 100 108T215 106T320 111V132H0Z" fill="#2B8D90" opacity=".55"/><path d="M31 105L147 28L284 102V132H31Z" fill="#ECDECD"/><path d="M21 106L146 24L298 106" fill="none" stroke="#2A6072" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/><path d="M0 130H320" stroke="#D8A56A" stroke-width="5"/>${panels}</svg>`;
 }
+// Ordenação exclusivamente VISUAL: a lista D.ranking e as posições SAW não são alteradas.
+// O índice original acompanha cada cartão para preservar navegação, seleção e relatórios salvos.
+function alternativasParaExibicao(D){
+ if(!D?.ranking?.length)return [];
+ const escolhido=D.recomendacao?.nome;
+ const grupo=a=>a.nome===escolhido?0:
+   a.veredito?.nivel==="dominada"?2:
+   !a.res?3:
+   a.veredito?.nivel==="nao"?4:1;
+ return D.ranking.map((a,i)=>({a,i,grupo:grupo(a)}))
+  .sort((x,y)=>x.grupo-y.grupo||x.i-y.i);
+}
 function escolhaHTML(D,sel){
  if(!D?.ranking?.length)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
  const recomendado=D.recomendacao?.nome;
- return D.ranking.map((a,i)=>{
-  const nao=!a.res, rejeitada=["nao","dominada"].includes(a.veredito?.nivel), vencedor=a.nome===recomendado;
+ return alternativasParaExibicao(D).map(({a,i})=>{
+  const nao=!a.res, nivel=a.veredito?.nivel, reprovada=nivel==="nao", dominada=nivel==="dominada", vencedor=a.nome===recomendado;
   const qtd=nao?0:Math.round((a.kwp||0)/0.62);
   const tipo=nao?"Sem instalação":/compacto/i.test(a.nome)?"Sistema compacto":/ampliado/i.test(a.nome)?"Sistema ampliado":"Sistema solar";
   const titulo=nao?"Manter a conta atual":`${N(a.kwp)} kWp`;
-  const badge=nao?"Sem investimento":statusAlt(a);
+  const badge=nao?"Referência para comparação":statusAlt(a);
   const score=a.indice==null?"—":N(a.indice);
   const percentual=a.indice==null?0:Math.max(0,Math.min(100,a.indice*100));
   const geracao=nao?0:a.res.geracao_mensal_kwh?.reduce((s,v)=>s+v,0)||0;
-  const cls=`solar-choice${vencedor?' is-recommended':''}${i===sel?' is-selected':''}${rejeitada?' is-ineligible':''}`;
+  const cls=`solar-choice${vencedor?' is-recommended':''}${i===sel?' is-selected':''}${reprovada?' is-ineligible':''}${dominada?' is-dominated':''}`;
+  const faixa=dominada?'<span class="choice-badge viable">VIÁVEL · NÃO PRIORIZADA</span>':
+    reprovada?'<span class="choice-badge blocked">FORA DO FILTRO</span>':
+    nao&&!vencedor?'<span class="choice-badge reference">REFERÊNCIA · NÃO INSTALAR</span>':'';
+  const nota=a.indice==null?
+    `<div class="choice-rating-head"><span>Índice SAW</span><b>Não atribuído</b></div><span class="choice-no-score">${dominada?'Viável financeiramente, mas outra opção foi superior no filtro econômico.':'Não participa do ranking por reprovação no filtro.'}</span>`:
+    `<div class="choice-rating-head"><span>Índice SAW (relativo)</span><b>${score} / 1</b></div><div class="choice-meter" aria-hidden="true"><i style="width:${percentual.toFixed(0)}%"></i></div><span class="choice-sub">${E(badge)}</span>`;
   return `<button type="button" class="${cls}" onclick="selecionar(${i},true)" aria-pressed="${i===sel}" aria-label="Explorar ${E(a.nome)}${vencedor?', escolha recomendada pelo SAD':''}">
-    <div class="choice-scene">${solarArt(qtd,nao)}<div class="choice-badges">${vencedor?'<span class="choice-badge best">★ ESCOLHA DO SAD</span>':''}${rejeitada?`<span class="choice-badge blocked">${a.veredito?.nivel==="dominada"?'NÃO PRIORIZADA':'FORA DO FILTRO'}</span>`:''}${a.grupo===1&&!vencedor?'<span class="choice-badge">GRUPO PRÓXIMO AO LÍDER</span>':''}</div></div>
+    <div class="choice-scene">${solarArt(qtd,nao)}<div class="choice-badges">${vencedor?'<span class="choice-badge best">★ ESCOLHA DO SAD</span>':''}${faixa}${a.grupo===1&&!vencedor?'<span class="choice-badge">GRUPO PRÓXIMO AO LÍDER</span>':''}</div></div>
     <div class="choice-core"><div class="choice-profile"><div><span class="choice-type">${E(tipo)} · ${E(nao?'sem painéis':(a.financiado?'financiado':'à vista'))}</span><div class="choice-name">${E(titulo)}</div><div class="choice-sub">${nao?'Não gera energia; continua pagando a distribuidora.':`${qtd} painéis de 620 Wp · ~${N(geracao)} kWh/ano`}</div></div><div class="choice-power"><b>${nao?'0':qtd}</b><small>painéis</small></div></div>
     <div class="choice-metrics"><div><span>Investimento</span><strong>${nao?'R$ 0':R(a.investimento)}</strong></div><div><span>Economia no 1º ano</span><strong>${nao?'R$ 0':R(a.res.economia_ano1)}</strong></div><div><span>Payback</span><strong>${nao?'—':Y(a.payback)}</strong></div><div><span>VPL</span><strong>${nao?'R$ 0':R(a.vpl)}</strong></div></div>
-    <div class="choice-rating"><div class="choice-rating-head"><span>Índice SAW (relativo)</span><b>${score}${a.indice==null?'':' / 1'}</b></div><div class="choice-meter" aria-hidden="true"><i style="width:${percentual.toFixed(0)}%"></i></div><span class="choice-sub">${E(badge)}</span></div>
+    <div class="choice-rating">${nota}</div>
     </div><span class="choice-cta">${i===sel?'✓ EM EXIBIÇÃO':'EXPLORAR ESTA OPÇÃO →'}</span>
    </button>`;
  }).join("");
@@ -415,12 +433,13 @@ $("deck-next").onclick=()=>$("decisao").scrollBy({left:290,behavior:"smooth"});
 $("decisao").addEventListener("scroll",()=>{const deck=$("decisao");$("deck-prev").disabled=deck.scrollLeft<8;$("deck-next").disabled=deck.scrollWidth-deck.clientWidth-deck.scrollLeft<8;},{passive:true});
 window.addEventListener("resize",()=>{if(CUR?.resultado?.decisao){const deck=$("decisao");$("deck-prev").disabled=deck.scrollLeft<8;$("deck-next").disabled=deck.scrollWidth-deck.clientWidth-deck.scrollLeft<8;}});
 function comparacaoHTML(D,inter,sel){
- // Versão tabular mantida no relatório imprimível; no formulário, o usuário vê os cartões interativos.
+ // Mesma organização da Garagem Solar, sem transformar a ordem visual em posições do SAW.
  if(!D?.ranking)return "<p>As alternativas desta simulação não estão disponíveis.</p>";
- return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Situação</th></tr></thead><tbody>`+
- D.ranking.map((a,i)=>{const isNao=!a.res,v=a.veredito?.nivel,principal=a.nome===D.recomendacao?.nome;
+ return `<div class="table-wrap"><table class="options-table"><thead><tr><th>Alternativa</th><th>Investimento</th><th>Payback</th><th>VPL</th><th>Índice SAW</th><th>Situação</th></tr></thead><tbody>`+
+ alternativasParaExibicao(D).map(({a,i})=>{const isNao=!a.res,v=a.veredito?.nivel,principal=a.nome===D.recomendacao?.nome;
  const badge=isNao?"muted":["nao","dominada"].includes(v)?"muted":v==="ressalvas"?"warn":"";
- return `<tr class="${i===sel?'is-selected ':''}${principal?'is-winner':''}"><td><b>${E(isNao?'Não instalar':a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':''}</td><td>${isNao?'—':R(a.investimento)}</td><td>${isNao?'—':Y(a.payback)}</td><td>${isNao?'—':R(a.vpl)}</td><td><span class="status-pill ${badge}">${statusAlt(a)}</span></td></tr>`}).join("")+`</tbody></table></div><p><small>A recomendação resulta do filtro de viabilidade e da comparação multicritério; maior potência não significa necessariamente melhor escolha.</small></p>`;
+ const indice=a.indice==null?"Não atribuído":N(a.indice);
+ return `<tr class="${i===sel?'is-selected ':''}${principal?'is-winner':''}"><td><b>${E(isNao?'Não instalar':a.nome)}</b>${principal?'<br><span class="status-pill">Escolha do SAD</span>':''}</td><td>${isNao?'—':R(a.investimento)}</td><td>${isNao?'—':Y(a.payback)}</td><td>${isNao?'R$ 0':R(a.vpl)}</td><td>${indice}</td><td><span class="status-pill ${badge}">${E(statusAlt(a))}</span></td></tr>`}).join("")+`</tbody></table></div><p><small>Os cartões e a tabela estão organizados por situação, não pela posição numérica de todas as alternativas no SAW. As instalações economicamente dominadas podem ter VPL positivo, mas não receberam índice porque ficaram fora da disputa. “Não instalar” é a referência sem investimento e participa do SAW; quando não vence, aparece depois das instalações viáveis para facilitar a comparação.</small></p>`;
 }
 function metodoHTML(D){
  if(!D?.criterios)return "<p>Os dados de decisão não estão disponíveis nesta simulação antiga.</p>";
@@ -429,6 +448,7 @@ function metodoHTML(D){
  <ol class="method-list"><li><b>Regressão:</b> estima a geração mensal do sistema a partir dos dados solares e meteorológicos disponíveis para o município.</li><li><b>Sumarização:</b> calcula consumo, economia, retorno, VPL e distribuições dos cenários de risco.</li><li><b>Agrupamento:</b> reúne alternativas de índice SAW próximo por agrupamento hierárquico.</li></ol>
  <p><b>Regra de viabilidade:</b> VPL maior que zero e chance de VPL positivo de pelo menos ${P(D.filtro?.prob_min||0.5)}. Alternativas que não passam não são recomendadas. ${D.recomendacao?.n_aprovadas??"—"} aprovada(s); ${D.recomendacao?.n_reprovadas??"—"} descartada(s). ${D.recomendacao?.n_dominadas??0} alternativa(s) com relação financeira inferior, nas prioridades padrão/retorno, não disputaram a seleção mas continuam visíveis para comparação.</p>
  <p><b>Ordem adotada no padrão:</b> retorno econômico (52,08%) → risco financeiro (27,08%) → adequação ao consumo (14,58%) → dependência da compensação de créditos (6,25%). Dentro do retorno econômico, VPL vem antes de payback. O SAW utiliza pesos ROC, fundamentados em Hwang e Yoon (1981) e Barron e Barrett (1996). A literatura fundamenta os indicadores e a técnica; a ordem é uma hipótese declarada do projeto que pode ser modificada pelo usuário.</p>
+ <p><b>Ordem de exibição da Garagem Solar:</b> opções classificadas pelo SAW, instalações viáveis mas não priorizadas, referência “Não instalar” e alternativas fora do filtro. Se a recomendação for não instalar, ela aparece em primeiro lugar. Esta organização não altera o cálculo nem a posição SAW; instalações dominadas e reprovadas não recebem índice.</p>
  <h3>Pesos dos critérios de decisão</h3><div class="table-wrap"><table class="criteria-table"><tr><th>Critério</th><th>Fator</th><th>Peso</th></tr>${pesos}</table></div>
  <p><small>Os percentuais resultam do método de ordenação dos critérios e podem ser alterados pela prioridade selecionada. Os números são projeções; o SAD não analisa a estrutura física do telhado.</small></p>`;
 }
@@ -463,6 +483,7 @@ function selecionar(i,foco=false){
  }else{
   mostrar(a.res,a.risco,Boolean(a.financiado));
   if(a.veredito?.nivel==="nao")$("classe").textContent+=" Esta alternativa não passou no filtro de viabilidade e não pode ser recomendada.";
+  else if(a.veredito?.nivel==="dominada")$("classe").textContent+=" Esta instalação tem VPL positivo, mas outra alternativa apresenta relação econômica superior. Por isso ficou fora do ranking SAW; continua disponível para comparação e não deve ser confundida com a decisão de não instalar.";
   else if(!vencedor)$("classe").textContent+=" Opção exibida apenas para comparação; não altera a escolha do SAD.";
  }
  // Cartões continuam na posição atual após atualização do conteúdo, e a alternativa ativa fica visível.

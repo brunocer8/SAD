@@ -65,3 +65,56 @@ def test_interpretacao_ia_estah_visivel_e_recuperavel_no_relatorio():
     assert '/explicacao`' in HTML
     assert 'id="rel-explicacao-texto"' in HTML
     assert 'd.fonte==="gemini"' in HTML
+
+
+def test_garagem_diferencia_ordem_visual_de_ranking_saw():
+    """O índice SAW e o índice real da opção não mudam por ordenação de cartões."""
+    assert 'function alternativasParaExibicao(D)' in HTML
+    assert 'alternativasParaExibicao(D).map(({a,i})=>' in HTML
+    assert 'onclick="selecionar(${i},true)"' in HTML
+    assert 'VIÁVEL · NÃO PRIORIZADA' in HTML
+    assert 'Não atribuído' in HTML
+    assert 'REFERÊNCIA · NÃO INSTALAR' in HTML
+    assert 'Esta ordem visual não substitui o ranking SAW' in HTML
+
+
+def test_ordenacao_visual_casos_recomendado_e_nao_instalar():
+    """Testa a função JS de apresentação com índices originais preservados."""
+    import shutil
+    import subprocess
+    import pytest
+
+    if not shutil.which('node'):
+        pytest.skip('Node não instalado; validação JS de ordenação opcional')
+    inicio = HTML.index('function alternativasParaExibicao(D){')
+    fim = HTML.index('\nfunction escolhaHTML(D,sel){', inicio)
+    funcao_js = HTML[inicio:fim]
+    script = '''const assert=require('node:assert/strict');
+''' + funcao_js + '''
+const d={recomendacao:{nome:'1,86'}, ranking:[
+  {nome:'1,86', res:{}, veredito:{nivel:'sim'},indice:.94},
+  {nome:'1,24', res:{}, veredito:{nivel:'sim'},indice:.71},
+  {nome:'Não instalar', indice:.13},
+  {nome:'2,48', res:{}, veredito:{nivel:'dominada'}, indice:null},
+  {nome:'3,10', res:{}, veredito:{nivel:'nao'}, indice:null},
+]};
+let ordered=alternativasParaExibicao(d);
+assert.deepEqual(ordered.map(x=>x.a.nome), ['1,86','1,24','2,48','Não instalar','3,10']);
+assert.deepEqual(ordered.map(x=>x.i), [0,1,3,2,4]);
+assert.equal(d.ranking[2].nome,'Não instalar');
+assert.equal(d.ranking[2].indice,.13);
+const d2={recomendacao:{nome:'Não instalar'},ranking:[
+  {nome:'Não instalar',indice:.9},
+  {nome:'2,48',res:{},veredito:{nivel:'nao'},indice:null},
+]};
+assert.deepEqual(alternativasParaExibicao(d2).map(x=>x.a.nome),['Não instalar','2,48']);
+const d3={recomendacao:{nome:'1,86'},ranking:[
+  {nome:'Não instalar'},
+  {nome:'1,24',res:{},veredito:{nivel:'ressalvas'}},
+  {nome:'1,86',res:{},veredito:{nivel:'sim'}},
+  {nome:'2,48',res:{},veredito:{nivel:'dominada'}},
+]};
+assert.deepEqual(alternativasParaExibicao(d3).map(x=>x.a.nome), ['1,86','1,24','2,48','Não instalar']);
+'''
+    r = subprocess.run(['node', '-e', script], capture_output=True, text=True, timeout=10)
+    assert r.returncode == 0, r.stderr

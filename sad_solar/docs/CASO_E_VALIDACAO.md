@@ -62,3 +62,6 @@ o cenário Tarifa Social usa simplificação, não cálculo regulatório complet
 - Consumo residencial sem sazonalidade nem curva de carga horária; autoconsumo é estimado.
 - Fio B de 2029+ modelado como cenário de 100%, não como percentual fixado diretamente pela lei.
 - Não comparar VPL projetado com projeções de outros softwares sem uniformizar hipóteses.
+
+
+**Nota sobre a Garagem Solar (novembro de 2026).** A tabela acima registra a ordem original do ranking SAW, no qual “Não instalar” participa normalmente. Para facilitar a comparação no site, os cartões são apresentados em ordem de situação: opções classificadas pelo SAW, instalações viáveis porém excluídas por dominância, referência “Não instalar” e alternativas inviáveis. Assim, no caso ilustrativo, a instalação de 2,48 kWp aparece antes de “Não instalar”, sem receber índice SAW e sem substituir a recomendação oficial.

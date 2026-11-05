@@ -16,3 +16,6 @@ A configuração de 2,48 kWp foi preservada na Garagem Solar, mas retirada da di
 O filtro é **condicional ao perfil escolhido**, não um teorema de dominância de Pareto sobre todos os critérios. A ordenação padrão é uma escolha metodológica declarada, com suporte na literatura para prioridade dada ao VPL e à avaliação de risco. Os pesos são calculados pelo Rank Order Centroid, não tomados como porcentagens publicadas.
 
 Para reproduzir: `python -m pytest -q tests/test_sad.py -k bom_jesus` e o cenário de formulário acima.
+
+
+**Ordem da Garagem Solar:** primeiro as opções participantes do SAW, depois 2,48 kWp com o aviso “Viável, mas não priorizada”; por fim “Não instalar”, como referência (se não for a escolha vencedora). O índice e a posição SAW da alternativa-base não são alterados: a mudança se limita à apresentação dos cartões.
