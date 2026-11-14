@@ -1,41 +1,21 @@
 <!DOCTYPE html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sol da Bahia | Decisão inteligente em energia solar residencial</title>
-<meta name="theme-color" content="#14394A"><meta name="description" content="Sol da Bahia: avalie o investimento em energia solar na sua casa com dados, cenários e recomendações transparentes.">
+<meta name="theme-color" content="#082F42">
+<link rel="icon" href="./sol-da-bahia-simbolo.png" type="image/png"><meta name="description" content="Sol da Bahia: avalie o investimento em energia solar na sua casa com dados, cenários e recomendações transparentes.">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--sol:#F4C45E;--dende:#CC5B37;--mar:#14394A;--mar2:#087C88;--areia:#FAF6EE;--txt:#23343B}
-body{font-family:Poppins,system-ui,sans-serif;margin:0;background:var(--areia);color:var(--txt)}
-header{background:linear-gradient(90deg,var(--mar),var(--mar2));color:#fff;padding:10px 24px;display:flex;gap:14px;align-items:center;flex-wrap:wrap;border-bottom:4px solid var(--sol)}
-header h2{margin:0;font-size:18px;flex:1;display:flex;align-items:center;gap:10px}header h2 small{display:block;font-weight:400;font-size:11px;color:#cfe6f5}
-nav button{background:none;border:0;color:#cfe6f5;font:600 14px Poppins;cursor:pointer;padding:8px 12px}nav button.on{color:#fff;border-bottom:3px solid var(--sol)}
-main{max-width:1040px;margin:auto;padding:18px}.card{background:#fff;border-radius:16px;padding:18px;margin-bottom:16px;box-shadow:0 4px 18px #0b3c5d14}
+body{font-family:Poppins,system-ui,sans-serif;margin:0}
+header{color:#fff;display:flex;align-items:center;flex-wrap:wrap}
+nav button{background:none;font:600 13px Poppins,system-ui,sans-serif;cursor:pointer;padding:8px 12px}
+main{margin:auto}.card{background:#fff}
 form{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px 16px}label{font-size:13px;font-weight:600;display:flex;flex-direction:column;gap:4px}
 input,select,button{padding:10px;font:15px Poppins,system-ui,sans-serif;border:1px solid #d6dde3;border-radius:10px}
-.bt{background:var(--dende);color:#fff;border:0;border-radius:999px;cursor:pointer;font-weight:600;padding:10px 20px}.bt:hover{background:#c94a07}.bt.sec{background:#e8eef2;color:var(--mar)}
+.bt{border:0;border-radius:999px;cursor:pointer;font-weight:600;padding:10px 20px}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.kpi{background:#FFF3D6;border-left:5px solid var(--sol);border-radius:10px;padding:10px;font-size:13px}.kpi b{display:block;font-size:20px;color:var(--mar)}
 .g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}table{width:100%;border-collapse:collapse;font-size:14px}
 td,th{padding:8px;border-bottom:1px solid #eef1f4;text-align:left}th{color:var(--mar)}.hide{display:none!important}small{color:#5b6b78}
-.hero{background:radial-gradient(circle at 85% 20%,#ffd54a 0,#F7B500 14%,transparent 15%),linear-gradient(135deg,var(--mar) 0,var(--mar2) 70%,var(--dende) 140%);color:#fff;border-radius:22px;padding:34px;display:grid;grid-template-columns:1.3fr 1fr;gap:28px;margin-top:14px}
-.hero h1{font-size:30px;line-height:1.2;margin:0 0 10px}.hero p{color:#e3f1fb}.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chips span{background:#ffffff26;border-radius:999px;padding:6px 12px;font-size:12px}
-.hero .card{color:var(--txt);margin:0}@media(max-width:760px){.hero{grid-template-columns:1fr}}
-#v-login{position:fixed;inset:0;z-index:50;overflow:hidden;display:flex;align-items:center;justify-content:center;background:linear-gradient(180deg,#0b3c5d 0%,#1d6a96 40%,#f08a24 78%,#F7B500 100%);background-size:100% 220%;animation:ceu 20s ease-in-out infinite alternate}
-@keyframes ceu{to{background-position:0 100%}}
-.sol{position:absolute;right:12%;top:8%;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,#fff6c2 0,#ffd54a 38%,#F7B500 62%,#F7B50000 74%);animation:flutua 9s ease-in-out infinite alternate}
-.raios{position:absolute;right:calc(12% - 140px);top:calc(8% - 140px);width:520px;height:520px;border-radius:50%;background:repeating-conic-gradient(#ffe08a40 0 6deg,transparent 6deg 20deg);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 68%);mask-image:radial-gradient(circle,#000 18%,transparent 68%);animation:gira 70s linear infinite}
-@keyframes gira{to{transform:rotate(360deg)}}@keyframes flutua{to{transform:translateY(40px) scale(1.06)}}
-.nuvem{position:absolute;height:40px;width:170px;border-radius:40px;background:#fff;opacity:.22;filter:blur(3px);animation:desliza 55s linear infinite}
-@keyframes desliza{from{transform:translateX(-260px)}to{transform:translateX(110vw)}}
-.onda{position:absolute;left:0;bottom:0;width:200%;animation:mar linear infinite}.onda svg{display:block;width:100%;height:100%}
-@keyframes mar{to{transform:translateX(-50%)}}
-.logo{position:absolute;left:28px;top:20px;color:#fff;font-weight:700;font-size:20px;display:flex;align-items:center;gap:10px;z-index:2}
-.login-in{position:relative;z-index:2;width:min(1040px,92vw);display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center;color:#fff}
-.login-in h1{font-size:clamp(28px,4vw,44px);line-height:1.15;margin:0 0 12px;text-shadow:0 2px 14px #0b3c5d88}.login-in p{font-size:17px;color:#fff}
-.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.chips span{background:#ffffff2e;border-radius:999px;padding:6px 12px;font-size:12px}
-#v-login .card{color:var(--txt);margin:0;background:#fffffff2;backdrop-filter:blur(6px)}
-@media(max-width:760px){.login-in{grid-template-columns:1fr}.sol{width:150px;height:150px}}
-@media(prefers-reduced-motion:reduce){#v-login,#v-login *{animation:none!important}}
 .kpi{position:relative;cursor:help}.kpi .i{color:#E8590C;font-size:12px}
 .kpi[data-tip]:hover::after,.kpi[data-tip]:focus::after{content:attr(data-tip);position:absolute;left:0;top:100%;margin-top:6px;z-index:30;width:250px;background:#0b3c5d;color:#fff;font-size:12.5px;font-weight:400;line-height:1.45;padding:10px 12px;border-radius:10px;box-shadow:0 6px 18px #0005}
 .kpi:last-child[data-tip]:hover::after,.kpi:last-child[data-tip]:focus::after{left:auto;right:0}
@@ -60,44 +40,131 @@ input,select{width:100%;box-sizing:border-box;height:42px;background:#fff}
 form .bt{grid-column:1/-1;justify-self:start;margin-top:4px}
 
 /* Identidade Sol da Bahia · litoral, céu azul e tons de dendê; atualização residencial 2026 */
-:root{--mar:#14394A;--mar2:#087C88;--sol:#F6C65D;--dende:#CF5D36;--areia:#FBF7EF;--txt:#203740;--turq:#087C88;--linha:#E4E8E7}
-html{scroll-behavior:smooth}body{background:linear-gradient(180deg,#FCF8F0,#F9F5EF 60%,#EDF4F1);color:var(--txt)}
-header{background:linear-gradient(105deg,#14394A 0%,#14586B 100%);border-bottom:5px solid var(--sol);padding:15px max(20px,calc((100vw - 1200px)/2));gap:22px;box-shadow:0 5px 28px #14394a17}
-header h2{font-size:27px;min-width:255px}header h2 small{font-size:9px;letter-spacing:.15em;margin-top:2px;color:#b8e4df;text-transform:uppercase}
-.brand-symbol{flex:0 0 auto;filter:drop-shadow(0 4px 6px #0014)}.brand-title{line-height:1.14;letter-spacing:-.04em}.brand-title em,.logo em{color:var(--sol);font-style:normal}
-nav{display:flex;gap:3px;align-items:center}nav button{color:#cbe1e3;border-radius:8px;font-size:13px}nav button.on{border:0;color:#14394A;background:var(--sol)}nav button:hover{background:#ffffff17}
+/* Cores do símbolo Sol da Bahia. */
+:root{
+  --mar:#082f42;
+  --mar2:#08717a;
+  --sol:#ffc559;
+  --dende:#a94a20;
+  --areia:#f8f5ed;
+  --txt:#17333e;
+  --turq:#08717a;
+  --linha:#dbe7e5;
+  --mar-claro:#125868;
+  --sol-forte:#eea331;
+  --menta:#e7f3f0;
+}
+html{scroll-behavior:smooth}body{background:linear-gradient(165deg,var(--areia) 10%,#f4f8f6 75%);color:var(--txt)}
+header{
+  background:linear-gradient(110deg,var(--mar),#0c4555);
+  border-bottom:3px solid var(--sol);
+  padding:12px max(20px,calc((100vw - 1170px)/2));
+  gap:18px;
+  box-shadow:0 5px 24px #082f421c;
+}
+.brand-header{display:flex;flex:1;min-width:0}
+.brand-image{display:block;height:auto;object-fit:contain}
+.brand-header .brand-image{width:166px}
+nav{display:flex;gap:4px;align-items:center}
+nav button{color:#d9eef0;border-radius:8px;border:0;white-space:nowrap}
+nav button:not(.on):hover{background:#ffffff20}
+nav button.on{color:var(--mar);background:var(--sol)}
+#quem{font-size:13px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 main{max-width:1120px;padding:26px 22px 45px}
-.card{border:1px solid #E5E8E5;box-shadow:0 7px 26px #14394a0a;border-radius:20px;padding:24px;margin-bottom:18px}
+.card{border:1px solid var(--linha);box-shadow:0 7px 26px #082f420d;border-radius:20px;padding:24px;margin-bottom:18px}
 input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;color:#173B45}input:focus-visible,select:focus-visible{outline:2px solid var(--mar2);outline-offset:2px}
-.bt{background:var(--dende);box-shadow:0 4px 10px #b653311c;transition:transform .14s ease,background .14s ease}.bt:hover{background:#AA472B;transform:translateY(-1px)}.bt.sec{box-shadow:none}
-.bt-primary{font-size:15px;padding:14px 22px;border-radius:12px;background:#D76034;display:inline-flex;gap:22px;align-items:center;justify-content:center}
-.kpi{border:1px solid #F3E7CA;border-left:5px solid var(--sol);background:#FFF9ED;cursor:help}.kpi b{color:#14394A}
-.page-intro{position:relative;isolation:isolate;overflow:hidden;border-radius:25px;background:linear-gradient(112deg,#16465A 0%,#087E89 100%);color:white;padding:34px 40px;margin-bottom:20px;min-height:130px;box-sizing:border-box}
-.page-intro:after{content:"";position:absolute;z-index:-1;right:-75px;top:-145px;width:380px;height:380px;background:radial-gradient(circle,#F6C65D 0 29%,#f6c65d2b 30% 32%,transparent 33% 100%);opacity:.95}
-.page-intro:before{content:"";position:absolute;z-index:-1;right:-50px;bottom:-45px;width:52%;height:115px;background:repeating-radial-gradient(ellipse at center,#ffffff30 0 2px,transparent 3px 17px);transform:rotate(-12deg)}
-.page-intro .eyebrow{color:#FCD37D}.page-intro h1{max-width:720px;margin:8px 0 10px;font-size:clamp(24px,3.2vw,35px);line-height:1.18;letter-spacing:-.045em}.page-intro p{max-width:670px;line-height:1.6;color:#E4F4F1;margin:0}.intro-sun{position:absolute;right:70px;top:16px;color:#f9cd6c33;font-size:100px}
+.bt{
+  background:var(--sol);color:var(--mar);
+  box-shadow:0 4px 10px #b66b171c;
+  transition:transform .14s ease,background .14s ease;
+}
+.bt:hover{background:var(--sol-forte);transform:translateY(-1px)}
+.bt.sec{background:var(--menta);color:var(--mar);box-shadow:none}
+.bt.sec:hover{background:#d6ebe7}
+.bt-primary{font-size:15px;padding:14px 22px;border-radius:12px;display:inline-flex;gap:22px;align-items:center;justify-content:center}
+:where(button,summary):focus-visible{outline:2px solid var(--mar2);outline-offset:3px}
+header button:focus-visible,.showroom-controls button:focus-visible{outline-color:#fff}
+.kpi{border:1px solid #f3e7ca;border-left:5px solid var(--sol);background:#fffaef;cursor:help}
+.kpi b{color:var(--mar)}
+.page-intro{
+  position:relative;isolation:isolate;overflow:hidden;box-sizing:border-box;
+  min-height:130px;margin-bottom:20px;padding:34px 40px;border-radius:25px;
+  background:linear-gradient(108deg,var(--mar) 12%,var(--mar-claro) 85%);
+  color:#fff;
+}
+.page-intro::after{
+  content:"";position:absolute;z-index:-1;right:-38px;top:50%;
+  width:260px;aspect-ratio:1;transform:translateY(-50%);
+  background:url("./sol-da-bahia-simbolo.png") center/contain no-repeat;
+  opacity:.22;
+}
+.page-intro .eyebrow{color:var(--sol)}
+.page-intro h1{max-width:720px;margin:8px 0 10px;font-size:clamp(24px,3.2vw,35px);line-height:1.18;letter-spacing:-.045em}
+.page-intro p{max-width:670px;line-height:1.6;color:#e4f4f1;margin:0}
 .eyebrow,.step-marker{font-size:11px;letter-spacing:.16em;font-weight:800;text-transform:uppercase}
 .step-marker{color:#B85834}.form-heading h2,.result-section-label h2{font-size:23px;letter-spacing:-.035em;margin:8px 0 5px}.form-heading p{font-size:13px;color:#6A7A80;margin:0 0 21px}
 #f{grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 20px}label{font-size:13px}label .dica{font-size:11px;line-height:1.6}
 #f .adv{background:#F8FAF9;border:1px solid #dae4df;border-radius:13px}#f .bt-primary{margin-top:12px}
 .result-section-label{margin:24px 0 14px}.result-section-label h2{margin-bottom:2px}
-#v-login{background:radial-gradient(ellipse at 60% 15%,#248c95 0,transparent 46%),linear-gradient(155deg,#102F40 0%,#155467 48%,#147C88 73%,#C77A4A 135%)}
-#v-login:before{content:"";position:absolute;inset:0;opacity:.22;pointer-events:none;background-image:repeating-linear-gradient(45deg,transparent 0 38px,#d8eff5 39px 40px,transparent 41px 80px);mask-image:linear-gradient(to bottom,transparent,#000)}
-#v-login .sol{top:14%;right:10%;width:275px;height:275px;background:radial-gradient(circle,#ffe9a2 0,#F6C65D 38%,#ffba4f77 56%,transparent 73%);opacity:.78}
-#v-login .raios{right:calc(10% - 120px);top:calc(14% - 120px);opacity:.26}
-#v-login .logo{top:26px;left:clamp(22px,4vw,72px);font-size:32px;letter-spacing:-.05em;align-items:center;text-shadow:0 2px 7px #0002}
-#v-login .logo span{display:block;line-height:1.08}#v-login .logo small{display:block;color:#C5E5E2;font-size:9px;letter-spacing:.15em;margin-top:5px}
-.login-in{width:min(1130px,92vw);gap:60px;grid-template-columns:1.15fr .85fr}.login-copy{padding-top:35px}.login-copy h1{font-size:clamp(36px,4.1vw,59px);font-weight:800;letter-spacing:-.052em;line-height:1.08;max-width:750px;margin:17px 0 19px}.highlight-brand{color:#F7CE77;text-shadow:0 5px 15px #072b3047}
-.login-copy p{font-size:16px;line-height:1.8;color:#DCEFEF;max-width:560px}.login-copy .eyebrow{color:#F9D78C}.login-copy .chips{margin-top:26px}.login-copy .chips span{background:#ffffff1a;border:1px solid #ffffff30;color:#fff;font-size:11px}
-.login-foot{color:#B6D5D8;font-size:12px;margin-top:40px;letter-spacing:.03em}
-#v-login .card{box-shadow:0 30px 85px #062a3a65,0 0 0 1px #ffffff71;background:#fffcf6ef;border-radius:23px;padding:30px}
-.login-card h3{font-size:24px;line-height:1.25;letter-spacing:-.035em;color:#123A47}.login-card-copy{color:#5E767A!important;font-size:12px!important;line-height:1.5!important;margin:0 0 20px}
-.login-card .bt{border-radius:10px;justify-self:stretch;width:100%}.login-card .bt.sec{margin-top:-8px}
-.footer{display:grid;gap:7px;padding:24px 4px 8px;color:#486469;font-size:12px}.footer-brand{font-size:18px;font-weight:800;color:#184b59;letter-spacing:-.035em}.footer small{max-width:900px;line-height:1.5}
-#veredito{border-left:5px solid var(--sol)}.carta.top{border-color:#F0BD57;background:linear-gradient(155deg,#fffdf6,#fff4dc);box-shadow:0 0 0 2px #edbc5020,0 10px 22px #bb6c2617}.carta.sel{outline-color:#087C88}
-@media(max-width:860px){header{padding:14px 17px}header h2{flex:1;min-width:190px}header h2 .brand-title{font-size:24px}.login-in{gap:22px}}
-@media(max-width:760px){main{padding:18px 13px}.page-intro{padding:25px 22px}.page-intro:after{opacity:.3}#f{grid-template-columns:1fr}.form-heading h2{font-size:21px}.card{padding:18px}.login-in{grid-template-columns:1fr;gap:25px;margin-top:60px}.login-copy{padding-top:0}.login-copy h1{font-size:35px}.login-copy p{font-size:13px;line-height:1.6}.login-foot{display:none}#v-login{overflow-y:auto;align-items:flex-start;padding:88px 0 28px;box-sizing:border-box}#v-login .logo{font-size:25px;top:22px}.login-card h3{font-size:22px}#v-login .card{padding:24px}nav{width:100%;justify-content:space-between;order:4}nav button{flex:1;text-align:center}#quem{display:none}.brand-symbol{width:40px;height:40px}header .bt.sec{margin-left:auto}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+/* Acesso: marca e proposta de valor ao lado do formulário. */
+#v-login{
+  position:fixed;inset:0;z-index:50;overflow:auto;
+  color:#fff;
+  background:radial-gradient(ellipse at 28% 112%,#096873 0%,transparent 58%),var(--mar);
+}
+.login-in{
+  box-sizing:border-box;width:min(1152px,100%);min-height:100%;
+  margin-inline:auto;padding:clamp(24px,6vw,88px) clamp(20px,5vw,68px);
+  display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,.82fr);
+  align-items:center;gap:clamp(28px,6vw,80px);
+}
+.login-copy .brand-image{width:min(100%,322px);margin-bottom:clamp(26px,4vw,54px)}
+.login-copy h1{
+  font-size:clamp(32px,4vw,56px);font-weight:800;line-height:1.09;
+  letter-spacing:-.05em;margin:0 0 18px;text-wrap:balance;
+}
+.login-copy h1 span{color:#ffd17b}
+.login-copy p{max-width:48ch;margin:0;color:#dceff0;font-size:16px;line-height:1.7}
+#v-login .card{
+  margin:0;color:var(--txt);background:#fffdf8;
+  padding:clamp(22px,3vw,34px);border-radius:23px;box-shadow:0 20px 55px #041e2a55;
+}
+.login-card h2{margin:0 0 8px;font-size:28px;line-height:1.25;letter-spacing:-.035em;color:var(--mar)}
+.login-card-copy{color:#49626c;font-size:13px;line-height:1.55;margin:0 0 20px}
+.login-card form{grid-template-columns:minmax(0,1fr)}
+.login-card .bt{border-radius:10px;justify-self:stretch;width:100%}
+.login-card .bt.sec{margin-top:-8px}
+.footer{display:grid;gap:10px;padding:24px 4px 8px;color:#486469;font-size:12px}
+.footer-brand{display:flex;align-items:center;gap:10px;font-size:17px;font-weight:800;color:var(--mar)}
+.footer small{max-width:900px;line-height:1.6}
+.report-brand{display:none}
+#veredito{border-left:5px solid var(--sol)}
+.carta.top{border-color:#f0bd57;background:linear-gradient(155deg,#fffdf6,#fff4dc);box-shadow:0 0 0 2px #edbc5020,0 10px 22px #bb6c2617}
+.carta.sel{outline-color:var(--mar2)}
+@media(max-width:860px){
+  header{padding:12px 17px;gap:10px}
+  #quem{display:none}
+}
+@media(max-width:760px){
+  main{padding:18px 13px}
+  .page-intro{padding:25px 22px}
+  .page-intro::after{width:190px;opacity:.15}
+  .form-heading h2{font-size:21px}
+  .card{padding:18px}
+  .login-in{grid-template-columns:minmax(0,1fr);align-content:center}
+  .login-copy .brand-image{width:min(100%,230px);margin-bottom:24px}
+  .login-copy p{font-size:14px}
+  nav{width:100%;order:4}
+  nav button{flex:1;text-align:center;padding-inline:7px}
+  .g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .bt{transition:none}
+}
+@media print{
+  .report-brand{display:flex;align-items:center;gap:10px;margin-bottom:14px;color:var(--mar);font-weight:700}
+}
 
 /* Interface de decisão enxuta: uma recomendação clara e detalhes sob demanda */
 #f{grid-template-columns:repeat(3,minmax(0,1fr));gap:18px 16px}
@@ -147,7 +214,7 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 
 /* Garagem solar: seleção de alternativas em cartões, inspirada em interfaces de jogos de corrida.
    Indicadores são reais do modelo; ilustrações vetoriais são apenas decorativas. */
-.solar-showroom{margin:0 0 20px;border-radius:23px;background:linear-gradient(130deg,#102F41 0%,#164E5B 62%,#0C6770 100%);color:white;padding:26px 26px 22px;box-shadow:0 17px 40px #14394a20;position:relative;overflow:hidden}
+.solar-showroom{margin:0 0 20px;border-radius:23px;background:linear-gradient(130deg,var(--mar) 0%,var(--mar-claro) 72%,#12606a 100%);color:white;padding:26px 26px 22px;box-shadow:0 17px 40px #14394a20;position:relative;overflow:hidden}
 .solar-showroom:before{content:"";position:absolute;width:280px;height:280px;right:-115px;top:-160px;border:45px solid #f4c45e19;border-radius:50%;pointer-events:none}
 .showroom-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-end;position:relative;z-index:1;margin-bottom:18px}
 .showroom-kicker{font-size:10px;letter-spacing:.16em;color:#F6C65D;font-weight:800}
@@ -195,22 +262,34 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 .chart-hint{font-size:11px;color:#516c75;margin:2px 0 8px}
 @media print{.narrative-panel{break-inside:avoid;box-shadow:none}.narrative-copy{font-size:12px}}
 </style></head><body>
-<header class="hide" id="top"><h2 class="brand-header"><svg class="brand-symbol" width="48" height="48" viewBox="0 0 64 64" role="img" aria-label="Símbolo do Sol da Bahia"><rect x="2" y="2" width="60" height="60" rx="18" fill="#F7C55D"/><circle cx="35" cy="26" r="12" fill="#FDF4D9"/><path d="M9 40c10-7 17-7 27 0s17 7 22 2v11c-8 4-14 2-22-3s-18-7-27 0z" fill="#087C88"/><path d="M9 49c10-6 17-6 27 0s17 6 22 1" fill="none" stroke="#14394A" stroke-width="4" stroke-linecap="round"/></svg><span class="brand-title">Sol <em>da Bahia</em><small>ENERGIA SOLAR RESIDENCIAL · SAD</small></span></h2>
-<nav><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
-<span id="quem"></span><button class="bt sec" id="sair">Sair</button></header>
+<header class="hide" id="top">
+  <div class="brand-header"><img class="brand-image" src="./sol-da-bahia.webp" width="840" height="307" alt="Sol da Bahia — Sistema de Apoio à Decisão"></div>
+  <nav aria-label="Navegação principal"><button data-v="dash">Dashboard</button><button data-v="sim">Simulação</button><button data-v="rel">Relatórios</button></nav>
+  <span id="quem"></span><button class="bt sec" id="sair">Sair</button>
+</header>
 <main>
-<div id="v-login"><div class="raios"></div><div class="sol"></div>
-<div class="nuvem" style="top:16%"></div><div class="nuvem" style="top:30%;width:120px;animation-duration:80s;animation-delay:-30s"></div>
-<div class="onda" style="height:150px;animation-duration:26s;animation-delay:0s;opacity:0.55"><svg viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0,60 q180,-50 360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 V120 H0 Z" fill="#1d6a96"/></svg></div><div class="onda" style="height:120px;animation-duration:17s;animation-delay:-4s;opacity:0.75"><svg viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0,60 q180,-50 360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 V120 H0 Z" fill="#0b3c5d"/></svg></div><div class="onda" style="height:90px;animation-duration:11s;animation-delay:-2s;opacity:1"><svg viewBox="0 0 2880 120" preserveAspectRatio="none"><path d="M0,60 q180,-50 360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 t360,0 V120 H0 Z" fill="#082f49"/></svg></div>
-<div class="logo"><svg class="brand-symbol" width="48" height="48" viewBox="0 0 64 64" role="img" aria-label="Símbolo do Sol da Bahia"><rect x="2" y="2" width="60" height="60" rx="18" fill="#F7C55D"/><circle cx="35" cy="26" r="12" fill="#FDF4D9"/><path d="M9 40c10-7 17-7 27 0s17 7 22 2v11c-8 4-14 2-22-3s-18-7-27 0z" fill="#087C88"/><path d="M9 49c10-6 17-6 27 0s17 6 22 1" fill="none" stroke="#14394A" stroke-width="4" stroke-linecap="round"/></svg><span>Sol <em>da Bahia</em><small>INTELIGÊNCIA SOLAR PARA SUA CASA</small></span></div>
-<div class="login-in"><div class="login-copy"><span class="eyebrow">☀ O SOL É NOSSO. A DECISÃO É SUA.</span><h1><span class="highlight-brand">Sol da Bahia.</span><br>Energia inteligente começa em casa.</h1>
-<p>Descubra se investir em placas solares faz sentido para sua residência. Compare alternativas com dados locais, projeções financeiras e uma recomendação explicada.</p>
-<div class="chips"><span>☀ Potencial solar local</span><span>⌂ Seu telhado, sua decisão</span><span>✓ 417 municípios baianos</span></div><div class="login-foot">Da luz do nosso litoral à energia do seu telhado.</div></div>
-<div class="card login-card"><span class="step-marker">BEM-VINDO(A) AO SOL DA BAHIA</span><h3 style="margin-top:8px">Seu próximo passo começa aqui.</h3><p class="login-card-copy">Entre ou crie uma conta gratuita para salvar suas simulações.</p><form id="fl" style="grid-template-columns:1fr"><label>Usuário<input id="u" required minlength="3"></label>
-<label>Senha (mín. 6)<input id="s" type="password" required minlength="6"></label>
-<button class="bt">Entrar</button><button type="button" class="bt sec" id="reg">Criar conta</button></form><small id="lmsg"></small></div></div></div>
+<div id="v-login">
+  <div class="login-in">
+    <div class="login-copy">
+      <img class="brand-image" src="./sol-da-bahia.webp" width="840" height="307" alt="Sol da Bahia — Sistema de Apoio à Decisão">
+      <h1>Vale a pena instalar <span>energia solar</span> na sua casa?</h1>
+      <p>Simule para seu município. Compare o investimento, a economia na conta de luz e o tempo de retorno.</p>
+    </div>
+    <div class="card login-card">
+      <h2>Acesse sua conta</h2>
+      <p class="login-card-copy">Entre ou crie uma conta gratuita para salvar suas simulações.</p>
+      <form id="fl">
+        <label>Usuário<input id="u" required minlength="3" autocomplete="username"></label>
+        <label>Senha (mín. 6)<input id="s" type="password" required minlength="6"></label>
+        <button class="bt">Entrar</button>
+        <button type="button" class="bt sec" id="reg">Criar conta</button>
+      </form>
+      <small id="lmsg" role="status"></small>
+    </div>
+  </div>
+</div>
 
-<div id="v-dash" class="hide"><section class="page-intro intro-dash"><span class="eyebrow">PAINEL DE DECISÃO</span><h1>Seu futuro com a energia do sol.</h1><p>Explore os resultados das suas simulações, compare opções e acompanhe o retorno esperado para sua casa.</p><span class="intro-sun" aria-hidden="true">☀</span></section><div class="card" id="dsw"><label>Simulação exibida<select id="dsel"></select></label></div>
+<div id="v-dash" class="hide"><section class="page-intro intro-dash"><span class="eyebrow">PAINEL DE DECISÃO</span><h1>Seu futuro com a energia do sol.</h1><p>Explore os resultados das suas simulações, compare opções e acompanhe o retorno esperado para sua casa.</p></section><div class="card" id="dsw"><label>Simulação exibida<select id="dsel"></select></label></div>
 <div id="dvazio" class="card hide">Você ainda não fez nenhuma simulação. Use a aba Simulação e volte aqui para ver os gráficos do resultado.</div>
 <div id="dcont" class="hide"><div class="card"><div class="kpis" id="dk"></div><p id="dclasse"></p></div>
 <div class="g2"><div class="card"><b>Em quanto tempo o investimento se paga? (R$ acumulados)</b><p class="chart-hint">Passe o mouse ou toque na curva para consultar os valores por ano.</p><canvas id="dc1" aria-label="Retorno acumulado em reais, com valores por ano ao passar o mouse"></canvas><p><small id="dn1"></small></p></div>
@@ -219,7 +298,7 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 <div class="card"><b>Risco: VPL nos cenários simulados (R$)</b><canvas id="dc4"></canvas><p><small id="dn4"></small></p></div></div></div></div>
 
 <div id="v-sim" class="hide">
- <section class="page-intro intro-sim"><span class="eyebrow">SIMULAÇÃO RESIDENCIAL</span><h1>Energia solar vale a pena para sua casa?</h1><p>Informe três dados para receber uma recomendação. O Sol da Bahia faz as estimativas para você.</p><span class="intro-sun" aria-hidden="true">☀</span></section>
+ <section class="page-intro intro-sim"><span class="eyebrow">SIMULAÇÃO RESIDENCIAL</span><h1>Energia solar vale a pena para sua casa?</h1><p>Informe três dados para receber uma recomendação. O Sol da Bahia faz as estimativas para você.</p></section>
  <div class="card form-card"><div class="form-heading"><span class="step-marker">01 · SUA CASA</span><h2>Comece com o essencial</h2><p>Sem orçamento prévio. Os cálculos usam referências documentadas, que você pode ajustar abaixo.</p></div>
  <form id="f">
   <label>Município *<input id="mun" list="lista" required placeholder="Ex.: Salvador" autocomplete="address-level2"></label><datalist id="lista"></datalist>
@@ -268,9 +347,9 @@ input,select{border:1.5px solid #D5E0DD;border-radius:11px;padding:10px 13px;col
 </div>
 <div id="v-rel" class="hide"><section class="page-intro intro-rel"><span class="eyebrow">SUAS ANÁLISES</span><h1>Simulações salvas</h1><p>Consulte sua recomendação e baixe o relatório quando precisar.</p></section>
  <div class="card"><div class="report-toolbar"><div><h2>Histórico</h2><p>Selecione uma análise para ver o resumo e os dados usados.</p></div><button class="bt sec" id="csv">Exportar CSV</button></div><div class="table-wrap"><table id="rt"></table></div><p class="result-note">* Payback do cenário de instalação estudado, mesmo quando a recomendação final for não instalar.</p></div>
- <div id="det" class="card hide"><div class="report-toolbar"><h2>Relatório da simulação</h2><button class="bt sec noprint" onclick="imprimirRelatorio()">Imprimir / salvar PDF</button></div><div id="dbody"></div></div>
+ <div id="det" class="card hide"><div class="report-brand"><img src="./sol-da-bahia-simbolo.png" width="40" height="40" alt="">Sol da Bahia</div><div class="report-toolbar"><h2>Relatório da simulação</h2><button class="bt sec noprint" onclick="imprimirRelatorio()">Imprimir / salvar PDF</button></div><div id="dbody"></div></div>
 </div>
-<footer class="footer"><span class="footer-brand">☀ Sol da Bahia</span><span>Feito para decisões mais claras, com a energia da nossa terra.</span><small>Projeções educativas com premissas e incertezas. Não substitui projeto elétrico, vistoria de telhado nem orçamento profissional. Em Tarifa Social, os resultados são especialmente aproximados.</small></footer>
+<footer class="footer"><span class="footer-brand"><img src="./sol-da-bahia-simbolo.png" width="34" height="34" alt="">Sol da Bahia</span><span>Feito para decisões mais claras, com a energia da nossa terra.</span><small>Projeções educativas com premissas e incertezas. Não substitui projeto elétrico, vistoria de telhado nem orçamento profissional. Em Tarifa Social, os resultados são especialmente aproximados.</small></footer>
 </main>
 <script>
 const $=i=>document.getElementById(i),R=v=>v==null?"n/d":"R$ "+Math.round(v).toLocaleString("pt-BR"),P=v=>v==null?"n/d":(v*100).toFixed(0)+"%",Y=v=>v==null?"n/d":v.toFixed(1)+" anos";
@@ -297,6 +376,8 @@ async function api(p,o={}){const h={"Content-Type":"application/json"};if(tok)h.
  const r=await fetch(p,{...o,headers:h,body:o.body?JSON.stringify(o.body):undefined});
  if(r.status==401&&p.indexOf("/api/login")<0&&p.indexOf("/api/registrar")<0){sair();throw new Error("Sessão expirada")}
  if(!r.ok){let m;try{m=(await r.json()).detail}catch(e){m=r.statusText}throw new Error(typeof m=="string"?m:"Dados inválidos")}return r.json()}
+const paleta = getComputedStyle(document.documentElement);
+const cor = nome => paleta.getPropertyValue(nome).trim();
 function graf(id,cfg){if(ch[id])ch[id].destroy();ch[id]=new Chart($(id),cfg)}
 // Mesmo formato de tooltip no painel e no resultado. Exibe o valor real do fluxo, sem arredondar para milhar.
 function tooltipRetorno(){return {mode:"index",intersect:false,plugins:{legend:{display:false},tooltip:{enabled:true,displayColors:false,
@@ -325,7 +406,11 @@ async function carregarExplicacao(id,alvoTexto,alvoFonte,contexto){
 // Gráficos dentro de seções recolhidas precisam recalcular a largura ao abrir.
 $("graficos").addEventListener("toggle",()=>{if($("graficos").open)requestAnimationFrame(()=>{ch.c1?.resize?.();ch.c2?.resize?.()})});
 function ver(v){["login","dash","sim","rel"].forEach(x=>$("v-"+x).classList.toggle("hide",x!=v));
- document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.v==v));
+ document.querySelectorAll("nav button").forEach(b=>{
+   const ativa=b.dataset.v===v;
+   b.classList.toggle("on",ativa);
+   if(ativa)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");
+ });
  if(v=="dash")dash();if(v=="rel")rel()}
 function entrou(d){tok=d.token;sessionStorage.tok=tok;sessionStorage.nome=d.nome;$("top").classList.remove("hide");$("quem").textContent=d.nome;ver("dash");carregarMun()}
 function sair(){tok="";sessionStorage.clear();$("top").classList.add("hide");ver("login")}
@@ -342,16 +427,16 @@ async function dash(id){const l=await api("/api/simulacoes");
  $("dk").innerHTML=[["Sistema exibido",a.kwp.toFixed(2)+" kWp"],["Investimento",R(a.investimento)],["Economia no 1º ano",R(a.economia_ano1)],["Payback",Y(a.payback)],["VPL (25 anos)",R(a.vpl)],["TIR",P(a.tir)],["Abatimento estimado",P(a.cobertura_consumo)]].map(x=>kpi(x[0],x[1])).join("");
  const top=Object.entries(k.prob_classe).sort((x,y)=>y[1]-x[1])[0];$("dclasse").textContent=`Decisão do SAD: ${a.decisao?.recomendacao?.nome||"não registrada"}. ${a.municipio}: faixa de retorno mais provável, ${top[0]} (${P(top[1])} dos cenários). Os gráficos detalham a alternativa selecionada ou o melhor cenário instalável, mesmo quando a decisão é não instalar.`;
  const fl=a.fluxo_acumulado,gm=a.geracao_mensal_kwh,ger=gm.reduce((x,y)=>x+y,0);
- graf("dc1",{type:"line",data:{labels:fl.map((_,i)=>i),datasets:[{data:fl,borderColor:"#E8590C",pointRadius:1,pointHoverRadius:6,fill:{target:"origin",above:"#2E9E5B33",below:"#B91C1C33"}}]},options:tooltipRetorno()});
+ graf("dc1",{type:"line",data:{labels:fl.map((_,i)=>i),datasets:[{data:fl,borderColor:cor("--mar2"),pointRadius:1,pointHoverRadius:6,fill:{target:"origin",above:"#2E9E5B33",below:"#B91C1C33"}}]},options:tooltipRetorno()});
  $("dn1").textContent=`Começa negativo (o valor investido) e cruza o zero em ${a.payback==null?"um prazo maior que a vida útil":Y(a.payback)}. Ao fim de 25 anos, o saldo acumulado é de ${R(fl[fl.length-1])}.`;
- graf("dc2",{data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{type:"bar",label:"Geração do sistema",data:gm,backgroundColor:"#F7B500"},{type:"line",label:"Consumo da residência",data:gm.map(()=>e.consumo_mes_kwh),borderColor:"#0B3C5D",pointRadius:0}]}});
+ graf("dc2",{data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{type:"bar",label:"Geração do sistema",data:gm,backgroundColor:cor("--sol")},{type:"line",label:"Consumo da residência",data:gm.map(()=>e.consumo_mes_kwh),borderColor:cor("--mar"),pointRadius:0}]}});
  $("dn2").textContent=`A geração estimada é de ${Math.round(ger).toLocaleString("pt-BR")} kWh por ano e permite abater até ${P(a.cobertura_consumo)} do consumo faturável simulado. Nos meses em que a barra passa da linha, a sobra vira crédito de energia.`;
  const rk=(a.decisao||{}).ranking;
- if(rk){graf("dc3",{type:"bar",data:{labels:rk.map(r=>r.nome),datasets:[{data:rk.map(r=>r.indice),backgroundColor:rk.map(r=>r.grupo==1?"#E8590C":(r.grupo<0||r.nome.startsWith("Não instalar"))?"#94a3b8":"#1D6A96")}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{min:0,max:1}}}});
-  $("dn3").textContent="Laranja: cenários mais recomendados (índices muito próximos formam um grupo e empatam tecnicamente). Azul: alternativas. Cinza: não investir ou descartada pelo filtro (sem índice). Quanto maior o índice (0 a 1), melhor."}
+ if(rk){graf("dc3",{type:"bar",data:{labels:rk.map(r=>r.nome),datasets:[{data:rk.map(r=>r.indice),backgroundColor:rk.map(r=>r.grupo==1?cor("--sol-forte"):(r.grupo<0||r.nome.startsWith("Não instalar"))?"#94a3b8":cor("--mar2"))}]},options:{indexAxis:"y",plugins:{legend:{display:false}},scales:{x:{min:0,max:1}}}});
+  $("dn3").textContent="Dourado: cenários mais recomendados (índices muito próximos formam um grupo e empatam tecnicamente). Turquesa: alternativas. Cinza: não investir ou descartada pelo filtro (sem índice). Quanto maior o índice (0 a 1), melhor."}
  else{if(ch.dc3){ch.dc3.destroy();delete ch.dc3}$("dn3").textContent="Esta simulação foi salva antes do ranking SAW. Faça uma nova simulação para vê-lo."}
  const va=k.vpl_a_vista,vf=k.vpl_financiado;
- graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:"#F7B500"},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:"#1D6A96"}]}});
+ graf("dc4",{type:"bar",data:{labels:["Pessimista (p10)","Mediano","Otimista (p90)"],datasets:[{label:"À vista",data:[va.p10,va.mediana,va.p90],backgroundColor:cor("--sol")},{label:"Financiado",data:[vf.p10,vf.mediana,vf.p90],backgroundColor:cor("--mar2")}]}});
  $("dn4").textContent=`Em 80% dos ${k.n_cenarios} cenários sorteados o VPL à vista ficou entre ${R(va.p10)} e ${R(va.p90)}. Probabilidade de VPL positivo: ${P(k.prob_vpl_positivo)}.`}
 $("dsel").onchange=()=>dash(+$("dsel").value);
 // Resultado principal sem poluição visual; demonstrações analíticas ficam nos detalhes.
@@ -458,8 +543,8 @@ function mostrar(a,k,fin){
  $("kpis").innerHTML=indicadores(a,k,fin);
  const prob=fin?k.prob_vpl_positivo_financiado:k.prob_vpl_positivo;
  $("classe").textContent=`Sistema detalhado: ${N(a.kwp)} kWp · geração anual estimada: ${N(a.geracao_mensal_kwh.reduce((s,v)=>s+v,0))} kWh · probabilidade estimada de VPL positivo: ${P(prob)}.`;
- graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:"#E6AD45"}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
- graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:"#087C88",backgroundColor:"#087C881a",pointRadius:1,pointHoverRadius:6,fill:true}]},options:tooltipRetorno()});
+ graf("c1",{type:"bar",data:{labels:["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"],datasets:[{data:a.geracao_mensal_kwh,backgroundColor:cor("--sol")}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+ graf("c2",{type:"line",data:{labels:a.fluxo_acumulado.map((_,i)=>i),datasets:[{data:a.fluxo_acumulado,borderColor:cor("--mar2"),backgroundColor:"#08717a1a",pointRadius:1,pointHoverRadius:6,fill:true}]},options:tooltipRetorno()});
  const faixa=fin?k.vpl_financiado:k.vpl_a_vista;
  $("risco").innerHTML=`<b>Incerteza financeira</b><p>Em ${P(prob)} dos ${k.n_cenarios} cenários simulados, o VPL foi positivo. Entre os percentis 10 e 90, o VPL variou de <b>${R(faixa.p10)}</b> a <b>${R(faixa.p90)}</b>. Taxa interna de retorno estimada (TIR): <b>${P(a.tir)}</b>.</p><small>Os cenários dependem de preços, geração solar e outras premissas. Não representam garantia de rendimento.</small>`;
 }
