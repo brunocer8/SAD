@@ -10,6 +10,25 @@ c = TestClient(appmod.app)
 COD = f.buscar_municipio("Salvador")
 
 
+def test_conta_demo_criada_uma_vez_e_aceita_login(monkeypatch):
+    nome = "demo_configurada"
+    senha = "senha-original"
+    monkeypatch.setenv("DEMO_USER", nome)
+    monkeypatch.delenv("DEMO_PASSWORD", raising=False)
+    appmod._criar_conta_demo()
+    assert c.post("/api/login", json={"nome": nome, "senha": senha}).status_code == 401
+
+    monkeypatch.setenv("DEMO_PASSWORD", senha)
+    appmod._criar_conta_demo()
+    monkeypatch.setenv("DEMO_PASSWORD", "senha-diferente")
+    appmod._criar_conta_demo()
+
+    resposta = c.post("/api/login", json={"nome": nome, "senha": senha})
+    assert resposta.status_code == 200
+    assert resposta.json()["nome"] == nome
+    assert c.post("/api/login", json={"nome": nome, "senha": "senha-diferente"}).status_code == 401
+
+
 def _h():
     r = c.post("/api/registrar", json={"nome": "teste_sad", "senha": "senha123"})
     if r.status_code == 409:

@@ -6,24 +6,40 @@
 
 A marca *Sol da Bahia* combina a luz solar, o azul do mar e cores quentes que remetem à cultura baiana. O protótipo não é um orçamento nem um projeto de engenharia: ele ajuda o morador a comparar opções tecnicamente admissíveis e economicamente estimadas, **incluindo a opção de não instalar**.
 
-## Comece em 3 passos
+## Acesso para avaliação
 
-Pré-requisitos: Python 3.12+ e internet para carregar a biblioteca de gráficos e a fonte web na interface.
+- [Protótipo publicado](https://sad-solar.onrender.com/)
+- [Vídeo demonstrativo](https://youtu.be/6mBe-Tpuimo)
+- Usuário e senha de demonstração: consulte o PDF entregue à banca.
 
-```bash
-# 1. Entre na pasta do projeto
-cd sol_da_bahia
+## Executar localmente
 
-# 2. Instale as dependências
-python -m pip install -r requirements.txt
+Use Python 3.12. A interface carrega a fonte e a biblioteca de gráficos pela internet.
+Na raiz do repositório, execute no PowerShell:
 
-# 3. Execute
-python -m uvicorn app:app --reload
+```powershell
+cd sad_solar
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m uvicorn app:app
 ```
 
-Abra **http://127.0.0.1:8000**, clique em **Criar conta** e cadastre um usuário para demonstração. Não existe senha padrão nem credenciais hardcoded no repositório.
+No Linux ou macOS:
 
-No Windows, o mesmo procedimento funciona no PowerShell. Para publicar no Render: serviço **Web Service** em Python, comando de instalação `pip install -r requirements.txt` e comando de início `uvicorn app:app --host 0.0.0.0 --port $PORT`. O SQLite é salvo localmente; sem disco persistente, cadastros e históricos podem desaparecer em reinicializações. Para o trabalho acadêmico, use conta de demonstração e evite dados pessoais reais no ambiente público.
+```bash
+cd sad_solar
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r requirements.txt
+.venv/bin/python -m uvicorn app:app
+```
+
+Abra **http://127.0.0.1:8000**. Para uma execução local sem variáveis de demonstração, clique em **Criar conta** e cadastre um usuário de teste.
+
+### Publicação no Render
+
+O Blueprint está em [`sad_solar/render.yaml`](render.yaml), usa `rootDir: sad_solar`, instala com `pip install -r requirements.txt` e executa `python -m uvicorn app:app --host 0.0.0.0 --port $PORT`.
+
+Configure `DEMO_USER` e `DEMO_PASSWORD` no ambiente do serviço para recriar uma conta de demonstração quando o banco estiver vazio. Use um usuário com 3 a 40 caracteres e uma senha com 6 a 100 caracteres. Se o usuário já existir, a inicialização preserva a senha e os dados atuais. Guarde os valores na configuração do serviço e compartilhe as credenciais somente no material de avaliação. A conta pode ser recriada sem disco persistente, mas recuperar o histórico exige preservar o banco SQLite.
 
 ## Demonstração rápida
 
@@ -49,7 +65,7 @@ O gráfico **Retorno acumulado (R$)** na Simulação e o gráfico correspondente
 
 Após uma simulação, a seção **Entenda a recomendação** explica a decisão oficial do SAW, e não apenas o cartão selecionado na Garagem Solar. A mesma explicação também aparece em **Relatórios** e pode ser impressa. A API só envia ao serviço de IA dados resumidos da simulação (município, consumo, área, premissas e indicadores), **sem credenciais ou documentos privados**.
 
-Para ativar texto **realmente gerado por IA**, configure a variável de ambiente `GEMINI_API_KEY` no **servidor**, usando a chave obtida na plataforma Google AI Studio. O aplicativo usa o modelo configurado em `GEMINI_MODEL` (padrão `gemini-2.5-flash`). Por exemplo:
+Para ativar a explicação por IA, configure `GEMINI_API_KEY` no **servidor** com uma chave do Google AI Studio. O modelo padrão local e no Blueprint é `gemini-3.5-flash`. Defina `GEMINI_MODEL` para escolher outro modelo. Por exemplo:
 
 ```bash
 # Linux/macOS (somente na sessão atual)
@@ -87,6 +103,8 @@ O SAD não obriga a instalar só porque a geração é tecnicamente possível. S
 | `dados/` | Base municipal, regressão e validação agrupada por município |
 | `docs/FUNDAMENTACAO.md` | Definição do problema, variáveis, três funções e regras de decisão |
 | `docs/CASO_E_VALIDACAO.md` | Caso ilustrativo e procedimento de validação |
+| `docs/CENARIOS_AGRUPAMENTO.md` | Cenário reproduzível com duas opções no grupo líder |
+| `docs/validacao_orcamentos.md` | Comparação exploratória com propostas comerciais |
 | `docs/FLUXO.md` | Diagrama Mermaid de arquitetura e decisão |
 | `docs/ENTREGA.md` | Checklist do PDF, links, vídeo e apresentação |
 | `tests/` | Testes unitários e de integração |
@@ -95,15 +113,25 @@ Os arquivos em `modelos/` e `perfis.py` pertencem a **experimentos offline herda
 
 ## Testes e reprodutibilidade
 
-```bash
-python -m pip install -r requirements-dev.txt
-python -m pytest -q
-python scripts/validar_regressao.py
-python scripts/caso_demonstracao.py
-python parametros.py
+Dentro de `sad_solar`, use o mesmo ambiente virtual criado acima. No PowerShell:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+.\.venv\Scripts\python.exe -m pytest tests -q
+.\.venv\Scripts\python.exe scripts/validar_regressao.py
+.\.venv\Scripts\python.exe scripts/validar_agrupamento.py
 ```
 
-A execução de `scripts/caso_demonstracao.py` recria o relatório de teste residencial em `docs/CASO_E_VALIDACAO.md` (dados **hipotéticos**, sem identificação de moradores). Com qualquer alteração de premissas, rode os testes e regenere a documentação numérica.
+No Linux ou macOS:
+
+```bash
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python -m pytest tests -q
+.venv/bin/python scripts/validar_regressao.py
+.venv/bin/python scripts/validar_agrupamento.py
+```
+
+A validação da regressão recria `dados/validacao_regressao.csv`. O script `scripts/caso_demonstracao.py` gera a documentação numérica do caso residencial. O comando `python parametros.py`, executado no ambiente virtual, recria a tabela de premissas.
 
 ## Referências e limitações
 

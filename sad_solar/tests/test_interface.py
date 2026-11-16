@@ -2,7 +2,7 @@
 from pathlib import Path
 from html.parser import HTMLParser
 
-HTML = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text()
+HTML = (Path(__file__).resolve().parents[1] / "static" / "index.html").read_text(encoding="utf-8")
 
 
 class Inputs(HTMLParser):

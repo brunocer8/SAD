@@ -12,7 +12,7 @@ from financeiro import AreaInsuficiente, carregar_municipios
 from saw import decisao
 
 app = FastAPI(title="Sol da Bahia — SAD residencial")
-GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 DB = os.getenv("DB_PATH", os.path.join(os.path.dirname(__file__), "sad.db"))
 
 
@@ -32,6 +32,24 @@ with db() as c:
 
 def _hash(senha, sal):
     return hashlib.pbkdf2_hmac("sha256", senha.encode(), bytes.fromhex(sal), 200_000).hex()
+
+
+def _criar_conta_demo():
+    nome = os.getenv("DEMO_USER")
+    senha = os.getenv("DEMO_PASSWORD")
+    if not nome or not senha:
+        return
+    if not 3 <= len(nome) <= 40 or not 6 <= len(senha) <= 100:
+        raise ValueError("As credenciais de demonstração não respeitam os limites de tamanho.")
+    sal = secrets.token_hex(16)
+    with db() as c:
+        c.execute(
+            "insert into usuarios(nome,sal,hash) values(?,?,?) on conflict(nome) do nothing",
+            (nome, sal, _hash(senha, sal)),
+        )
+
+
+_criar_conta_demo()
 
 
 def _sessao(c, uid):
