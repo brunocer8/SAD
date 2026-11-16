@@ -206,6 +206,24 @@ def test_agrupamento_hierarquico():
     assert len(saw.agrupar_indices(idx, 1.0)) == 1 and len(saw.agrupar_indices(idx, 0.0)) == 5
 
 
+def test_caso_residencial_com_empate_tecnico_no_grupo_lider():
+    usuario = {
+        **BASE,
+        "tarifa_kwh": 1.20,
+        "tipo_ligacao": "bifasica",
+        "custo_disponibilidade_kwh_mes": 50,
+        "prioridade": "cautela",
+    }
+    decisao = saw.decisao(usuario, n_mc=1000)
+    lider, ampliada = decisao["ranking"][:2]
+    assert lider["kwp"] == pytest.approx(1.86)
+    assert ampliada["kwp"] == pytest.approx(2.48)
+    assert lider["grupo"] == ampliada["grupo"] == 1
+    assert 0 < lider["indice"] - ampliada["indice"] <= decisao["delta"]
+    assert decisao["recomendacao"]["nome"] == lider["nome"]
+    assert decisao["recomendacao"]["empate_tecnico"] == [ampliada["nome"]]
+
+
 def test_caso_viavel_recomenda_instalar_e_ranking_so_com_aprovadas():
     d = saw.decisao({**BASE, "area_m2": 300})
     rec = d["recomendacao"]
